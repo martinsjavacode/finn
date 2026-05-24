@@ -1,73 +1,77 @@
-# React + TypeScript + Vite
+# 💰 Finn - Controle Financeiro
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicação de controle financeiro pessoal com dashboard de receitas, despesas e cartões de crédito.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- React 19 + TypeScript + Vite
+- Supabase (PostgreSQL + Auth com Magic Link)
+- Deploy via GitHub Pages
 
-## React Compiler
+## Rodar localmente
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Acesse `http://localhost:5173/finn/`
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Build e deploy
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run build
 ```
+
+O deploy é automático via GitHub Actions ao fazer push na `main`.
+
+## Banco de dados (Supabase)
+
+### Tabelas
+
+| Tabela | Descrição |
+|--------|-----------|
+| `categories` | Categorias de lançamentos (Casa, Empresa, Estudos, etc.) |
+| `transactions` | Receitas e despesas mensais |
+| `credit_cards` | Lançamentos de cartão de crédito |
+| `installment_purchases` | Compras parceladas (gera parcelas automaticamente) |
+
+### Migrations (rodar no SQL Editor do Supabase, em ordem)
+
+1. `migration-categories.sql` — cria tabela de categorias e altera transactions
+2. `migration-auth-rls.sql` — RLS para leitura apenas autenticados
+3. `migration-installments.sql` — tabela e trigger de parcelamentos
+
+### Parcelamentos
+
+Ao inserir em `installment_purchases`, um trigger distribui as parcelas automaticamente.
+
+**Cartão parcelado:**
+```sql
+insert into installment_purchases (start_month, description, total_amount, installments, owner, target, card)
+values ('2026-06-01', 'Geladeira', 3600.00, 12, 'personal', 'credit_card', 'nubank');
+```
+
+**Boleto/Pix parcelado:**
+```sql
+insert into installment_purchases (start_month, description, total_amount, installments, owner, target, category)
+values ('2026-06-01', 'Remédio TG', 1426.44, 3, 'personal', 'transaction',
+  (select id from categories where name='misc'));
+```
+
+## Funcionalidades
+
+- Autenticação via Magic Link (email)
+- Dashboard com resumo financeiro mensal
+- Filtro por mês e por responsável (Pessoal / Sogra)
+- Tabela de lançamentos com filtro por categoria
+- Tabela de cartões com filtro por bandeira
+- Parcelamentos automáticos (cartão, boleto ou pix)
+
+## Cartões suportados
+
+Nubank, Bradesco, Inter, Pague Menos, Mercado Pago, Neon
+
+## Categorias
+
+Casa, Empresa, Estudos, Diversas, Lazer, Investimento, Espiritual
