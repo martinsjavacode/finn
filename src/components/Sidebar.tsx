@@ -1,7 +1,7 @@
 import { supabase } from '../lib/supabase'
 import type { Session } from '@supabase/supabase-js'
 
-export type Page = 'transactions' | 'recurring'
+export type Page = 'dashboard' | 'transactions' | 'recurring'
 
 interface Props {
   session: Session
@@ -16,6 +16,7 @@ export default function Sidebar({ session, page, onNavigate }: Props) {
         <h1>💰 Finn</h1>
       </div>
       <nav className="sidebar-nav">
+        <button className={`sidebar-link ${page === 'dashboard' ? 'active' : ''}`} onClick={() => onNavigate('dashboard')}>📊 Dashboard</button>
         <button className={`sidebar-link ${page === 'transactions' ? 'active' : ''}`} onClick={() => onNavigate('transactions')}>📋 Lançamentos</button>
         <button className={`sidebar-link ${page === 'recurring' ? 'active' : ''}`} onClick={() => onNavigate('recurring')}>🔄 Recorrentes</button>
       </nav>

@@ -1,0 +1,52 @@
+.dashboard-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 1.5rem; }
+
+/* Chart Legend */
+.chart-legend { display: flex; gap: 1.2rem; margin-bottom: 1rem; }
+.legend-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: var(--text-muted); }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+.legend-dot.green { background: var(--green); }
+.legend-dot.red { background: var(--red); }
+
+/* Bar Chart */
+.bar-chart { display: flex; align-items: flex-end; gap: 0.5rem; height: 200px; padding-top: 1rem; }
+.bar-group { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; cursor: pointer; opacity: 0.6; transition: opacity 0.2s; }
+.bar-group:hover, .bar-group-active { opacity: 1; }
+.bars { display: flex; gap: 3px; align-items: flex-end; flex: 1; width: 100%; justify-content: center; }
+.bar { width: 16px; border-radius: 4px 4px 0 0; min-height: 4px; transition: height 0.3s; }
+.bar.income { background: var(--green); }
+.bar.expense { background: var(--red); opacity: 0.8; }
+.bar-label { font-size: 0.65rem; color: var(--text-muted); margin-top: 0.5rem; text-transform: capitalize; }
+.bar-group-active .bar-label { color: var(--purple); font-weight: 600; }
+
+/* Dashboard Grid */
+.dashboard-grid { display: grid; grid-template-columns: auto 1fr; gap: 1.5rem; align-items: start; }
+@media (max-width: 768px) { .dashboard-grid { grid-template-columns: 1fr; } }
+
+/* Category Bars */
+.category-bars { display: flex; flex-direction: column; gap: 0.8rem; }
+.cat-row { display: flex; align-items: center; gap: 0.6rem; }
+.cat-label { width: 90px; font-size: 0.78rem; color: var(--text-muted); flex-shrink: 0; }
+.cat-bar-track { flex: 1; height: 8px; background: rgba(255, 255, 255, 0.05); border-radius: 4px; overflow: hidden; }
+.cat-bar-fill { height: 100%; background: var(--gradient-1); border-radius: 4px; transition: width 0.3s; }
+.cat-value { font-size: 0.78rem; color: var(--text); font-weight: 600; min-width: 80px; text-align: right; }
+.cat-pct { font-size: 0.72rem; color: var(--text-muted); min-width: 30px; text-align: right; }
+
+/* Month Filter */
+.dashboard-month-filter { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1.5rem; font-size: 0.85rem; color: var(--text-muted); }
+
+/* Pie Chart */
+.pie-container { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+.pie { width: 220px; height: 220px; border-radius: 50%; flex-shrink: 0; }
+.pie-legend { display: flex; flex-wrap: wrap; gap: 1rem 1.5rem; justify-content: center; }
+.pie-legend-item { display: flex; flex-direction: column; align-items: center; gap: 0.2rem; font-size: 0.78rem; }
+.pie-legend-top { display: flex; align-items: center; gap: 0.3rem; }
+.pie-legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+.pie-legend-label { color: var(--text-muted); }
+.pie-legend-value { color: var(--text); font-weight: 600; font-size: 0.75rem; }
+
+/* Progress */
+.progress-container { display: flex; flex-direction: column; gap: 0.8rem; }
+.progress-info { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-muted); }
+.progress-pct { color: var(--green); font-weight: 700; }
+.progress-track { height: 12px; background: rgba(255, 255, 255, 0.05); border-radius: 6px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--gradient-2); border-radius: 6px; transition: width 0.3s; }

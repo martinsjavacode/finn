@@ -10,6 +10,7 @@ import TransactionsTable from './components/TransactionsTable'
 import CardsTable from './components/CardsTable'
 import AddTransaction from './components/AddTransaction'
 import RecurringPage from './components/RecurringTemplates'
+import Dashboard from './components/Dashboard'
 import './App.css'
 
 export default function App() {
@@ -22,7 +23,7 @@ export default function App() {
   const [cards, setCards] = useState<CreditCard[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [showAdd, setShowAdd] = useState(false)
-  const [page, setPage] = useState<Page>('transactions')
+  const [page, setPage] = useState<Page>('dashboard')
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => { setSession(data.session); setLoading(false) })
@@ -74,7 +75,11 @@ export default function App() {
     <div className="layout">
       <Sidebar session={session} page={page} onNavigate={setPage} />
       <main className="main">
-        {page === 'transactions' ? (
+        {page === 'dashboard' && (
+          <Dashboard categories={categories} />
+        )}
+
+        {page === 'transactions' && (
           <>
             <div className="controls">
               <Select
@@ -104,7 +109,9 @@ export default function App() {
               onDelete={id => setCards(prev => prev.filter(r => r.id !== id))}
             />
           </>
-        ) : (
+        )}
+
+        {page === 'recurring' && (
           <RecurringPage categories={categories} />
         )}
       </main>

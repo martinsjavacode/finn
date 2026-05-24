@@ -6,9 +6,9 @@
 - [x] Editar/excluir lançamentos na UI
 
 ## Visibilidade
-- [ ] Gráfico de evolução mensal (receita vs despesa)
-- [ ] Percentual por categoria (pizza/barra)
-- [ ] Indicador de progresso de pagamento do mês
+- [x] Gráfico de evolução mensal (receita vs despesa)
+- [x] Percentual por categoria (pizza/barra)
+- [x] Indicador de progresso de pagamento do mês
 
 ## Planejamento
 - [ ] Orçamento por categoria (limite vs gasto)
