@@ -22,7 +22,7 @@ export default function App() {
   const [cards, setCards] = useState<CreditCard[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [showAdd, setShowAdd] = useState(false)
-  const [page, setPage] = useState<Page>('dashboard')
+  const [page, setPage] = useState<Page>('transactions')
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => { setSession(data.session); setLoading(false) })
@@ -74,7 +74,7 @@ export default function App() {
     <div className="layout">
       <Sidebar session={session} page={page} onNavigate={setPage} />
       <main className="main">
-        {page === 'dashboard' ? (
+        {page === 'transactions' ? (
           <>
             <div className="controls">
               <Select

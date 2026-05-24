@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import type { Category, Owner, Card } from '../types/database'
+import './Recurring.css'
 
 const cardLabels: Record<Card, string> = { nubank: 'Nubank', bradesco: 'Bradesco', inter: 'Inter', pague_menos: 'Pague Menos', mercado_pago: 'Mercado Pago', neon: 'Neon' }
 const allCards: Card[] = ['nubank', 'bradesco', 'inter', 'pague_menos', 'mercado_pago', 'neon']

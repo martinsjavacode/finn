@@ -1,0 +1,32 @@
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.page-header h2 { font-size: 1.3rem; font-weight: 700; }
+.page-actions { display: flex; gap: 0.6rem; align-items: center; }
+
+.input-month {
+  padding: 0.5rem 0.8rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: #1a1f2e;
+  color: var(--text);
+  color-scheme: dark;
+  font-size: 0.85rem;
+}
+
+.inline-input {
+  padding: 0.3rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  color-scheme: dark;
+  font-size: 0.8rem;
+  width: 100%;
+}
