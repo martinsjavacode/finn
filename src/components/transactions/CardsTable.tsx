@@ -9,10 +9,11 @@ const ownerBadge = (o: Owner) => o === 'personal' ? 'Pessoal' : 'Sogra'
 
 interface Props {
   cards: CreditCard[]
+  canEdit: boolean
   onDelete: (id: string) => void
 }
 
-export default function CardsTable({ cards, onDelete }: Props) {
+export default function CardsTable({ cards, canEdit, onDelete }: Props) {
   const [cardFilter, setCardFilter] = useState('all')
   const [editing, setEditing] = useState<string | null>(null)
 
@@ -46,11 +47,11 @@ export default function CardsTable({ cards, onDelete }: Props) {
               <td>{fmt(+r.amount)}</td>
               <td><span className={`badge ${r.owner === 'personal' ? 'badge-personal' : 'badge-sogra'}`}>{ownerBadge(r.owner)}</span></td>
               <td>
-                {editing === r.id ? (
+                {canEdit && (editing === r.id ? (
                   <Button variant="icon" className="delete-btn" onClick={() => handleDelete(r.id)}>🗑️</Button>
                 ) : (
                   <Button variant="icon" onClick={() => setEditing(r.id)}>⋯</Button>
-                )}
+                ))}
               </td>
             </tr>
           )) : <tr><td colSpan={6} className="empty">Nenhum lançamento</td></tr>}

@@ -4,25 +4,36 @@ import './Auth.css'
 
 export default function Auth() {
   const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [mode, setMode] = useState<'password' | 'magic'>('password')
-  const [sent, setSent] = useState(false)
+  const [code, setCode] = useState('')
+  const [step, setStep] = useState<'email' | 'code'>('email')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
 
-    if (mode === 'magic') {
-      const { error } = await supabase.auth.signInWithOtp({ email })
-      if (error) setError(error.message)
-      else setSent(true)
-    } else {
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) setError(error.message)
+    // Verificar se email está autorizado
+    const { data } = await supabase.from('access_control').select('id').eq('email', email).single()
+    if (!data) {
+      setError('Email não autorizado.')
+      setLoading(false)
+      return
     }
+
+    const { error } = await supabase.auth.signInWithOtp({ email })
+    if (error) setError(error.message)
+    else setStep('code')
+    setLoading(false)
+  }
+
+  const handleVerify = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError('')
+    const { error } = await supabase.auth.verifyOtp({ email, token: code, type: 'email' })
+    if (error) setError(error.message)
     setLoading(false)
   }
 
@@ -33,23 +44,21 @@ export default function Auth() {
   return (
     <div className="auth">
       <h1>💰 Finn</h1>
-      {sent ? (
-        <p className="auth-msg">Link enviado para <strong>{email}</strong>. Verifique seu email.</p>
-      ) : (
-        <form onSubmit={handleSubmit}>
+      {step === 'email' ? (
+        <form onSubmit={handleSendCode}>
           <input type="email" placeholder="seu@email.com" value={email} onChange={e => setEmail(e.target.value)} required />
-          {mode === 'password' && (
-            <input type="password" placeholder="Senha" value={password} onChange={e => setPassword(e.target.value)} required />
-          )}
           {error && <p className="auth-error">{error}</p>}
-          <button type="submit" disabled={loading}>
-            {loading ? 'Entrando...' : mode === 'password' ? 'Entrar' : 'Enviar Magic Link'}
-          </button>
-          <button type="button" className="tab" onClick={() => setMode(mode === 'password' ? 'magic' : 'password')}>
-            {mode === 'password' ? 'Usar Magic Link' : 'Usar senha'}
-          </button>
+          <button type="submit" disabled={loading}>{loading ? 'Enviando...' : 'Enviar código'}</button>
           <div className="auth-divider">ou</div>
           <button type="button" className="auth-github" onClick={handleGitHub}>Entrar com GitHub</button>
+        </form>
+      ) : (
+        <form onSubmit={handleVerify}>
+          <p className="auth-msg">Código enviado para <strong>{email}</strong></p>
+          <input type="text" placeholder="Digite o código" value={code} onChange={e => setCode(e.target.value)} required autoFocus />
+          {error && <p className="auth-error">{error}</p>}
+          <button type="submit" disabled={loading}>{loading ? 'Verificando...' : 'Verificar'}</button>
+          <button type="button" className="auth-github" onClick={() => { setStep('email'); setError('') }}>Voltar</button>
         </form>
       )}
     </div>

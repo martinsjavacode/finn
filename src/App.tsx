@@ -13,6 +13,7 @@ import RecurringPage from './components/recurring/RecurringTemplates'
 import Dashboard from './components/dashboard/Dashboard'
 import Projection from './components/projection/Projection'
 import BudgetsPage from './components/budgets/BudgetsPage'
+import AccessPage from './components/access/AccessPage'
 import Button from './components/ui/Button'
 import './App.css'
 
@@ -27,6 +28,7 @@ export default function App() {
   const [categories, setCategories] = useState<Category[]>([])
   const [showAdd, setShowAdd] = useState(false)
   const [page, setPage] = useState<Page>('dashboard')
+  const [userRole, setUserRole] = useState<'editor' | 'viewer'>('viewer')
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => { setSession(data.session); setLoading(false) })
@@ -39,6 +41,15 @@ export default function App() {
     ;(async () => {
       const { data: cats } = await supabase.from('categories').select('*')
       setCategories(cats ?? [])
+
+      // Carregar role do usuário (GitHub = sempre editor)
+      const isGitHub = session.user.app_metadata?.provider === 'github' || session.user.identities?.some(i => i.provider === 'github')
+      if (isGitHub) {
+        setUserRole('editor')
+      } else {
+        const { data: access } = await supabase.from('access_control').select('role').eq('email', session.user.email ?? '').single() as { data: { role: string } | null }
+        setUserRole((access?.role as 'editor' | 'viewer') ?? 'viewer')
+      }
 
       const { data: t } = await supabase.from('transactions').select('month').order('month', { ascending: false })
       const { data: c } = await supabase.from('credit_cards').select('month').order('month', { ascending: false })
@@ -74,9 +85,12 @@ export default function App() {
   const expense = ft.filter(r => r.type === 'expense').reduce((s, r) => s + +r.amount, 0)
   const cardTotal = fc.reduce((s, r) => s + +r.amount, 0)
 
+  const isEditor = userRole === 'editor'
+  const isOwner = session.user.app_metadata?.provider === 'github' || session.user.identities?.some(i => i.provider === 'github') || false
+
   return (
     <div className="layout">
-      <Sidebar session={session} page={page} onNavigate={setPage} />
+      <Sidebar session={session} page={page} isOwner={isOwner} onNavigate={setPage} />
       <main className="main">
         {page === 'dashboard' && (
           <Dashboard categories={categories} />
@@ -95,7 +109,7 @@ export default function App() {
                 onChange={v => setOwner(v as 'all' | Owner)}
                 options={[{ value: 'all', label: 'Todos' }, { value: 'personal', label: 'Pessoal' }, { value: 'mother_in_law', label: 'Sogra' }]}
               />
-              <Button onClick={() => setShowAdd(true)}>+ Novo</Button>
+              {isEditor && <Button onClick={() => setShowAdd(true)}>+ Novo</Button>}
             </div>
 
             <SummaryCards income={income} expense={expense} cardTotal={cardTotal} />
@@ -103,12 +117,14 @@ export default function App() {
             <TransactionsTable
               transactions={ft}
               categories={categories}
+              canEdit={isEditor}
               onUpdate={(id, data) => setTransactions(prev => prev.map(r => r.id === id ? { ...r, ...data } : r))}
               onDelete={id => setTransactions(prev => prev.filter(r => r.id !== id))}
             />
 
             <CardsTable
               cards={fc}
+              canEdit={isEditor}
               onDelete={id => setCards(prev => prev.filter(r => r.id !== id))}
             />
           </>
@@ -124,6 +140,10 @@ export default function App() {
 
         {page === 'budgets' && (
           <BudgetsPage categories={categories} />
+        )}
+
+        {page === 'access' && (
+          <AccessPage />
         )}
       </main>
 

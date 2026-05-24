@@ -9,11 +9,12 @@ const ownerBadge = (o: Owner) => o === 'personal' ? 'Pessoal' : 'Sogra'
 interface Props {
   transactions: Transaction[]
   categories: Category[]
+  canEdit: boolean
   onUpdate: (id: string, data: Partial<Transaction>) => void
   onDelete: (id: string) => void
 }
 
-export default function TransactionsTable({ transactions, categories, onUpdate, onDelete }: Props) {
+export default function TransactionsTable({ transactions, categories, canEdit, onUpdate, onDelete }: Props) {
   const [typeFilter, setTypeFilter] = useState<'all' | TransactionType>('all')
   const [catFilter, setCatFilter] = useState('all')
   const [editing, setEditing] = useState<string | null>(null)
@@ -68,13 +69,13 @@ export default function TransactionsTable({ transactions, categories, onUpdate, 
               <td>{r.current_installment && r.total_installments ? `${r.current_installment}/${r.total_installments}` : '-'}</td>
               <td>{fmt(+r.amount)}</td>
               <td><span className={`badge ${r.owner === 'personal' ? 'badge-personal' : 'badge-sogra'}`}>{ownerBadge(r.owner)}</span></td>
-              <td><button className={`paid-btn ${r.paid ? 'paid' : ''}`} onClick={() => togglePaid(r.id, r.paid)}>{r.paid ? '✓' : '○'}</button></td>
+              <td>{canEdit && <button className={`paid-btn ${r.paid ? 'paid' : ''}`} onClick={() => togglePaid(r.id, r.paid)}>{r.paid ? '✓' : '○'}</button>}</td>
               <td>
-                {editing === r.id ? (
+                {canEdit && (editing === r.id ? (
                   <Button variant="icon" className="delete-btn" onClick={() => handleDelete(r.id)}>🗑️</Button>
                 ) : (
                   <Button variant="icon" onClick={() => setEditing(r.id)}>⋯</Button>
-                )}
+                ))}
               </td>
             </tr>
           )) : <tr><td colSpan={9} className="empty">Nenhum lançamento</td></tr>}
