@@ -11,9 +11,9 @@
 - [x] Indicador de progresso de pagamento do mês
 
 ## Planejamento
-- [ ] Orçamento por categoria (limite vs gasto)
-- [ ] Projeção dos próximos meses (comprometido futuro)
-- [ ] Alertas de vencimento (próximos dias)
+- [x] Orçamento por categoria (limite vs gasto)
+- [x] Projeção dos próximos meses (comprometido futuro)
+- [x] Alertas de vencimento (próximos dias)
 
 ## Qualidade de vida
 - [ ] Busca por descrição

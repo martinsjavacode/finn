@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { supabase } from '../lib/supabase'
-import type { Transaction, Category } from '../types/database'
+import { supabase } from '../../lib/supabase'
+import type { Transaction, Category } from '../../types/database'
 import './Dashboard.css'
 
 const fmt = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -14,6 +14,7 @@ interface Props {
 export default function Dashboard({ categories: _categories }: Props) {
   const [monthsData, setMonthsData] = useState<MonthData[]>([])
   const [currentTransactions, setCurrentTransactions] = useState<Transaction[]>([])
+  const [budgets, setBudgets] = useState<{ category: string; monthly_limit: number }[]>([])
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date()
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
@@ -22,7 +23,11 @@ export default function Dashboard({ categories: _categories }: Props) {
 
   useEffect(() => {
     ;(async () => {
-      const { data } = await supabase.from('transactions').select('month, amount, type').order('month')
+      const [{ data }, { data: budgetData }] = await Promise.all([
+        supabase.from('transactions').select('month, amount, type').order('month'),
+        supabase.from('budgets').select('category, monthly_limit') as never
+      ])
+      setBudgets((budgetData ?? []) as { category: string; monthly_limit: number }[])
       if (!data) { setLoading(false); return }
 
       const rows = data as { month: string; amount: number; type: string }[]
@@ -40,8 +45,6 @@ export default function Dashboard({ categories: _categories }: Props) {
         .slice(-12)
 
       setMonthsData(sorted)
-
-      const months = sorted.map(d => d.month)
       setLoading(false)
     })()
   }, [])
@@ -144,20 +147,77 @@ export default function Dashboard({ categories: _categories }: Props) {
           ) : <p className="empty">Sem despesas</p>}
         </section>
 
-        {/* Progresso de Pagamento */}
+        {/* Orçamento por Categoria */}
         <section>
-          <h2>Progresso de Pagamento</h2>
-          <div className="progress-container">
-            <div className="progress-info">
-              <span>{paidCount} de {totalCount} contas pagas</span>
-              <span className="progress-pct">{paidPercent}%</span>
+          <h2>Orçamento por Categoria</h2>
+          {budgets.length > 0 ? (
+            <div className="budget-list">
+              {budgets.map(b => {
+                const catName = expenses.find(r => r.category === b.category)?.categories?.label ?? b.category
+                const spent = expenses.filter(r => r.category === b.category).reduce((s, r) => s + +r.amount, 0)
+                const pct = Math.min((spent / b.monthly_limit) * 100, 100)
+                const over = spent > b.monthly_limit
+                return (
+                  <div key={b.category} className="budget-row">
+                    <div className="budget-header">
+                      <span className="budget-cat">{catName}</span>
+                      <span className={`budget-values ${over ? 'over' : ''}`}>{fmt(spent)} / {fmt(b.monthly_limit)}</span>
+                    </div>
+                    <div className="budget-track">
+                      <div className={`budget-fill ${over ? 'over' : ''}`} style={{ width: `${pct}%` }}></div>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
-            <div className="progress-track">
-              <div className="progress-fill" style={{ width: `${paidPercent}%` }}></div>
-            </div>
-          </div>
+          ) : (
+            <p className="empty">Nenhum orçamento cadastrado. Acesse 💰 Orçamentos para configurar.</p>
+          )}
         </section>
       </div>
+
+      {/* Progresso de Pagamento */}
+      <section>
+        <h2>Progresso de Pagamento</h2>
+        <div className="progress-container">
+          <div className="progress-info">
+            <span>{paidCount} de {totalCount} contas pagas</span>
+            <span className="progress-pct">{paidPercent}%</span>
+          </div>
+          <div className="progress-track">
+            <div className="progress-fill" style={{ width: `${paidPercent}%` }}></div>
+          </div>
+        </div>
+      </section>
+
+      {/* Alertas de Vencimento */}
+      {(() => {
+        const today = new Date()
+        const unpaid = currentTransactions
+          .filter(r => r.type === 'expense' && !r.paid)
+          .sort((a, b) => a.month.localeCompare(b.month))
+
+        if (!unpaid.length) return null
+        return (
+          <section className="alerts-section">
+            <h2>⚠️ Contas Pendentes</h2>
+            <div className="alerts-list">
+              {unpaid.map(r => {
+                const d = new Date(r.month + 'T12:00:00')
+                const overdue = d < today
+                return (
+                  <div key={r.id} className={`alert-item ${overdue ? 'alert-overdue' : ''}`}>
+                    <span className="alert-date">{d.toLocaleDateString('pt-BR')}</span>
+                    <span className="alert-desc">{r.description}</span>
+                    <span className="alert-amount">{fmt(+r.amount)}</span>
+                    {overdue && <span className="alert-badge">Atrasado</span>}
+                  </div>
+                )
+              })}
+            </div>
+          </section>
+        )
+      })()}
     </div>
   )
 }

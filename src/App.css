@@ -102,6 +102,26 @@ h1 {
 .controls { display: flex; gap: 0.75rem; justify-content: center; margin-bottom: 2rem; flex-wrap: wrap; }
 
 /* Custom Select */
+select {
+  padding: 0.6rem 2.2rem 0.6rem 1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background-color: #1a1f2e;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23a78bfa' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.8rem center;
+  appearance: none;
+  color: var(--text);
+  color-scheme: dark;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+select option { background: #1a1f2e; color: var(--text); }
+select:hover { border-color: var(--purple); }
+select:focus { outline: none; border-color: var(--purple); box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.15); }
+
 .custom-select { position: relative; }
 .custom-select-trigger {
   display: flex; align-items: center; gap: 0.6rem;
@@ -152,7 +172,7 @@ section > h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 1.2rem; color
 
 /* Tabs */
 .tabs { display: flex; gap: 0.4rem; margin-bottom: 1.2rem; flex-wrap: wrap; }
-.tab { padding: 0.45rem 1rem; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--text-muted); cursor: pointer; font-size: 0.8rem; font-weight: 500; transition: all 0.2s; }
+.tab { padding: 0.5rem 1rem; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--text-muted); cursor: pointer; font-size: 0.8rem; font-weight: 500; transition: all 0.2s; height: 36px; display: inline-flex; align-items: center; }
 .tab:hover { color: var(--text); border-color: var(--purple); }
 .tab.active { background: var(--gradient-1); color: white; border-color: transparent; }
 
@@ -176,7 +196,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
 .paid-btn:hover { border-color: var(--green); color: var(--green); }
 .paid-btn.paid { background: rgba(0, 214, 143, 0.15); color: var(--green); border-color: var(--green); }
 
-.btn-primary { padding: 0.5rem 1.2rem; border-radius: var(--radius-sm); border: none; background: var(--gradient-1); color: white; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+.btn-primary { padding: 0.5rem 1rem; border-radius: 20px; border: none; background: var(--gradient-1); color: white; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: opacity 0.2s; height: 36px; display: inline-flex; align-items: center; }
 .btn-primary:hover { opacity: 0.9; }
 .btn-primary:disabled { opacity: 0.5; }
 

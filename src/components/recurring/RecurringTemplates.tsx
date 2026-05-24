@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
-import { supabase } from '../lib/supabase'
-import type { Category, Owner, Card } from '../types/database'
+import { supabase } from '../../lib/supabase'
+import type { Category, Owner, Card } from '../../types/database'
+import Select from '../ui/Select'
+import Button from '../ui/Button'
 import './Recurring.css'
 
 const cardLabels: Record<Card, string> = { nubank: 'Nubank', bradesco: 'Bradesco', inter: 'Inter', pague_menos: 'Pague Menos', mercado_pago: 'Mercado Pago', neon: 'Neon' }
@@ -98,10 +100,10 @@ export default function RecurringPage({ categories }: Props) {
         <h2>🔄 Lançamentos Recorrentes</h2>
         <div className="page-actions">
           <input type="month" value={genMonth} onChange={e => setGenMonth(e.target.value)} className="input-month" />
-          <button className="btn-primary" onClick={handleGenerate} disabled={generating}>
+          <Button onClick={handleGenerate} disabled={generating}>
             {generating ? 'Gerando...' : '⚡ Gerar'}
-          </button>
-          <button className="btn-primary" onClick={() => setShowForm(!showForm)}>+ Novo</button>
+          </Button>
+          <Button onClick={() => setShowForm(!showForm)}>+ Novo</Button>
         </div>
       </div>
 
@@ -124,43 +126,36 @@ export default function RecurringPage({ categories }: Props) {
 
             <label className="form-label">Forma de pagamento</label>
             <div className="form-tabs">
-              <button type="button" className={`tab ${target === 'transaction' ? 'active' : ''}`} onClick={() => setTarget('transaction')}>Boleto/Pix</button>
-              <button type="button" className={`tab ${target === 'credit_card' ? 'active' : ''}`} onClick={() => setTarget('credit_card')}>Cartão</button>
+              <Button variant="tab" active={target === 'transaction'} onClick={() => setTarget('transaction')}>Boleto/Pix</Button>
+              <Button variant="tab" active={target === 'credit_card'} onClick={() => setTarget('credit_card')}>Cartão</Button>
             </div>
 
             {target === 'transaction' && (
               <>
                 <label className="form-label">Tipo</label>
                 <div className="form-tabs">
-                  <button type="button" className={`tab ${type === 'expense' ? 'active' : ''}`} onClick={() => setType('expense')}>Despesa</button>
-                  <button type="button" className={`tab ${type === 'income' ? 'active' : ''}`} onClick={() => setType('income')}>Receita</button>
+                  <Button variant="tab" active={type === 'expense'} onClick={() => setType('expense')}>Despesa</Button>
+                  <Button variant="tab" active={type === 'income'} onClick={() => setType('income')}>Receita</Button>
                 </div>
                 <label className="form-label">Categoria
-                  <select value={category} onChange={e => setCategory(e.target.value)}>
-                    {categories.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
-                  </select>
+                  <Select value={category} onChange={setCategory} options={categories.map(c => ({ value: c.id, label: c.label }))} />
                 </label>
               </>
             )}
 
             {target === 'credit_card' && (
               <label className="form-label">Cartão
-                <select value={card} onChange={e => setCard(e.target.value as Card)}>
-                  {allCards.map(c => <option key={c} value={c}>{cardLabels[c]}</option>)}
-                </select>
+                <Select value={card} onChange={v => setCard(v as Card)} options={allCards.map(c => ({ value: c, label: cardLabels[c] }))} />
               </label>
             )}
 
             <label className="form-label">Responsável
-              <select value={owner} onChange={e => setOwner(e.target.value as Owner)}>
-                <option value="personal">Pessoal</option>
-                <option value="mother_in_law">Sogra</option>
-              </select>
+              <Select value={owner} onChange={v => setOwner(v as Owner)} options={[{ value: 'personal', label: 'Pessoal' }, { value: 'mother_in_law', label: 'Sogra' }]} />
             </label>
 
             <div className="form-actions">
-              <button type="button" className="tab" onClick={() => setShowForm(false)}>Cancelar</button>
-              <button type="submit" className="btn-primary">Salvar</button>
+              <Button variant="tab" onClick={() => setShowForm(false)}>Cancelar</Button>
+              <Button type="submit">Salvar</Button>
             </div>
           </form>
         </div>
@@ -188,7 +183,7 @@ export default function RecurringPage({ categories }: Props) {
                       </select>
                     </td>
                     <td><button className={`paid-btn ${t.active ? 'paid' : ''}`} onClick={() => toggleActive(t.id, t.active)}>{t.active ? '✓' : '○'}</button></td>
-                    <td><button className="btn-primary" onClick={() => saveEdit(t.id)}>✓</button></td>
+                    <td><Button onClick={() => saveEdit(t.id)}>✓</Button></td>
                   </>
                 ) : (
                   <>
@@ -200,8 +195,8 @@ export default function RecurringPage({ categories }: Props) {
                     <td><span className={`badge ${t.owner === 'personal' ? 'badge-personal' : 'badge-sogra'}`}>{t.owner === 'personal' ? 'Pessoal' : 'Sogra'}</span></td>
                     <td><button className={`paid-btn ${t.active ? 'paid' : ''}`} onClick={() => toggleActive(t.id, t.active)}>{t.active ? '✓' : '○'}</button></td>
                     <td>
-                      <button className="edit-btn" onClick={() => startEdit(t)}>✏️</button>
-                      <button className="delete-btn" onClick={() => handleDelete(t.id)}>🗑️</button>
+                      <Button variant="icon" onClick={() => startEdit(t)}>✏️</Button>
+                      <Button variant="icon" className="delete-btn" onClick={() => handleDelete(t.id)}>🗑️</Button>
                     </td>
                   </>
                 )}

@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { supabase } from '../lib/supabase'
-import type { CreditCard, Card, Owner } from '../types/database'
+import { supabase } from '../../lib/supabase'
+import type { CreditCard, Card, Owner } from '../../types/database'
+import Button from '../ui/Button'
 
 const cardLabels: Record<Card, string> = { nubank: 'Nubank', bradesco: 'Bradesco', inter: 'Inter', pague_menos: 'Pague Menos', mercado_pago: 'Mercado Pago', neon: 'Neon' }
 const fmt = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -29,9 +30,9 @@ export default function CardsTable({ cards, onDelete }: Props) {
       <h2>Cartões de Crédito</h2>
       <div className="tabs">
         {cardNames.map(c => (
-          <button key={c} className={`tab ${c === cardFilter ? 'active' : ''}`} onClick={() => setCardFilter(c)}>
+          <Button key={c} variant="tab" active={c === cardFilter} onClick={() => setCardFilter(c)}>
             {c === 'all' ? 'Todos' : cardLabels[c as Card] || c}
-          </button>
+          </Button>
         ))}
       </div>
       <table>
@@ -46,9 +47,9 @@ export default function CardsTable({ cards, onDelete }: Props) {
               <td><span className={`badge ${r.owner === 'personal' ? 'badge-personal' : 'badge-sogra'}`}>{ownerBadge(r.owner)}</span></td>
               <td>
                 {editing === r.id ? (
-                  <button className="delete-btn" onClick={() => handleDelete(r.id)}>🗑️</button>
+                  <Button variant="icon" className="delete-btn" onClick={() => handleDelete(r.id)}>🗑️</Button>
                 ) : (
-                  <button className="edit-btn" onClick={() => setEditing(r.id)}>⋯</button>
+                  <Button variant="icon" onClick={() => setEditing(r.id)}>⋯</Button>
                 )}
               </td>
             </tr>

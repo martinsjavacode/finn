@@ -19,7 +19,7 @@
 .bar-group-active .bar-label { color: var(--purple); font-weight: 600; }
 
 /* Dashboard Grid */
-.dashboard-grid { display: grid; grid-template-columns: auto 1fr; gap: 1.5rem; align-items: start; }
+.dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: start; }
 @media (max-width: 768px) { .dashboard-grid { grid-template-columns: 1fr; } }
 
 /* Category Bars */
@@ -50,3 +50,24 @@
 .progress-pct { color: var(--green); font-weight: 700; }
 .progress-track { height: 12px; background: rgba(255, 255, 255, 0.05); border-radius: 6px; overflow: hidden; }
 .progress-fill { height: 100%; background: var(--gradient-2); border-radius: 6px; transition: width 0.3s; }
+
+/* Budget */
+.budget-list { display: flex; flex-direction: column; gap: 1rem; }
+.budget-row { display: flex; flex-direction: column; gap: 0.4rem; }
+.budget-header { display: flex; justify-content: space-between; font-size: 0.82rem; }
+.budget-cat { color: var(--text-muted); font-weight: 500; }
+.budget-values { color: var(--text); font-weight: 600; }
+.budget-values.over { color: var(--red); }
+.budget-track { height: 8px; background: rgba(255, 255, 255, 0.05); border-radius: 4px; overflow: hidden; }
+.budget-fill { height: 100%; background: var(--gradient-2); border-radius: 4px; transition: width 0.3s; }
+.budget-fill.over { background: var(--gradient-3); }
+
+/* Alerts */
+.alerts-section { border-color: rgba(255, 107, 107, 0.2); }
+.alerts-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.alert-item { display: flex; align-items: center; gap: 1rem; padding: 0.6rem 0.8rem; border-radius: 8px; background: rgba(255, 255, 255, 0.02); }
+.alert-item.alert-overdue { background: rgba(255, 107, 107, 0.06); }
+.alert-date { font-size: 0.78rem; color: var(--text-muted); min-width: 80px; }
+.alert-desc { flex: 1; font-size: 0.85rem; }
+.alert-amount { font-size: 0.85rem; font-weight: 600; }
+.alert-badge { font-size: 0.68rem; background: rgba(255, 107, 107, 0.15); color: var(--red); padding: 2px 8px; border-radius: 10px; font-weight: 600; }

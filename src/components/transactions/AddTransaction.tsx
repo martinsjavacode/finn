@@ -1,6 +1,8 @@
 import { useState } from 'react'
-import { supabase } from '../lib/supabase'
-import type { Category, Owner, Card, TransactionType } from '../types/database'
+import { supabase } from '../../lib/supabase'
+import type { Category, Owner, Card, TransactionType } from '../../types/database'
+import Select from '../ui/Select'
+import Button from '../ui/Button'
 
 const cards: Card[] = ['nubank', 'bradesco', 'inter', 'pague_menos', 'mercado_pago', 'neon']
 const cardLabels: Record<Card, string> = { nubank: 'Nubank', bradesco: 'Bradesco', inter: 'Inter', pague_menos: 'Pague Menos', mercado_pago: 'Mercado Pago', neon: 'Neon' }
@@ -47,14 +49,14 @@ export default function AddTransaction({ categories, onSaved, onClose }: Props) 
         <h2>Novo Lançamento</h2>
 
         <div className="form-tabs">
-          <button type="button" className={`tab ${target === 'transaction' ? 'active' : ''}`} onClick={() => setTarget('transaction')}>Receita/Despesa</button>
-          <button type="button" className={`tab ${target === 'credit_card' ? 'active' : ''}`} onClick={() => setTarget('credit_card')}>Cartão</button>
+          <Button variant="tab" active={target === 'transaction'} onClick={() => setTarget('transaction')}>Receita/Despesa</Button>
+          <Button variant="tab" active={target === 'credit_card'} onClick={() => setTarget('credit_card')}>Cartão</Button>
         </div>
 
         {target === 'transaction' && (
           <div className="form-tabs">
-            <button type="button" className={`tab ${type === 'income' ? 'active' : ''}`} onClick={() => setType('income')}>Receita</button>
-            <button type="button" className={`tab ${type === 'expense' ? 'active' : ''}`} onClick={() => setType('expense')}>Despesa</button>
+            <Button variant="tab" active={type === 'income'} onClick={() => setType('income')}>Receita</Button>
+            <Button variant="tab" active={type === 'expense'} onClick={() => setType('expense')}>Despesa</Button>
           </div>
         )}
 
@@ -63,23 +65,16 @@ export default function AddTransaction({ categories, onSaved, onClose }: Props) 
         <input type="number" step="0.01" placeholder="Valor" value={amount} onChange={e => setAmount(e.target.value)} required />
 
         {target === 'transaction' ? (
-          <select value={category} onChange={e => setCategory(e.target.value)}>
-            {categories.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
-          </select>
+          <Select value={category} onChange={setCategory} options={categories.map(c => ({ value: c.id, label: c.label }))} />
         ) : (
-          <select value={card} onChange={e => setCard(e.target.value as Card)}>
-            {cards.map(c => <option key={c} value={c}>{cardLabels[c]}</option>)}
-          </select>
+          <Select value={card} onChange={v => setCard(v as Card)} options={cards.map(c => ({ value: c, label: cardLabels[c] }))} />
         )}
 
-        <select value={owner} onChange={e => setOwner(e.target.value as Owner)}>
-          <option value="personal">Pessoal</option>
-          <option value="mother_in_law">Sogra</option>
-        </select>
+        <Select value={owner} onChange={v => setOwner(v as Owner)} options={[{ value: 'personal', label: 'Pessoal' }, { value: 'mother_in_law', label: 'Sogra' }]} />
 
         <div className="form-actions">
-          <button type="button" className="tab" onClick={onClose}>Cancelar</button>
-          <button type="submit" className="btn-primary" disabled={saving}>{saving ? 'Salvando...' : 'Salvar'}</button>
+          <Button variant="tab" onClick={onClose}>Cancelar</Button>
+          <Button variant="primary" type="submit" disabled={saving}>{saving ? 'Salvando...' : 'Salvar'}</Button>
         </div>
       </form>
     </div>

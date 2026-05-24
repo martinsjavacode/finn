@@ -1,7 +1,7 @@
-import { supabase } from '../lib/supabase'
+import { supabase } from '../../lib/supabase'
 import type { Session } from '@supabase/supabase-js'
 
-export type Page = 'dashboard' | 'transactions' | 'recurring'
+export type Page = 'dashboard' | 'transactions' | 'recurring' | 'projection' | 'budgets'
 
 interface Props {
   session: Session
@@ -19,6 +19,8 @@ export default function Sidebar({ session, page, onNavigate }: Props) {
         <button className={`sidebar-link ${page === 'dashboard' ? 'active' : ''}`} onClick={() => onNavigate('dashboard')}>📊 Dashboard</button>
         <button className={`sidebar-link ${page === 'transactions' ? 'active' : ''}`} onClick={() => onNavigate('transactions')}>📋 Lançamentos</button>
         <button className={`sidebar-link ${page === 'recurring' ? 'active' : ''}`} onClick={() => onNavigate('recurring')}>🔄 Recorrentes</button>
+        <button className={`sidebar-link ${page === 'projection' ? 'active' : ''}`} onClick={() => onNavigate('projection')}>📈 Projeção</button>
+        <button className={`sidebar-link ${page === 'budgets' ? 'active' : ''}`} onClick={() => onNavigate('budgets')}>💰 Orçamentos</button>
       </nav>
       <div className="sidebar-footer">
         <span className="sidebar-user">{session.user.email}</span>

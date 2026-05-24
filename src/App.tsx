@@ -2,15 +2,18 @@ import { useEffect, useState } from 'react'
 import { supabase } from './lib/supabase'
 import type { Transaction, CreditCard, Category, Owner } from './types/database'
 import type { Session } from '@supabase/supabase-js'
-import Auth from './components/Auth'
-import Sidebar, { type Page } from './components/Sidebar'
-import Select from './components/Select'
-import SummaryCards from './components/SummaryCards'
-import TransactionsTable from './components/TransactionsTable'
-import CardsTable from './components/CardsTable'
-import AddTransaction from './components/AddTransaction'
-import RecurringPage from './components/RecurringTemplates'
-import Dashboard from './components/Dashboard'
+import Auth from './components/auth/Auth'
+import Sidebar, { type Page } from './components/ui/Sidebar'
+import Select from './components/ui/Select'
+import SummaryCards from './components/dashboard/SummaryCards'
+import TransactionsTable from './components/transactions/TransactionsTable'
+import CardsTable from './components/transactions/CardsTable'
+import AddTransaction from './components/transactions/AddTransaction'
+import RecurringPage from './components/recurring/RecurringTemplates'
+import Dashboard from './components/dashboard/Dashboard'
+import Projection from './components/projection/Projection'
+import BudgetsPage from './components/budgets/BudgetsPage'
+import Button from './components/ui/Button'
 import './App.css'
 
 export default function App() {
@@ -92,7 +95,7 @@ export default function App() {
                 onChange={v => setOwner(v as 'all' | Owner)}
                 options={[{ value: 'all', label: 'Todos' }, { value: 'personal', label: 'Pessoal' }, { value: 'mother_in_law', label: 'Sogra' }]}
               />
-              <button className="btn-primary" onClick={() => setShowAdd(true)}>+ Novo</button>
+              <Button onClick={() => setShowAdd(true)}>+ Novo</Button>
             </div>
 
             <SummaryCards income={income} expense={expense} cardTotal={cardTotal} />
@@ -113,6 +116,14 @@ export default function App() {
 
         {page === 'recurring' && (
           <RecurringPage categories={categories} />
+        )}
+
+        {page === 'projection' && (
+          <Projection />
+        )}
+
+        {page === 'budgets' && (
+          <BudgetsPage categories={categories} />
         )}
       </main>
 

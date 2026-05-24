@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { supabase } from '../lib/supabase'
-import type { Transaction, Category, Owner, TransactionType } from '../types/database'
+import { supabase } from '../../lib/supabase'
+import type { Transaction, Category, Owner, TransactionType } from '../../types/database'
+import Button from '../ui/Button'
 
 const fmt = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 const ownerBadge = (o: Owner) => o === 'personal' ? 'Pessoal' : 'Sogra'
@@ -43,16 +44,16 @@ export default function TransactionsTable({ transactions, categories, onUpdate, 
       <h2>Lançamentos</h2>
       <div className="tabs">
         {(['all', 'income', 'expense'] as const).map(t => (
-          <button key={t} className={`tab ${t === typeFilter ? 'active' : ''}`} onClick={() => setTypeFilter(t)}>
+          <Button key={t} variant="tab" active={t === typeFilter} onClick={() => setTypeFilter(t)}>
             {t === 'all' ? 'Todos' : t === 'income' ? '📈 Receitas' : '📉 Despesas'}
-          </button>
+          </Button>
         ))}
       </div>
       <div className="tabs">
         {usedCats.map(c => (
-          <button key={c} className={`tab ${c === catFilter ? 'active' : ''}`} onClick={() => setCatFilter(c)}>
+          <Button key={c} variant="tab" active={c === catFilter} onClick={() => setCatFilter(c)}>
             {c === 'all' ? 'Todas categorias' : catLabel(c)}
-          </button>
+          </Button>
         ))}
       </div>
       <table>
@@ -70,9 +71,9 @@ export default function TransactionsTable({ transactions, categories, onUpdate, 
               <td><button className={`paid-btn ${r.paid ? 'paid' : ''}`} onClick={() => togglePaid(r.id, r.paid)}>{r.paid ? '✓' : '○'}</button></td>
               <td>
                 {editing === r.id ? (
-                  <button className="delete-btn" onClick={() => handleDelete(r.id)}>🗑️</button>
+                  <Button variant="icon" className="delete-btn" onClick={() => handleDelete(r.id)}>🗑️</Button>
                 ) : (
-                  <button className="edit-btn" onClick={() => setEditing(r.id)}>⋯</button>
+                  <Button variant="icon" onClick={() => setEditing(r.id)}>⋯</Button>
                 )}
               </td>
             </tr>
