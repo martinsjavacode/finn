@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.0.3](https://github.com/martinsjavacode/finn/compare/v0.0.2...v0.0.3) (2026-05-25)
+
+
+### Features
+
+* **ui:** add error handling, toast notifications and delete confirmation ([2841f3d](https://github.com/martinsjavacode/finn/commit/2841f3dda4b20df31ee266dc19677dd42e45faec))
+
+
+### Bug Fixes
+
+* **ci:** use correct git user for tag creation ([cdd62be](https://github.com/martinsjavacode/finn/commit/cdd62be956828b6765423653d8be1fb002ced1ed))
+
 ## [0.0.2](https://github.com/martinsjavacode/finn/compare/v0.0.1...v0.0.2) (2026-05-25)
 
 
