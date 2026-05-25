@@ -49,13 +49,16 @@ O deploy é automático via GitHub Actions ao fazer push na `main`. Configure `V
 
 ### Migrations (rodar no SQL Editor do Supabase, em ordem)
 
-1. `migration-categories.sql` — tabela de categorias
-2. `migration-auth-rls.sql` — RLS para leitura autenticados
-3. `migration-installments.sql` — parcelamentos com trigger
-4. `migration-crud.sql` — policies de insert/delete/update
-5. `migration-recurring.sql` — templates recorrentes + função generate
-6. `migration-budgets.sql` — orçamentos por categoria
-7. `migration-access.sql` — controle de acesso
+```
+migrations/
+├── 001-categories.sql    — tabela de categorias + FK em transactions
+├── 002-auth-rls.sql      — RLS para leitura autenticados
+├── 003-installments.sql  — parcelamentos com trigger + campo paid
+├── 004-crud.sql          — policies de insert/delete/update
+├── 005-recurring.sql     — templates recorrentes + função generate
+├── 006-budgets.sql       — orçamentos por categoria
+└── 007-access.sql        — controle de acesso (email + role)
+```
 
 ## Funcionalidades
 
