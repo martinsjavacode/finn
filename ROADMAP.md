@@ -1,61 +1,58 @@
 # Roadmap - Finn
 
-## Operacionais (dia a dia)
+## ✅ Concluído
+
 - [x] Formulário de adicionar lançamento (receita/despesa/cartão)
 - [x] Lançamentos recorrentes (templates mensais automáticos)
 - [x] Editar/excluir lançamentos na UI
-
-## Visibilidade
 - [x] Gráfico de evolução mensal (receita vs despesa)
-- [x] Percentual por categoria (pizza/barra)
+- [x] Percentual por categoria (pizza)
 - [x] Indicador de progresso de pagamento do mês
-
-## Planejamento
 - [x] Orçamento por categoria (limite vs gasto)
 - [x] Projeção dos próximos meses (comprometido futuro)
 - [x] Alertas de vencimento (próximos dias)
-
-## Qualidade de vida
 - [x] Busca por descrição
+- [x] Edição inline (desktop) e via modal (mobile)
+- [x] Filtro por status de pagamento (pendentes/pagos)
+- [x] Responsivo mobile/tablet (hamburger menu + cards compactos)
+- [x] PWA (manifest + service worker)
+- [x] Error handling com toast notifications
+- [x] Tipagem completa do Database (8 tabelas)
+- [x] Confirmação antes de exclusões
+- [x] Testes unitários (Vitest + Testing Library — 34 testes)
+- [x] Error boundaries para evitar tela branca
+- [x] Loading states/skeletons
+- [x] Camada de serviço (services/)
+- [x] Custom hooks (useAuth, useTransactions, useAppData)
+- [x] React Router para deep linking
+- [x] RPC agregada para Projection
+- [x] CI/CD pipeline progressivo (feature → develop → main → deploy)
+- [x] Display name no controle de acesso
+
+## 🎯 Curto prazo (quick wins)
+
 - [ ] Exportar para CSV
-- [ ] Dark/light mode toggle
-
-## Usabilidade
-- [ ] Duplicar mês (copiar lançamentos como base para o próximo)
-- [x] Edição inline nas tabelas (clicar no valor/descrição e editar direto)
-- [x] Filtro por status de pagamento (pendentes / pagos)
-
-## Visão
 - [ ] Resumo anual (total receita/despesa/saldo do ano)
 - [ ] Comparativo mês anterior (% variação no dashboard)
+- [ ] Duplicar mês (copiar lançamentos como base para o próximo)
+- [ ] Gráfico de tendência (média móvel de gastos)
 
-## Polish
-- [x] Responsivo mobile (menu hamburger)
-- [ ] ~~Notificação por email (lembrete de vencimento via Edge Functions)~~ — despriorizado
-- [x] PWA (instalar como app no celular)
+## 🔧 Técnico (qualidade)
 
-## Robustez
-- [x] Error handling com toast notifications em todas as operações Supabase
-- [x] Tipagem completa do Database (todas as 8 tabelas)
-- [x] Confirmação antes de exclusões
-- [x] Testes unitários (Vitest + Testing Library)
-- [x] Error boundaries (React) para evitar tela branca
-- [x] Loading states/skeletons em todas as páginas
+- [ ] React Query para cache, retry e loading automático
+- [ ] Accessibility audit (aria-labels, focus trap em modais, axe-core)
+- [ ] Aumentar cobertura de testes (componentes de página)
+- [ ] Dark/light mode toggle
 
-## Refatoração
-- [x] Extrair `fmt()` e utilitários duplicados para `src/utils/`
-- [x] Extrair custom hooks (`useTransactions`, `useAuth`, `useCategories`)
-- [x] Extrair CSS compartilhado (classes genéricas em `shared.css`)
-- [x] Reduzir prop drilling com Context para dados globais
+## 🚀 Produto (evolução)
 
-## Performance
-- [x] Criar RPC agregada para Projection (evitar 12 queries em loop)
-- [x] `useMemo`/`useCallback` nos handlers passados como props
-- [ ] React Query ou SWR para cache e retry automático
+- [ ] Importar extrato bancário (CSV/OFX)
+- [ ] Metas financeiras (ex: "economizar R$ 5k até dezembro")
+- [ ] Tags/labels nos lançamentos (além de categoria)
+- [ ] Multi-tenant (cada usuário vê só seus dados via RLS por user_id)
 
-## Infraestrutura
-- [x] CI/CD pipeline progressivo (feature → develop → main → deploy)
-- [x] Fix git user para criação de tags válidas
-- [x] React Router para deep linking e navegação por URL
-- [ ] Accessibility audit (axe-core, focus trap em modais, aria-labels)
-- [ ] i18n (preparar para internacionalização)
+## 🌍 Longo prazo
+
+- [ ] i18n (internacionalização)
+- [ ] Notificação por email (Edge Functions + Resend)
+- [ ] App nativo (React Native ou Capacitor)
