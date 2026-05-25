@@ -15,6 +15,7 @@ import Projection from './components/projection/Projection'
 import BudgetsPage from './components/budgets/BudgetsPage'
 import AccessPage from './components/access/AccessPage'
 import CategoriesPage from './components/categories/CategoriesPage'
+import CardsPage from './components/cards/CardsPage'
 import Button from './components/ui/Button'
 import './App.css'
 
@@ -166,6 +167,10 @@ export default function App() {
 
         {page === 'categories' && (
           <CategoriesPage />
+        )}
+
+        {page === 'cards' && (
+          <CardsPage />
         )}
       </main>
 
