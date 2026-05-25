@@ -1,73 +1,123 @@
-# React + TypeScript + Vite
+# 💰 Finn - Controle Financeiro
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicação de controle financeiro pessoal com dashboard, lançamentos, cartões de crédito, parcelamentos e projeção futura.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- React 19 + TypeScript + Vite
+- Supabase (PostgreSQL + Auth com OTP/GitHub)
+- Deploy via GitHub Pages
 
-## React Compiler
+## Rodar localmente
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+cp .env.example .env
+# Edite .env com sua VITE_SUPABASE_ANON_KEY
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Acesse `http://localhost:5173/finn/`
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Variáveis de ambiente
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+| Variável | Descrição |
+|----------|-----------|
+| `VITE_SUPABASE_ANON_KEY` | Anon Key do projeto Supabase (a URL é extraída automaticamente do JWT) |
+
+## Build e deploy
+
+```bash
+npm run build
+```
+
+O deploy é automático via GitHub Actions ao fazer push na `main`. Configure `VITE_SUPABASE_ANON_KEY` como secret no repositório.
+
+## Banco de dados (Supabase)
+
+### Tabelas
+
+| Tabela | Descrição |
+|--------|-----------|
+| `categories` | Categorias de lançamentos |
+| `transactions` | Receitas e despesas mensais |
+| `credit_cards` | Lançamentos de cartão de crédito |
+| `installment_purchases` | Compras parceladas (gera parcelas automaticamente) |
+| `recurring_templates` | Templates de lançamentos recorrentes |
+| `budgets` | Orçamento mensal por categoria |
+| `access_control` | Controle de acesso (email + role) |
+
+### Migrations (rodar no SQL Editor do Supabase, em ordem)
+
+```
+migrations/
+├── 001-categories.sql    — tabela de categorias + FK em transactions
+├── 002-auth-rls.sql      — RLS para leitura autenticados
+├── 003-installments.sql  — parcelamentos com trigger + campo paid
+├── 004-crud.sql          — policies de insert/delete/update
+├── 005-recurring.sql     — templates recorrentes + função generate
+├── 006-budgets.sql       — orçamentos por categoria
+└── 007-access.sql        — controle de acesso (email + role)
+```
+
+## Funcionalidades
+
+### Autenticação
+- Login via OTP por email (só emails autorizados)
+- Login via GitHub (acesso total)
+- Controle de acesso: Viewer (somente leitura) / Editor (CRUD completo)
+
+### Dashboard
+- Gráfico de evolução anual (receita vs despesa)
+- Gráfico de pizza por categoria
+- Orçamento por categoria (limite vs gasto)
+- Progresso de pagamento do mês
+- Alertas de contas pendentes
+
+### Lançamentos
+- Tabela de receitas/despesas com filtros (mês, responsável, tipo, categoria, busca)
+- Tabela de cartões de crédito com filtro por bandeira
+- Adicionar/excluir lançamentos
+- Marcar como pago
+
+### Recorrentes
+- Cadastro de templates (aluguel, internet, etc.)
+- Geração automática de lançamentos por mês selecionado
+- Ativar/desativar templates
+
+### Projeção
+- Visão dos próximos 6 meses com valores comprometidos (recorrentes + parcelamentos)
+
+### Orçamentos
+- Definir limite mensal por categoria
+- Visualização no dashboard com barra de progresso
+
+### Parcelamentos
+- Cartão parcelado ou boleto/pix parcelado
+- Trigger automático distribui parcelas nos meses
+
+## Cartões suportados
+
+Nubank, Bradesco, Inter, Pague Menos, Mercado Pago, Neon
+
+## Categorias
+
+Casa, Empresa, Estudos, Diversas, Lazer, Investimento, Espiritual
+
+## Estrutura do projeto
+
+```
+src/
+├── components/
+│   ├── ui/            — Button, Select, Sidebar
+│   ├── auth/          — Auth (login)
+│   ├── dashboard/     — Dashboard, SummaryCards
+│   ├── transactions/  — TransactionsTable, CardsTable, AddTransaction
+│   ├── recurring/     — RecurringTemplates
+│   ├── budgets/       — BudgetsPage
+│   ├── projection/    — Projection
+│   └── access/        — AccessPage
+├── lib/               — Supabase client
+├── types/             — TypeScript types
+└── App.tsx            — Router e estado global
 ```

@@ -1,7 +1,9 @@
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from '../types/database'
 
-export const supabase = createClient<Database>(
-  'https://vostvqmciovjyiilzhuq.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZvc3R2cW1jaW92anlpaWx6aHVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2NDIzNTQsImV4cCI6MjA5NTIxODM1NH0.kWPeRQ7svlQU_6Q37jIGTUfIb77nVfWSwM8-h_DEw1o'
-)
+const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const payload = JSON.parse(atob(anonKey.split('.')[1]))
+const ref = payload.ref ?? payload.iss?.split('//')[1]?.split('.')[0]
+const url = `https://${ref}.supabase.co`
+
+export const supabase = createClient<Database>(url, anonKey)
