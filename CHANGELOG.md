@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.0.2](https://github.com/martinsjavacode/finn/compare/v0.0.1...v0.0.2) (2026-05-25)
+
+
+### Bug Fixes
+
+* redirect OAuth para /finn/ no GitHub Pages ([fd82f6c](https://github.com/martinsjavacode/finn/commit/fd82f6ca2d5a65f0f64f15de5236e0f79909fd10))
+
 ## 0.0.1 (2026-05-25)
 
 
