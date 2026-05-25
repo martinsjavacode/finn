@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.0.5](https://github.com/martinsjavacode/finn/compare/v0.0.4...v0.0.5) (2026-05-25)
+
+
+### Bug Fixes
+
+* **ci:** trigger deploy via workflow_dispatch after tag creation ([cc6cbbc](https://github.com/martinsjavacode/finn/commit/cc6cbbc79ae69a341e297f8ccbc016862c45948d))
+
 ## [0.0.4](https://github.com/martinsjavacode/finn/compare/v0.0.3...v0.0.4) (2026-05-25)
 
 
