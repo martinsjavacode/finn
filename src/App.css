@@ -74,6 +74,9 @@ body::before {
   text-align: left;
   cursor: pointer;
   width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
 }
 .sidebar-link:hover { color: var(--text); background: var(--surface-hover); }
 .sidebar-link.active { color: var(--purple); background: rgba(167, 139, 250, 0.1); }
@@ -96,15 +99,15 @@ body::before {
   top: 1rem;
   left: 1rem;
   z-index: 250;
-  flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  justify-content: center;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 8px;
   cursor: pointer;
+  color: var(--text);
 }
-.hamburger span { display: block; width: 18px; height: 2px; background: var(--text); border-radius: 2px; }
 
 /* Mobile header bar */
 .mobile-header {
