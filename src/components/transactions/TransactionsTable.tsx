@@ -3,11 +3,10 @@ import { supabase } from '../../lib/supabase'
 import type { Transaction, Category, Owner, TransactionType } from '../../types/database'
 import { showError } from '../../lib/toast'
 import { confirm } from '../../lib/confirm'
+import { fmt, ownerLabel } from '../../utils/format'
 import Button from '../ui/Button'
 import Select from '../ui/Select'
-
-const fmt = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-const ownerBadge = (o: Owner) => o === 'personal' ? 'Pessoal' : 'Sogra'
+import MobileCard from '../ui/MobileCard'
 
 interface Props {
   transactions: Transaction[]
@@ -20,6 +19,7 @@ interface Props {
 export default function TransactionsTable({ transactions, categories, canEdit, onUpdate, onDelete }: Props) {
   const [typeFilter, setTypeFilter] = useState<'all' | TransactionType>('all')
   const [catFilter, setCatFilter] = useState('all')
+  const [paidFilter, setPaidFilter] = useState<'all' | 'paid' | 'pending'>('all')
   const [editing, setEditing] = useState<string | null>(null)
   const [editData, setEditData] = useState<Partial<Transaction>>({})
 
@@ -28,7 +28,8 @@ export default function TransactionsTable({ transactions, categories, canEdit, o
 
   const filtered = transactions.filter(r =>
     (typeFilter === 'all' || r.type === typeFilter) &&
-    (catFilter === 'all' || r.category === catFilter)
+    (catFilter === 'all' || r.category === catFilter) &&
+    (paidFilter === 'all' || (paidFilter === 'paid' ? r.paid : !r.paid))
   )
 
   const usedCats = ['all', ...new Set(transactions.map(r => r.category))]
@@ -76,7 +77,16 @@ export default function TransactionsTable({ transactions, categories, canEdit, o
           </Button>
         ))}
       </div>
-      <table>
+      <div className="tabs">
+        {(['all', 'pending', 'paid'] as const).map(s => (
+          <Button key={s} variant="tab" active={s === paidFilter} onClick={() => setPaidFilter(s)}>
+            {s === 'all' ? 'Todos status' : s === 'paid' ? '✓ Pagos' : '○ Pendentes'}
+          </Button>
+        ))}
+      </div>
+
+      {/* Desktop */}
+      <table className="desktop-table">
         <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Parcela</th><th>Valor</th><th>Resp.</th><th>Pago</th>{canEdit && <th></th>}</tr></thead>
         <tbody>
           {filtered.length ? filtered.map(r => (
@@ -101,7 +111,7 @@ export default function TransactionsTable({ transactions, categories, canEdit, o
                   <td>{r.type === 'income' ? '📈 Receita' : '📉 Despesa'}</td>
                   <td>{r.current_installment && r.total_installments ? `${r.current_installment}/${r.total_installments}` : '-'}</td>
                   <td>{fmt(+r.amount)}</td>
-                  <td><span className={`badge ${r.owner === 'personal' ? 'badge-personal' : 'badge-sogra'}`}>{ownerBadge(r.owner)}</span></td>
+                  <td><span className={`badge ${r.owner === 'personal' ? 'badge-personal' : 'badge-sogra'}`}>{ownerLabel(r.owner)}</span></td>
                   <td>{canEdit && <button className={`paid-btn ${r.paid ? 'paid' : ''}`} onClick={() => togglePaid(r.id, r.paid)}>{r.paid ? '✓' : '○'}</button>}</td>
                   {canEdit && (
                     <td>
@@ -115,6 +125,21 @@ export default function TransactionsTable({ transactions, categories, canEdit, o
           )) : <tr><td colSpan={canEdit ? 9 : 8} className="empty">Nenhum lançamento</td></tr>}
         </tbody>
       </table>
+
+      {/* Mobile */}
+      <div className="mobile-cards">
+        {filtered.length ? filtered.map(r => (
+          <MobileCard
+            key={r.id}
+            className={r.paid ? 'row-paid' : ''}
+            status={canEdit && <button className={`paid-btn ${r.paid ? 'paid' : ''}`} onClick={(e) => { e.stopPropagation(); togglePaid(r.id, r.paid) }}>{r.paid ? '✓' : '○'}</button>}
+            title={r.description}
+            value={fmt(+r.amount)}
+            subtitle={<>{getCatLabel(r)} · {new Date(r.month + 'T12:00:00').toLocaleDateString('pt-BR')} · {ownerLabel(r.owner)}{r.current_installment ? ` · ${r.current_installment}/${r.total_installments}` : ''}</>}
+            onTap={canEdit ? () => startEdit(r) : undefined}
+          />
+        )) : <p className="empty">Nenhum lançamento</p>}
+      </div>
     </section>
   )
 }

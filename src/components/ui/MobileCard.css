@@ -1,0 +1,60 @@
+.mobile-cards { display: none; }
+
+@media (max-width: 1024px) {
+  .mobile-cards { display: flex; flex-direction: column; gap: 0; }
+  .desktop-table { display: none; }
+}
+
+.mcard {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.85rem 0.2rem;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.mcard:last-child { border-bottom: none; }
+.mcard:active { background: var(--surface-hover); }
+
+.mcard-status {
+  flex-shrink: 0;
+}
+
+.mcard-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.mcard-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.mcard-title {
+  font-weight: 600;
+  font-size: 0.88rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mcard-value {
+  font-weight: 700;
+  font-size: 0.88rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.mcard-subtitle {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 0.15rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mcard.row-paid { opacity: 0.5; }

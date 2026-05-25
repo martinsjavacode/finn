@@ -1,0 +1,14 @@
+{
+  "name": "Finn - Controle Financeiro",
+  "short_name": "Finn",
+  "description": "Controle financeiro pessoal com dashboard, lançamentos e projeção",
+  "start_url": "/finn/",
+  "scope": "/finn/",
+  "display": "standalone",
+  "background_color": "#0a0e1a",
+  "theme_color": "#667eea",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "/finn/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

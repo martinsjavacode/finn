@@ -1,5 +1,3 @@
-.dashboard-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 1.5rem; }
-
 /* Chart Legend */
 .chart-legend { display: flex; gap: 1.2rem; margin-bottom: 1rem; }
 .legend-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: var(--text-muted); }
@@ -14,16 +12,12 @@
 .chart-line { stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; fill: none; }
 .chart-line.income { stroke: var(--green); }
 .chart-line.expense { stroke: var(--red); }
-.chart-dot { transition: r 0.2s; }
+.chart-dot { transition: r 0.2s; cursor: pointer; }
 .chart-dot.income { fill: var(--green); }
 .chart-dot.expense { fill: var(--red); }
-.chart-dot:hover { r: 6; }
+.chart-dot:hover { r: 7; }
 .chart-label { font-size: 11px; fill: var(--text-muted); text-transform: capitalize; }
 .chart-label.active { fill: var(--purple); font-weight: 600; }
-
-/* Dashboard Grid */
-.dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: start; }
-@media (max-width: 768px) { .dashboard-grid { grid-template-columns: 1fr; } }
 
 /* Category Bars */
 .category-bars { display: flex; flex-direction: column; gap: 0.8rem; }
@@ -33,9 +27,6 @@
 .cat-bar-fill { height: 100%; background: var(--gradient-1); border-radius: 4px; transition: width 0.3s; }
 .cat-value { font-size: 0.78rem; color: var(--text); font-weight: 600; min-width: 80px; text-align: right; }
 .cat-pct { font-size: 0.72rem; color: var(--text-muted); min-width: 30px; text-align: right; }
-
-/* Month Filter */
-.dashboard-month-filter { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1.5rem; font-size: 0.85rem; color: var(--text-muted); }
 
 /* Pie Chart */
 .pie-container { display: flex; flex-direction: column; align-items: center; gap: 1rem; }

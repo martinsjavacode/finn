@@ -48,8 +48,3 @@ jobs:
           git remote set-url origin https://x-access-token:${{ secrets.PAT }}@github.com/${{ github.repository }}.git
           npx commit-and-tag-version
           git push origin main --follow-tags
-
-      - name: Trigger deploy
-        run: gh workflow run deploy.yml --ref main
-        env:
-          GH_TOKEN: ${{ secrets.PAT }}
