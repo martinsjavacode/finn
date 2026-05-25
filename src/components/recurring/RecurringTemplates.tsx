@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import type { Category, Owner, Card } from '../../types/database'
+import { showError, toast } from '../../lib/toast'
+import { confirm } from '../../lib/confirm'
 import Select from '../ui/Select'
 import Button from '../ui/Button'
 import './Recurring.css'
@@ -52,15 +54,17 @@ export default function RecurringPage({ categories, cardsList }: Props) {
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault()
-    const { data } = await supabase.from('recurring_templates').insert({
+    const { data, error } = await supabase.from('recurring_templates').insert({
       description, amount: +amount, type, target,
       category: target === 'transaction' ? category : null,
       card: target === 'credit_card' ? card : null,
       owner, day, active: true
     } as never).select().single()
+    if (error) return showError(error)
     if (data) setTemplates(prev => [...prev, data as Template])
     setShowForm(false)
     setDescription(''); setAmount('')
+    toast('Template criado')
   }
 
   const startEdit = (t: Template) => {
@@ -69,26 +73,31 @@ export default function RecurringPage({ categories, cardsList }: Props) {
   }
 
   const saveEdit = async (id: string) => {
-    await supabase.from('recurring_templates').update(editData as never).eq('id', id)
+    const { error } = await supabase.from('recurring_templates').update(editData as never).eq('id', id)
+    if (error) return showError(error)
     setTemplates(prev => prev.map(t => t.id === id ? { ...t, ...editData } : t))
     setEditing(null)
   }
 
   const toggleActive = async (id: string, active: boolean) => {
-    await supabase.from('recurring_templates').update({ active: !active } as never).eq('id', id)
+    const { error } = await supabase.from('recurring_templates').update({ active: !active } as never).eq('id', id)
+    if (error) return showError(error)
     setTemplates(prev => prev.map(t => t.id === id ? { ...t, active: !active } : t))
   }
 
   const handleDelete = async (id: string) => {
-    await supabase.from('recurring_templates').delete().eq('id', id)
+    if (!await confirm('Tem certeza que deseja excluir este template?')) return
+    const { error } = await supabase.from('recurring_templates').delete().eq('id', id)
+    if (error) return showError(error)
     setTemplates(prev => prev.filter(t => t.id !== id))
   }
 
   const handleGenerate = async () => {
     setGenerating(true)
-    await supabase.rpc('generate_recurring' as never, { target_month: `${genMonth}-01` } as never)
+    const { error } = await supabase.rpc('generate_recurring' as never, { target_month: `${genMonth}-01` } as never)
     setGenerating(false)
-    alert(`Lançamentos de ${genMonth} gerados!`)
+    if (error) return showError(error)
+    toast(`Lançamentos de ${genMonth} gerados!`)
   }
 
   const catLabel = (id: string | null) => categories.find(c => c.id === id)?.label ?? '-'

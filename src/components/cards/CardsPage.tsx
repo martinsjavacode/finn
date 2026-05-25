@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
+import { showError, toast } from '../../lib/toast'
+import { confirm } from '../../lib/confirm'
 import Button from '../ui/Button'
 
 const fmt = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -33,13 +35,15 @@ export default function CardsPage() {
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault()
-    const { data } = await supabase.from('cards').insert({
+    const { data, error } = await supabase.from('cards').insert({
       name: name.toLowerCase().replace(/\s+/g, '_'), label,
       credit_limit: +limit, closing_day: closingDay, due_day: dueDay, color, active: true
     } as never).select().single()
+    if (error) return showError(error)
     if (data) setCards(prev => [...prev, data as CardInfo])
     setShowForm(false)
     setName(''); setLabel(''); setLimit(''); setClosingDay(1); setDueDay(10)
+    toast('Cartão criado')
   }
 
   const startEdit = (c: CardInfo) => {
@@ -48,18 +52,22 @@ export default function CardsPage() {
   }
 
   const saveEdit = async (id: string) => {
-    await supabase.from('cards').update(editData as never).eq('id', id)
+    const { error } = await supabase.from('cards').update(editData as never).eq('id', id)
+    if (error) return showError(error)
     setCards(prev => prev.map(c => c.id === id ? { ...c, ...editData } : c))
     setEditing(null)
   }
 
   const toggleActive = async (id: string, active: boolean) => {
-    await supabase.from('cards').update({ active: !active } as never).eq('id', id)
+    const { error } = await supabase.from('cards').update({ active: !active } as never).eq('id', id)
+    if (error) return showError(error)
     setCards(prev => prev.map(c => c.id === id ? { ...c, active: !active } : c))
   }
 
   const handleDelete = async (id: string) => {
-    await supabase.from('cards').delete().eq('id', id)
+    if (!await confirm('Tem certeza que deseja excluir este cartão?')) return
+    const { error } = await supabase.from('cards').delete().eq('id', id)
+    if (error) return showError(error)
     setCards(prev => prev.filter(c => c.id !== id))
   }
 

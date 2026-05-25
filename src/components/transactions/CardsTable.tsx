@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import type { CreditCard, Owner } from '../../types/database'
+import { showError } from '../../lib/toast'
+import { confirm } from '../../lib/confirm'
 import Button from '../ui/Button'
 
 const fmt = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -22,7 +24,9 @@ export default function CardsTable({ cards, cardsList, canEdit, onDelete }: Prop
   const filtered = cardFilter === 'all' ? cards : cards.filter(r => r.card === cardFilter)
 
   const handleDelete = async (id: string) => {
-    await supabase.from('credit_cards').delete().eq('id', id)
+    if (!await confirm('Tem certeza que deseja excluir este lançamento de cartão?')) return
+    const { error } = await supabase.from('credit_cards').delete().eq('id', id)
+    if (error) return showError(error)
     onDelete(id)
     setEditing(null)
   }

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import type { Category, Owner, TransactionType } from '../../types/database'
+import { showError, toast } from '../../lib/toast'
 import Select from '../ui/Select'
 import Button from '../ui/Button'
 
@@ -26,17 +27,20 @@ export default function AddTransaction({ categories, cardsList, onSaved, onClose
     e.preventDefault()
     setSaving(true)
 
+    let error
     if (target === 'transaction') {
-      await supabase.from('transactions').insert({
+      ({ error } = await supabase.from('transactions').insert({
         month, description, amount: +amount, type, category, owner, paid: false
-      } as never)
+      } as never))
     } else {
-      await supabase.from('credit_cards').insert({
+      ({ error } = await supabase.from('credit_cards').insert({
         month, description, amount: +amount, card, owner
-      } as never)
+      } as never))
     }
 
     setSaving(false)
+    if (error) return showError(error)
+    toast('Lançamento criado')
     onSaved()
     onClose()
   }
