@@ -207,20 +207,11 @@ export default function RecurringPage({ categories, cardsList }: Props) {
             <MobileCard
               key={t.id}
               className={!t.active ? 'row-paid' : ''}
+              status={<button className={`paid-btn ${t.active ? 'paid' : ''}`} onClick={(e) => { e.stopPropagation(); toggleActive(t.id, t.active) }}>{t.active ? '✓' : '○'}</button>}
               title={t.description}
-              fields={[
-                { label: 'Dia', value: t.day },
-                { label: 'Valor', value: <strong>{fmt(+t.amount)}</strong> },
-                { label: 'Destino', value: t.target === 'credit_card' ? '💳 Cartão' : t.type === 'income' ? '📈 Receita' : '📉 Despesa' },
-                { label: 'Categoria/Cartão', value: t.target === 'credit_card' ? cardsList.find(c => c.name === t.card)?.label ?? t.card : catLabel(t.category) },
-                { label: 'Responsável', value: <span className={`badge ${t.owner === 'personal' ? 'badge-personal' : 'badge-sogra'}`}>{t.owner === 'personal' ? 'Pessoal' : 'Sogra'}</span> },
-              ]}
-              actions={<>
-                <button className={`paid-btn ${t.active ? 'paid' : ''}`} onClick={() => toggleActive(t.id, t.active)}>{t.active ? '✓' : '○'}</button>
-                <span className="mobile-card-spacer" />
-                <Button variant="icon" onClick={() => openEdit(t)}>✏️</Button>
-                <Button variant="icon" className="delete-btn" onClick={() => handleDelete(t.id)}>🗑️</Button>
-              </>}
+              value={fmt(+t.amount)}
+              subtitle={<>Dia {t.day} · {t.target === 'credit_card' ? `💳 ${cardsList.find(c => c.name === t.card)?.label ?? t.card}` : catLabel(t.category)} · {t.owner === 'personal' ? 'Pessoal' : 'Sogra'}</>}
+              onTap={() => openEdit(t)}
             />
           )) : <p className="empty">Nenhum template cadastrado</p>}
         </div>

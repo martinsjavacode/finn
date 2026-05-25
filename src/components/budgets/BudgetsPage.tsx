@@ -5,6 +5,7 @@ import { showError, toast } from '../../lib/toast'
 import { confirm } from '../../lib/confirm'
 import Select from '../ui/Select'
 import Button from '../ui/Button'
+import MobileCard from '../ui/MobileCard'
 import '../recurring/Recurring.css'
 
 const fmt = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -81,7 +82,7 @@ export default function BudgetsPage({ categories }: Props) {
       )}
 
       <section>
-        <table>
+        <table className="desktop-table">
           <thead><tr><th>Categoria</th><th>Limite Mensal</th><th></th></tr></thead>
           <tbody>
             {budgets.map(b => (
@@ -108,6 +109,18 @@ export default function BudgetsPage({ categories }: Props) {
             {!budgets.length && <tr><td colSpan={3} className="empty">Nenhum orçamento cadastrado</td></tr>}
           </tbody>
         </table>
+
+        <div className="mobile-cards">
+          {budgets.length ? budgets.map(b => (
+            <MobileCard
+              key={b.id}
+              title={catLabel(b.category)}
+              value={fmt(b.monthly_limit)}
+              subtitle="Limite mensal"
+              onTap={() => startEdit(b)}
+            />
+          )) : <p className="empty">Nenhum orçamento cadastrado</p>}
+        </div>
       </section>
     </div>
   )

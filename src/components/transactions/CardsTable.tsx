@@ -71,13 +71,9 @@ export default function CardsTable({ cards, cardsList, canEdit, onDelete }: Prop
           <MobileCard
             key={r.id}
             title={r.description}
-            fields={[
-              { label: 'Cartão', value: getLabel(r.card) },
-              { label: 'Valor', value: <strong>{fmt(+r.amount)}</strong> },
-              { label: 'Responsável', value: <span className={`badge ${r.owner === 'personal' ? 'badge-personal' : 'badge-sogra'}`}>{ownerBadge(r.owner)}</span> },
-              ...(r.current_installment ? [{ label: 'Parcela', value: `${r.current_installment}/${r.total_installments}` }] : []),
-            ]}
-            actions={canEdit ? <Button variant="icon" className="delete-btn" onClick={() => handleDelete(r.id)}>🗑️</Button> : undefined}
+            value={fmt(+r.amount)}
+            subtitle={<>{getLabel(r.card)} · {ownerBadge(r.owner)}{r.current_installment ? ` · ${r.current_installment}/${r.total_installments}` : ''}</>}
+            onTap={canEdit ? () => handleDelete(r.id) : undefined}
           />
         )) : <p className="empty">Nenhum lançamento</p>}
       </div>

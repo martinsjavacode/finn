@@ -85,11 +85,8 @@ export default function Projection() {
             <MobileCard
               key={p.month}
               title={<span style={{ textTransform: 'capitalize' }}>{monthLabel(p.month)}</span>}
-              fields={[
-                { label: 'Recorrentes', value: fmt(p.recurring) },
-                { label: 'Parcelamentos', value: fmt(p.installments) },
-                { label: 'Total Comprometido', value: <strong>{fmt(p.total)}</strong>, fullWidth: true },
-              ]}
+              value={fmt(p.total)}
+              subtitle={<>Recorrentes {fmt(p.recurring)} · Parcelas {fmt(p.installments)}</>}
             />
           ))}
         </div>

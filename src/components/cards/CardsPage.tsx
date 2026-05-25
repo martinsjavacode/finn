@@ -145,18 +145,11 @@ export default function CardsPage() {
             <MobileCard
               key={c.id}
               className={!c.active ? 'row-paid' : ''}
-              title={<><span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: '50%', background: c.color, marginRight: 8 }} />{c.label}</>}
-              fields={[
-                { label: 'Limite', value: <strong>{fmt(c.credit_limit)}</strong> },
-                { label: 'Fechamento', value: `Dia ${c.closing_day}` },
-                { label: 'Vencimento', value: `Dia ${c.due_day}` },
-              ]}
-              actions={<>
-                <button className={`paid-btn ${c.active ? 'paid' : ''}`} onClick={() => toggleActive(c.id, c.active)}>{c.active ? '✓' : '○'}</button>
-                <span className="mobile-card-spacer" />
-                <Button variant="icon" onClick={() => openEdit(c)}>✏️</Button>
-                <Button variant="icon" className="delete-btn" onClick={() => handleDelete(c.id)}>🗑️</Button>
-              </>}
+              status={<button className={`paid-btn ${c.active ? 'paid' : ''}`} onClick={(e) => { e.stopPropagation(); toggleActive(c.id, c.active) }}>{c.active ? '✓' : '○'}</button>}
+              title={<><span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: c.color, marginRight: 6 }} />{c.label}</>}
+              value={fmt(c.credit_limit)}
+              subtitle={<>Fecha dia {c.closing_day} · Vence dia {c.due_day}</>}
+              onTap={() => openEdit(c)}
             />
           )) : <p className="empty">Nenhum cartão cadastrado</p>}
         </div>

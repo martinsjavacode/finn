@@ -4,6 +4,7 @@ import { showError, toast } from '../../lib/toast'
 import { confirm } from '../../lib/confirm'
 import Button from '../ui/Button'
 import Select from '../ui/Select'
+import MobileCard from '../ui/MobileCard'
 
 interface Access { id: string; email: string; display_name: string | null; role: string; created_at: string }
 
@@ -74,13 +75,13 @@ export default function AccessPage() {
       )}
 
       <section>
-        <table>
-          <thead><tr><th>Nome</th><th className="hide-mobile">Email</th><th>Permissão</th><th></th></tr></thead>
+        <table className="desktop-table">
+          <thead><tr><th>Nome</th><th>Email</th><th>Permissão</th><th></th></tr></thead>
           <tbody>
             {users.map(u => (
               <tr key={u.id}>
                 <td>{u.display_name || <span style={{ color: 'var(--text-muted)' }}>—</span>}</td>
-                <td className="hide-mobile">{u.email}</td>
+                <td>{u.email}</td>
                 <td><span className={`badge ${u.role === 'editor' ? 'badge-personal' : 'badge-sogra'}`}>{u.role === 'editor' ? 'Editor' : 'Viewer'}</span></td>
                 <td>
                   <Button variant="icon" onClick={() => openEdit(u)}>✏️</Button>
@@ -91,6 +92,18 @@ export default function AccessPage() {
             {!users.length && <tr><td colSpan={4} className="empty">Nenhum acesso cadastrado</td></tr>}
           </tbody>
         </table>
+
+        <div className="mobile-cards">
+          {users.length ? users.map(u => (
+            <MobileCard
+              key={u.id}
+              title={u.display_name || u.email}
+              value={<span className={`badge ${u.role === 'editor' ? 'badge-personal' : 'badge-sogra'}`}>{u.role === 'editor' ? 'Editor' : 'Viewer'}</span>}
+              subtitle={u.display_name ? u.email : ''}
+              onTap={() => openEdit(u)}
+            />
+          )) : <p className="empty">Nenhum acesso cadastrado</p>}
+        </div>
       </section>
     </div>
   )

@@ -134,25 +134,11 @@ export default function TransactionsTable({ transactions, categories, canEdit, o
           <MobileCard
             key={r.id}
             className={r.paid ? 'row-paid' : ''}
+            status={canEdit && <button className={`paid-btn ${r.paid ? 'paid' : ''}`} onClick={(e) => { e.stopPropagation(); togglePaid(r.id, r.paid) }}>{r.paid ? '✓' : '○'}</button>}
             title={r.description}
-            fields={[
-              { label: 'Data', value: new Date(r.month + 'T12:00:00').toLocaleDateString('pt-BR') },
-              { label: 'Valor', value: <strong>{fmt(+r.amount)}</strong> },
-              { label: 'Categoria', value: getCatLabel(r) },
-              { label: 'Tipo', value: r.type === 'income' ? '📈 Receita' : '📉 Despesa' },
-              { label: 'Responsável', value: <span className={`badge ${r.owner === 'personal' ? 'badge-personal' : 'badge-sogra'}`}>{ownerBadge(r.owner)}</span> },
-              ...(r.current_installment ? [{ label: 'Parcela', value: `${r.current_installment}/${r.total_installments}` }] : []),
-            ]}
-            actions={canEdit ? (
-              <>
-                <button className={`paid-btn ${r.paid ? 'paid' : ''}`} onClick={() => togglePaid(r.id, r.paid)}>{r.paid ? '✓' : '○'}</button>
-                <span className="mobile-card-spacer" />
-                <Button variant="icon" onClick={() => startEdit(r)}>✏️</Button>
-                <Button variant="icon" className="delete-btn" onClick={() => handleDelete(r.id)}>🗑️</Button>
-              </>
-            ) : (
-              <button className={`paid-btn ${r.paid ? 'paid' : ''}`} onClick={() => {}}>{r.paid ? '✓ Pago' : '○ Pendente'}</button>
-            )}
+            value={fmt(+r.amount)}
+            subtitle={<>{getCatLabel(r)} · {new Date(r.month + 'T12:00:00').toLocaleDateString('pt-BR')} · {ownerBadge(r.owner)}{r.current_installment ? ` · ${r.current_installment}/${r.total_installments}` : ''}</>}
+            onTap={canEdit ? () => startEdit(r) : undefined}
           />
         )) : <p className="empty">Nenhum lançamento</p>}
       </div>
