@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase'
-import type { Category } from '../types/database'
+import type { Category, CardListItem } from '../types/database'
 
 export async function fetchCategories() {
   const { data, error } = await supabase.from('categories').select('*').order('label')
@@ -7,8 +7,8 @@ export async function fetchCategories() {
 }
 
 export async function fetchActiveCards() {
-  const { data, error } = await supabase.from('cards').select('name, label').eq('active', true).order('label')
-  return { data: (data ?? []) as { name: string; label: string }[], error }
+  const { data, error } = await supabase.from('cards').select('name, label, color').eq('active', true).order('label')
+  return { data: (data ?? []) as CardListItem[], error }
 }
 
 export async function fetchBudgets() {

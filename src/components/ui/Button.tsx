@@ -6,14 +6,15 @@ interface Props {
   onClick?: () => void
   type?: 'button' | 'submit'
   className?: string
+  style?: React.CSSProperties
 }
 
-export default function Button({ children, variant = 'primary', active, disabled, onClick, type = 'button', className = '' }: Props) {
+export default function Button({ children, variant = 'primary', active, disabled, onClick, type = 'button', className = '', style }: Props) {
   const base = variant === 'primary' ? 'btn-primary' : variant === 'icon' ? 'edit-btn' : 'tab'
   const cls = `${base} ${active ? 'active' : ''} ${className}`.trim()
 
   return (
-    <button type={type} className={cls} disabled={disabled} onClick={onClick}>
+    <button type={type} className={cls} disabled={disabled} onClick={onClick} style={style}>
       {children}
     </button>
   )

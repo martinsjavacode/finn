@@ -2,7 +2,7 @@ import { Pencil, Trash2, Check, Circle } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks'
-import type { Category, Owner, Card } from '../../types/database'
+import type { Category, Owner, Card, CardListItem } from '../../types/database'
 import { showError, toast } from '../../lib/toast'
 import { confirm } from '../../lib/confirm'
 import Select from '../ui/Select'
@@ -25,7 +25,7 @@ interface Template {
 
 interface Props {
   categories: Category[]
-  cardsList: { name: string; label: string }[]
+  cardsList: CardListItem[]
 }
 
 export default function RecurringPage({ categories, cardsList }: Props) {

@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
-import type { Category, Owner, TransactionType } from '../../types/database'
+import type { Category, Owner, TransactionType, CardListItem } from '../../types/database'
 import { showError, toast } from '../../lib/toast'
 import Select from '../ui/Select'
 import Button from '../ui/Button'
 
 interface Props {
   categories: Category[]
-  cardsList: { name: string; label: string }[]
+  cardsList: CardListItem[]
   onSaved: () => void
   onClose: () => void
 }

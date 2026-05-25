@@ -33,6 +33,7 @@
 - [x] Redirect para dashboard após login
 - [x] Redirect para `/` ao sair
 - [x] Paginação client-side com seleção de itens por página
+- [x] Cor do cartão como indicador visual nos lançamentos
 
 ## 🎯 Curto prazo (quick wins)
 

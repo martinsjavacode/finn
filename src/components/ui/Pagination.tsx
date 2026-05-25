@@ -20,7 +20,7 @@ export default function Pagination({ currentPage, totalPages, totalItems, perPag
   return (
     <div className="pagination">
       <div className="pagination-left">
-        <select className="pagination-select" value={perPage} onChange={e => { onPerPageChange(+e.target.value); onPageChange(1) }}>
+        <select className="pagination-select" value={perPage} onChange={e => onPerPageChange(+e.target.value)}>
           {options.map(n => <option key={n} value={n}>{n}</option>)}
         </select>
         <span className="pagination-label">por página</span>

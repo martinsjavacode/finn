@@ -172,6 +172,7 @@ migrations/
 
 ### Cartões
 - CRUD de cartões (nome, limite, fechamento, vencimento, cor)
+- Cor do cartão como indicador visual nos lançamentos (dot, tab, borda mobile)
 - Edição via modal
 
 ### Parcelamentos

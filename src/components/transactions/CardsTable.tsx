@@ -1,7 +1,7 @@
 import { Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
-import type { CreditCard } from '../../types/database'
+import type { CreditCard, CardListItem } from '../../types/database'
 import { showError } from '../../lib/toast'
 import { confirm } from '../../lib/confirm'
 import { fmt, ownerLabel } from '../../utils/format'
@@ -11,7 +11,7 @@ import Pagination from '../ui/Pagination'
 
 interface Props {
   cards: CreditCard[]
-  cardsList: { name: string; label: string }[]
+  cardsList: CardListItem[]
   canUpdate: boolean
   canDelete: boolean
   onDelete: (id: string) => void
@@ -25,11 +25,13 @@ export default function CardsTable({ cards, cardsList, canUpdate, canDelete, onD
   const [perPage, setPerPage] = useState(10)
 
   const getLabel = (name: string) => cardsList.find(c => c.name === name)?.label ?? name
+  const getColor = (name: string) => cardsList.find(c => c.name === name)?.color ?? '#888'
   const cardNames = ['all', ...new Set(cards.map(r => r.card))]
   const filtered = cardFilter === 'all' ? cards : cards.filter(r => r.card === cardFilter)
 
-  const totalPages = Math.ceil(filtered.length / perPage)
-  const paginated = filtered.slice((page - 1) * perPage, page * perPage)
+  const totalPages = Math.max(1, Math.ceil(filtered.length / perPage))
+  const safePage = page > totalPages ? 1 : page
+  const paginated = filtered.slice((safePage - 1) * perPage, safePage * perPage)
 
   const handleDelete = async (id: string) => {
     if (!await confirm('Tem certeza que deseja excluir este lançamento de cartão?')) return
@@ -44,8 +46,9 @@ export default function CardsTable({ cards, cardsList, canUpdate, canDelete, onD
       <h2>Cartões de Crédito</h2>
       <div className="tabs">
         {cardNames.map(c => (
-          <Button key={c} variant="tab" active={c === cardFilter} onClick={() => { setCardFilter(c); setPage(1) }}>
-            {c === 'all' ? 'Todos' : getLabel(c)}
+          <Button key={c} variant="tab" active={c === cardFilter} onClick={() => setCardFilter(c)}
+            style={c !== 'all' && c === cardFilter ? { boxShadow: `inset 0 -2px 0 ${getColor(c)}` } : undefined}>
+            {c === 'all' ? 'Todos' : <><span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: getColor(c), marginRight: 6 }} />{getLabel(c)}</>}
           </Button>
         ))}
       </div>
@@ -57,7 +60,7 @@ export default function CardsTable({ cards, cardsList, canUpdate, canDelete, onD
           {filtered.length ? paginated.map(r => (
             <tr key={r.id}>
               <td>{r.description}</td>
-              <td>{getLabel(r.card)}</td>
+              <td><span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: getColor(r.card), marginRight: 6 }} />{getLabel(r.card)}</td>
               <td>{r.current_installment && r.total_installments ? `${r.current_installment}/${r.total_installments}` : '-'}</td>
               <td>{fmt(+r.amount)}</td>
               <td><span className={`badge ${r.owner === 'personal' ? 'badge-success' : 'badge-danger'}`}>{ownerLabel(r.owner)}</span></td>
@@ -81,10 +84,11 @@ export default function CardsTable({ cards, cardsList, canUpdate, canDelete, onD
             value={fmt(+r.amount)}
             subtitle={<>{getLabel(r.card)} · {ownerLabel(r.owner)}{r.current_installment ? ` · ${r.current_installment}/${r.total_installments}` : ''}</>}
             onTap={canDelete ? () => handleDelete(r.id) : undefined}
+            style={{ borderLeft: `3px solid ${getColor(r.card)}` }}
           />
         )) : <p className="empty">Nenhum lançamento</p>}
       </div>
-      <Pagination currentPage={page} totalPages={totalPages} totalItems={filtered.length} perPage={perPage} onPageChange={setPage} onPerPageChange={setPerPage} />
+      <Pagination currentPage={safePage} totalPages={totalPages} totalItems={filtered.length} perPage={perPage} onPageChange={setPage} onPerPageChange={setPerPage} />
     </section>
   )
 }

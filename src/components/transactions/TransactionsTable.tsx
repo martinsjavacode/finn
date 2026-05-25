@@ -38,8 +38,9 @@ export default function TransactionsTable({ transactions, categories, canUpdate,
     (paidFilter === 'all' || (paidFilter === 'paid' ? r.paid : !r.paid))
   )
 
-  const totalPages = Math.ceil(filtered.length / perPage)
-  const paginated = filtered.slice((page - 1) * perPage, page * perPage)
+  const totalPages = Math.max(1, Math.ceil(filtered.length / perPage))
+  const safePage = page > totalPages ? 1 : page
+  const paginated = filtered.slice((safePage - 1) * perPage, safePage * perPage)
 
   const usedCats = ['all', ...new Set(transactions.map(r => r.category))]
 
@@ -74,21 +75,21 @@ export default function TransactionsTable({ transactions, categories, canUpdate,
       <h2>Lançamentos</h2>
       <div className="tabs">
         {(['all', 'income', 'expense'] as const).map(t => (
-          <Button key={t} variant="tab" active={t === typeFilter} onClick={() => { setTypeFilter(t); setPage(1) }}>
+          <Button key={t} variant="tab" active={t === typeFilter} onClick={() => setTypeFilter(t)}>
             {t === 'all' ? 'Todos' : t === 'income' ? <><TrendingUp size={14} /> Receitas</> : <><TrendingDown size={14} /> Despesas</>}
           </Button>
         ))}
       </div>
       <div className="tabs">
         {usedCats.map(c => (
-          <Button key={c} variant="tab" active={c === catFilter} onClick={() => { setCatFilter(c); setPage(1) }}>
+          <Button key={c} variant="tab" active={c === catFilter} onClick={() => setCatFilter(c)}>
             {c === 'all' ? 'Todas categorias' : catLabel(c)}
           </Button>
         ))}
       </div>
       <div className="tabs">
         {(['all', 'pending', 'paid'] as const).map(s => (
-          <Button key={s} variant="tab" active={s === paidFilter} onClick={() => { setPaidFilter(s); setPage(1) }}>
+          <Button key={s} variant="tab" active={s === paidFilter} onClick={() => setPaidFilter(s)}>
             {s === 'all' ? 'Todos status' : s === 'paid' ? '✓ Pagos' : '○ Pendentes'}
           </Button>
         ))}
@@ -149,7 +150,7 @@ export default function TransactionsTable({ transactions, categories, canUpdate,
           />
         )) : <p className="empty">Nenhum lançamento</p>}
       </div>
-      <Pagination currentPage={page} totalPages={totalPages} totalItems={filtered.length} perPage={perPage} onPageChange={setPage} onPerPageChange={setPerPage} />
+      <Pagination currentPage={safePage} totalPages={totalPages} totalItems={filtered.length} perPage={perPage} onPageChange={setPage} onPerPageChange={setPerPage} />
     </section>
   )
 }
