@@ -1,6 +1,7 @@
 import { Pencil, Trash2, Check, Circle } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
+import { useAuth } from '../../hooks'
 import type { Category, Owner, Card } from '../../types/database'
 import { showError, toast } from '../../lib/toast'
 import { confirm } from '../../lib/confirm'
@@ -28,6 +29,10 @@ interface Props {
 }
 
 export default function RecurringPage({ categories, cardsList }: Props) {
+  const { can } = useAuth()
+  const canCreate = can('recurring_templates', 'create')
+  const canUpdate = can('recurring_templates', 'update')
+  const canDelete = can('recurring_templates', 'delete')
   const [templates, setTemplates] = useState<Template[]>([])
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -118,7 +123,7 @@ export default function RecurringPage({ categories, cardsList }: Props) {
           <Button onClick={handleGenerate} disabled={generating}>
             {generating ? 'Gerando...' : '⚡ Gerar'}
           </Button>
-          <Button onClick={openNew}>+ Novo</Button>
+          {canCreate && <Button onClick={openNew}>+ Novo</Button>}
         </div>
       </div>
 
@@ -179,7 +184,7 @@ export default function RecurringPage({ categories, cardsList }: Props) {
       <section>
         <table className="desktop-table">
           <thead>
-            <tr><th>Dia</th><th>Descrição</th><th>Valor</th><th>Destino</th><th>Categoria/Cartão</th><th>Resp.</th><th>Ativo</th><th></th></tr>
+            <tr><th>Dia</th><th>Descrição</th><th>Valor</th><th>Destino</th><th>Categoria/Cartão</th><th>Resp.</th><th>Ativo</th>{(canUpdate || canDelete) && <th></th>}</tr>
           </thead>
           <tbody>
             {templates.map(t => (
@@ -189,15 +194,17 @@ export default function RecurringPage({ categories, cardsList }: Props) {
                 <td>{fmt(+t.amount)}</td>
                 <td>{t.target === 'credit_card' ? 'Cartão' : t.type === 'income' ? 'Receita' : 'Despesa'}</td>
                 <td>{t.target === 'credit_card' ? cardsList.find(c => c.name === t.card)?.label ?? t.card : catLabel(t.category)}</td>
-                <td><span className={`badge ${t.owner === 'personal' ? 'badge-personal' : 'badge-sogra'}`}>{t.owner === 'personal' ? 'Pessoal' : 'Sogra'}</span></td>
-                <td><button className={`paid-btn ${t.active ? 'paid' : ''}`} onClick={() => toggleActive(t.id, t.active)}>{t.active ? <Check size={14} /> : <Circle size={14} />}</button></td>
-                <td>
-                  <Button variant="icon" onClick={() => openEdit(t)}><Pencil size={14} /></Button>
-                  <Button variant="icon" className="delete-btn" onClick={() => handleDelete(t.id)}><Trash2 size={14} /></Button>
-                </td>
+                <td><span className={`badge ${t.owner === 'personal' ? 'badge-success' : 'badge-danger'}`}>{t.owner === 'personal' ? 'Pessoal' : 'Sogra'}</span></td>
+                <td>{canUpdate ? <button className={`paid-btn ${t.active ? 'paid' : ''}`} onClick={() => toggleActive(t.id, t.active)}>{t.active ? <Check size={14} /> : <Circle size={14} />}</button> : <span className={`badge ${t.active ? 'badge-success' : 'badge-danger'}`}>{t.active ? 'Ativo' : 'Inativo'}</span>}</td>
+                {(canUpdate || canDelete) && (
+                  <td>
+                    {canUpdate && <Button variant="icon" onClick={() => openEdit(t)}><Pencil size={14} /></Button>}
+                    {canDelete && <Button variant="icon" className="delete-btn" onClick={() => handleDelete(t.id)}><Trash2 size={14} /></Button>}
+                  </td>
+                )}
               </tr>
             ))}
-            {!templates.length && <tr><td colSpan={8} className="empty">Nenhum template cadastrado</td></tr>}
+            {!templates.length && <tr><td colSpan={(canUpdate || canDelete) ? 9 : 8} className="empty">Nenhum template cadastrado</td></tr>}
           </tbody>
         </table>
 
@@ -206,11 +213,11 @@ export default function RecurringPage({ categories, cardsList }: Props) {
             <MobileCard
               key={t.id}
               className={!t.active ? 'row-paid' : ''}
-              status={<button className={`paid-btn ${t.active ? 'paid' : ''}`} onClick={(e) => { e.stopPropagation(); toggleActive(t.id, t.active) }}>{t.active ? <Check size={14} /> : <Circle size={14} />}</button>}
+              status={canUpdate ? <button className={`paid-btn ${t.active ? 'paid' : ''}`} onClick={(e) => { e.stopPropagation(); toggleActive(t.id, t.active) }}>{t.active ? <Check size={14} /> : <Circle size={14} />}</button> : <span className={`badge ${t.active ? 'badge-success' : 'badge-danger'}`}>{t.active ? 'Ativo' : 'Inativo'}</span>}
               title={t.description}
               value={fmt(+t.amount)}
               subtitle={<>Dia {t.day} · {t.target === 'credit_card' ? cardsList.find(c => c.name === t.card)?.label ?? t.card : catLabel(t.category)} · {t.owner === 'personal' ? 'Pessoal' : 'Sogra'}</>}
-              onTap={() => openEdit(t)}
+              onTap={canUpdate ? () => openEdit(t) : undefined}
             />
           )) : <p className="empty">Nenhum template cadastrado</p>}
         </div>

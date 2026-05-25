@@ -11,11 +11,13 @@ import MobileCard from '../ui/MobileCard'
 interface Props {
   cards: CreditCard[]
   cardsList: { name: string; label: string }[]
-  canEdit: boolean
+  canUpdate: boolean
+  canDelete: boolean
   onDelete: (id: string) => void
 }
 
-export default function CardsTable({ cards, cardsList, canEdit, onDelete }: Props) {
+export default function CardsTable({ cards, cardsList, canUpdate, canDelete, onDelete }: Props) {
+  const canEdit = canUpdate || canDelete
   const [cardFilter, setCardFilter] = useState('all')
   const [editing, setEditing] = useState<string | null>(null)
 
@@ -52,11 +54,11 @@ export default function CardsTable({ cards, cardsList, canEdit, onDelete }: Prop
               <td>{getLabel(r.card)}</td>
               <td>{r.current_installment && r.total_installments ? `${r.current_installment}/${r.total_installments}` : '-'}</td>
               <td>{fmt(+r.amount)}</td>
-              <td><span className={`badge ${r.owner === 'personal' ? 'badge-personal' : 'badge-sogra'}`}>{ownerLabel(r.owner)}</span></td>
+              <td><span className={`badge ${r.owner === 'personal' ? 'badge-success' : 'badge-danger'}`}>{ownerLabel(r.owner)}</span></td>
               {canEdit && (
                 <td>
-                  <Button variant="icon" onClick={() => setEditing(editing === r.id ? null : r.id)}><Pencil size={14} /></Button>
-                  {editing === r.id && <Button variant="icon" className="delete-btn" onClick={() => handleDelete(r.id)}><Trash2 size={14} /></Button>}
+                  {canUpdate && <Button variant="icon" onClick={() => setEditing(editing === r.id ? null : r.id)}><Pencil size={14} /></Button>}
+                  {editing === r.id && canDelete && <Button variant="icon" className="delete-btn" onClick={() => handleDelete(r.id)}><Trash2 size={14} /></Button>}
                 </td>
               )}
             </tr>
@@ -72,7 +74,7 @@ export default function CardsTable({ cards, cardsList, canEdit, onDelete }: Prop
             title={r.description}
             value={fmt(+r.amount)}
             subtitle={<>{getLabel(r.card)} · {ownerLabel(r.owner)}{r.current_installment ? ` · ${r.current_installment}/${r.total_installments}` : ''}</>}
-            onTap={canEdit ? () => handleDelete(r.id) : undefined}
+            onTap={canDelete ? () => handleDelete(r.id) : undefined}
           />
         )) : <p className="empty">Nenhum lançamento</p>}
       </div>

@@ -249,8 +249,8 @@ tbody tr { cursor: pointer; transition: background 0.15s; }
 
 /* Badges */
 .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.68rem; font-weight: 600; letter-spacing: 0.02em; }
-.badge-personal { background: rgba(0, 214, 143, 0.12); color: var(--green); }
-.badge-sogra { background: rgba(255, 107, 107, 0.12); color: var(--red); }
+.badge-success { background: rgba(0, 214, 143, 0.12); color: var(--green); }
+.badge-danger { background: rgba(255, 107, 107, 0.12); color: var(--red); }
 
 /* States */
 .empty { text-align: center; color: var(--text-muted); padding: 3rem 1rem; font-size: 0.9rem; }

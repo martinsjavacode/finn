@@ -1,6 +1,7 @@
 import { Pencil, Trash2, Check, Circle } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
+import { useAuth } from '../../hooks'
 import { showError, toast } from '../../lib/toast'
 import { confirm } from '../../lib/confirm'
 import { fmt } from '../../utils/format'
@@ -19,6 +20,10 @@ interface CardInfo {
 }
 
 export default function CardsPage() {
+  const { can } = useAuth()
+  const canCreate = can('cards', 'create')
+  const canUpdate = can('cards', 'update')
+  const canDelete = can('cards', 'delete')
   const [cards, setCards] = useState<CardInfo[]>([])
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -83,7 +88,7 @@ export default function CardsPage() {
     <div>
       <div className="page-header">
         <h2>Cartões</h2>
-        <Button onClick={openNew}>+ Novo</Button>
+        {canCreate && <Button onClick={openNew}>+ Novo</Button>}
       </div>
 
       {showForm && (
@@ -120,7 +125,7 @@ export default function CardsPage() {
 
       <section>
         <table className="desktop-table">
-          <thead><tr><th></th><th>Cartão</th><th>Limite</th><th>Fechamento</th><th>Vencimento</th><th>Ativo</th><th></th></tr></thead>
+          <thead><tr><th></th><th>Cartão</th><th>Limite</th><th>Fechamento</th><th>Vencimento</th><th>Ativo</th>{(canUpdate || canDelete) && <th></th>}</tr></thead>
           <tbody>
             {cards.map(c => (
               <tr key={c.id} className={!c.active ? 'row-paid' : ''}>
@@ -129,14 +134,16 @@ export default function CardsPage() {
                 <td>{fmt(c.credit_limit)}</td>
                 <td>Dia {c.closing_day}</td>
                 <td>Dia {c.due_day}</td>
-                <td><button className={`paid-btn ${c.active ? 'paid' : ''}`} onClick={() => toggleActive(c.id, c.active)}>{c.active ? <Check size={14} /> : <Circle size={14} />}</button></td>
-                <td>
-                  <Button variant="icon" onClick={() => openEdit(c)}><Pencil size={14} /></Button>
-                  <Button variant="icon" className="delete-btn" onClick={() => handleDelete(c.id)}><Trash2 size={14} /></Button>
-                </td>
+                <td>{canUpdate ? <button className={`paid-btn ${c.active ? 'paid' : ''}`} onClick={() => toggleActive(c.id, c.active)}>{c.active ? <Check size={14} /> : <Circle size={14} />}</button> : <span className={`badge ${c.active ? 'badge-success' : 'badge-danger'}`}>{c.active ? 'Ativo' : 'Inativo'}</span>}</td>
+                {(canUpdate || canDelete) && (
+                  <td>
+                    {canUpdate && <Button variant="icon" onClick={() => openEdit(c)}><Pencil size={14} /></Button>}
+                    {canDelete && <Button variant="icon" className="delete-btn" onClick={() => handleDelete(c.id)}><Trash2 size={14} /></Button>}
+                  </td>
+                )}
               </tr>
             ))}
-            {!cards.length && <tr><td colSpan={7} className="empty">Nenhum cartão cadastrado</td></tr>}
+            {!cards.length && <tr><td colSpan={(canUpdate || canDelete) ? 7 : 6} className="empty">Nenhum cartão cadastrado</td></tr>}
           </tbody>
         </table>
 
@@ -145,11 +152,11 @@ export default function CardsPage() {
             <MobileCard
               key={c.id}
               className={!c.active ? 'row-paid' : ''}
-              status={<button className={`paid-btn ${c.active ? 'paid' : ''}`} onClick={(e) => { e.stopPropagation(); toggleActive(c.id, c.active) }}>{c.active ? <Check size={14} /> : <Circle size={14} />}</button>}
+              status={canUpdate ? <button className={`paid-btn ${c.active ? 'paid' : ''}`} onClick={(e) => { e.stopPropagation(); toggleActive(c.id, c.active) }}>{c.active ? <Check size={14} /> : <Circle size={14} />}</button> : <span className={`badge ${c.active ? 'badge-success' : 'badge-danger'}`}>{c.active ? 'Ativo' : 'Inativo'}</span>}
               title={<><span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: c.color, marginRight: 6 }} />{c.label}</>}
               value={fmt(c.credit_limit)}
               subtitle={<>Fecha dia {c.closing_day} · Vence dia {c.due_day}</>}
-              onTap={() => openEdit(c)}
+              onTap={canUpdate ? () => openEdit(c) : undefined}
             />
           )) : <p className="empty">Nenhum cartão cadastrado</p>}
         </div>

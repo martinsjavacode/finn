@@ -101,8 +101,8 @@ export default function AccessPage() {
               <tr key={u.id}>
                 <td>{u.display_name || <span style={{ color: 'var(--text-muted)' }}>—</span>}</td>
                 <td>{u.email}</td>
-                <td><span className={`badge ${getRoleName(u) !== 'viewer' ? 'badge-personal' : 'badge-sogra'}`}>{roleLabel(getRoleName(u))}</span></td>
-                <td><span className={`badge ${u.activated ? 'badge-personal' : 'badge-sogra'}`}>{u.activated ? 'Ativo' : 'Pendente'}</span></td>
+                <td><span className={`badge ${getRoleName(u) !== 'viewer' ? 'badge-success' : 'badge-danger'}`}>{roleLabel(getRoleName(u))}</span></td>
+                <td><span className={`badge ${u.activated ? 'badge-success' : 'badge-danger'}`}>{u.activated ? 'Ativo' : 'Pendente'}</span></td>
                 <td>
                   <Button variant="icon" onClick={() => openEdit(u)}><Pencil size={14} /></Button>
                   <Button variant="icon" className="delete-btn" onClick={() => handleDelete(u.id)}><Trash2 size={14} /></Button>
@@ -117,9 +117,9 @@ export default function AccessPage() {
           {users.length ? users.map(u => (
             <MobileCard
               key={u.id}
-              status={<span className={`badge ${u.activated ? 'badge-personal' : 'badge-sogra'}`} style={{ fontSize: '0.6rem' }}>{u.activated ? '●' : '○'}</span>}
+              status={<span className={`badge ${u.activated ? 'badge-success' : 'badge-danger'}`} style={{ fontSize: '0.6rem' }}>{u.activated ? '●' : '○'}</span>}
               title={u.display_name || u.email}
-              value={<span className={`badge ${getRoleName(u) !== 'viewer' ? 'badge-personal' : 'badge-sogra'}`}>{roleLabel(getRoleName(u))}</span>}
+              value={<span className={`badge ${getRoleName(u) !== 'viewer' ? 'badge-success' : 'badge-danger'}`}>{roleLabel(getRoleName(u))}</span>}
               subtitle={u.display_name ? u.email : (u.activated ? 'Ativo' : 'Pendente')}
               onTap={() => openEdit(u)}
             />

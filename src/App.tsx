@@ -40,7 +40,8 @@ function TransactionsPage() {
 
   const handleReload = async () => { await reloadAppData(); await reload() }
   const canCreate = can('transactions', 'create')
-  const canEdit = can('transactions', 'update')
+  const canUpdate = can('transactions', 'update')
+  const canDelete = can('transactions', 'delete')
 
   return (
     <>
@@ -65,7 +66,8 @@ function TransactionsPage() {
       <TransactionsTable
         transactions={ft}
         categories={categories}
-        canEdit={canEdit}
+        canUpdate={canUpdate}
+        canDelete={canDelete}
         onUpdate={(id, data) => updateTransaction(id, data)}
         onDelete={removeTransaction}
       />
@@ -73,7 +75,8 @@ function TransactionsPage() {
       <CardsTable
         cards={fc}
         cardsList={cardsList}
-        canEdit={can('credit_cards', 'delete')}
+        canUpdate={can('credit_cards', 'update')}
+        canDelete={can('credit_cards', 'delete')}
         onDelete={removeCard}
       />
 

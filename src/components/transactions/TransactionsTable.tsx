@@ -12,12 +12,14 @@ import MobileCard from '../ui/MobileCard'
 interface Props {
   transactions: Transaction[]
   categories: Category[]
-  canEdit: boolean
+  canUpdate: boolean
+  canDelete: boolean
   onUpdate: (id: string, data: Partial<Transaction>) => void
   onDelete: (id: string) => void
 }
 
-export default function TransactionsTable({ transactions, categories, canEdit, onUpdate, onDelete }: Props) {
+export default function TransactionsTable({ transactions, categories, canUpdate, canDelete, onUpdate, onDelete }: Props) {
+  const canEdit = canUpdate || canDelete
   const [typeFilter, setTypeFilter] = useState<'all' | TransactionType>('all')
   const [catFilter, setCatFilter] = useState('all')
   const [paidFilter, setPaidFilter] = useState<'all' | 'paid' | 'pending'>('all')
@@ -112,12 +114,12 @@ export default function TransactionsTable({ transactions, categories, canEdit, o
                   <td>{r.type === 'income' ? 'Receita' : 'Despesa'}</td>
                   <td>{r.current_installment && r.total_installments ? `${r.current_installment}/${r.total_installments}` : '-'}</td>
                   <td>{fmt(+r.amount)}</td>
-                  <td><span className={`badge ${r.owner === 'personal' ? 'badge-personal' : 'badge-sogra'}`}>{ownerLabel(r.owner)}</span></td>
-                  <td>{canEdit && <button className={`paid-btn ${r.paid ? 'paid' : ''}`} onClick={() => togglePaid(r.id, r.paid)}>{r.paid ? <Check size={14} /> : <Circle size={14} />}</button>}</td>
+                  <td><span className={`badge ${r.owner === 'personal' ? 'badge-success' : 'badge-danger'}`}>{ownerLabel(r.owner)}</span></td>
+                  <td>{canUpdate ? <button className={`paid-btn ${r.paid ? 'paid' : ''}`} onClick={() => togglePaid(r.id, r.paid)}>{r.paid ? <Check size={14} /> : <Circle size={14} />}</button> : <span className={`badge ${r.paid ? 'badge-success' : 'badge-danger'}`}>{r.paid ? 'Pago' : 'Pendente'}</span>}</td>
                   {canEdit && (
                     <td>
-                      <Button variant="icon" onClick={() => startEdit(r)}><Pencil size={14} /></Button>
-                      <Button variant="icon" className="delete-btn" onClick={() => handleDelete(r.id)}><Trash2 size={14} /></Button>
+                      {canUpdate && <Button variant="icon" onClick={() => startEdit(r)}><Pencil size={14} /></Button>}
+                      {canDelete && <Button variant="icon" className="delete-btn" onClick={() => handleDelete(r.id)}><Trash2 size={14} /></Button>}
                     </td>
                   )}
                 </>
@@ -133,11 +135,11 @@ export default function TransactionsTable({ transactions, categories, canEdit, o
           <MobileCard
             key={r.id}
             className={r.paid ? 'row-paid' : ''}
-            status={canEdit && <button className={`paid-btn ${r.paid ? 'paid' : ''}`} onClick={(e) => { e.stopPropagation(); togglePaid(r.id, r.paid) }}>{r.paid ? <Check size={14} /> : <Circle size={14} />}</button>}
+            status={canUpdate ? <button className={`paid-btn ${r.paid ? 'paid' : ''}`} onClick={(e) => { e.stopPropagation(); togglePaid(r.id, r.paid) }}>{r.paid ? <Check size={14} /> : <Circle size={14} />}</button> : <span className={`badge ${r.paid ? 'badge-success' : 'badge-danger'}`}>{r.paid ? 'Pago' : 'Pendente'}</span>}
             title={r.description}
             value={fmt(+r.amount)}
             subtitle={<>{getCatLabel(r)} · {new Date(r.month + 'T12:00:00').toLocaleDateString('pt-BR')} · {ownerLabel(r.owner)}{r.current_installment ? ` · ${r.current_installment}/${r.total_installments}` : ''}</>}
-            onTap={canEdit ? () => startEdit(r) : undefined}
+            onTap={canUpdate ? () => startEdit(r) : undefined}
           />
         )) : <p className="empty">Nenhum lançamento</p>}
       </div>
