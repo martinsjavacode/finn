@@ -6,6 +6,7 @@ import type { Session } from '@supabase/supabase-js'
 interface Props {
   session: Session
   isOwner: boolean
+  can: (resource: string, action: string) => boolean
 }
 
 const pageTitles: Record<string, string> = {
@@ -20,7 +21,7 @@ const pageTitles: Record<string, string> = {
   '/roles': '🔐 Permissões',
 }
 
-export default function Sidebar({ session, isOwner }: Props) {
+export default function Sidebar({ session, isOwner, can }: Props) {
   const [open, setOpen] = useState(false)
   const location = useLocation()
 
@@ -48,16 +49,16 @@ export default function Sidebar({ session, isOwner }: Props) {
         <nav className="sidebar-nav">
           <span className="sidebar-group">Financeiro</span>
           {link('/', '📊 Dashboard')}
-          {link('/transactions', '📋 Lançamentos')}
-          {link('/recurring', '🔄 Recorrentes')}
+          {can('transactions', 'read') && link('/transactions', '📋 Lançamentos')}
+          {can('recurring_templates', 'read') && link('/recurring', '🔄 Recorrentes')}
           {link('/projection', '📈 Projeção')}
 
           <span className="sidebar-group">Configurações</span>
-          {link('/budgets', '💰 Orçamentos')}
-          {link('/categories', '🏷️ Categorias')}
-          {link('/cards', '💳 Cartões')}
+          {can('budgets', 'read') && link('/budgets', '💰 Orçamentos')}
+          {can('categories', 'read') && link('/categories', '🏷️ Categorias')}
+          {can('cards', 'read') && link('/cards', '💳 Cartões')}
           {isOwner && link('/access', '👥 Usuários')}
-        {isOwner && link('/roles', '🔐 Permissões')}
+          {isOwner && link('/roles', '🔐 Permissões')}
         </nav>
         <div className="sidebar-footer">
           <span className="sidebar-user">{session.user.email}</span>

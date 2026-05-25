@@ -43,14 +43,14 @@ describe('auth service', () => {
       const mockFrom = vi.fn().mockReturnValue({
         select: vi.fn().mockReturnValue({
           eq: vi.fn().mockReturnValue({
-            single: vi.fn().mockResolvedValue({ data: { roles: { name: 'editor' } }, error: null }),
+            single: vi.fn().mockResolvedValue({ data: { role_id: 'r1', roles: { name: 'editor' } }, error: null }),
           }),
         }),
       })
       vi.mocked(supabase.from).mockImplementation(mockFrom)
 
-      const role = await getUserRole(mockSession('test@test.com'))
-      expect(role).toBe('editor')
+      const result = await getUserRole(mockSession('test@test.com'))
+      expect(result).toEqual({ name: 'editor', id: 'r1' })
       expect(mockFrom).toHaveBeenCalledWith('users')
     })
   })

@@ -16,12 +16,13 @@ export async function signOut() {
   await supabase.auth.signOut()
 }
 
-export async function getUserRole(session: Session): Promise<Role> {
+export async function getUserRole(session: Session): Promise<{ name: Role; id: string } | null> {
   const { data } = await supabase
     .from('users')
-    .select('roles(name)')
+    .select('role_id, roles(name)')
     .eq('email', session.user.email ?? '')
     .single()
-  const roleName = (data as { roles: { name: string } } | null)?.roles?.name
-  return (roleName as Role) ?? 'viewer'
+  if (!data) return null
+  const row = data as { role_id: string; roles: { name: string } }
+  return { name: row.roles.name as Role, id: row.role_id }
 }

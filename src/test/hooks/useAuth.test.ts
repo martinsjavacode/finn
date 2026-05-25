@@ -4,6 +4,9 @@ import { useAuth } from '../../hooks/useAuth'
 import * as authService from '../../services/auth'
 
 vi.mock('../../services/auth')
+vi.mock('../../hooks/usePermissions', () => ({
+  usePermissions: () => ({ can: () => true, permissions: [] })
+}))
 
 describe('useAuth', () => {
   beforeEach(() => vi.clearAllMocks())
@@ -21,7 +24,7 @@ describe('useAuth', () => {
     const session = { user: { email: 'a@b.com', app_metadata: {} } } as never
     vi.mocked(authService.getSession).mockResolvedValue(session)
     vi.mocked(authService.onAuthChange).mockReturnValue({ unsubscribe: vi.fn() } as never)
-    vi.mocked(authService.getUserRole).mockResolvedValue('editor')
+    vi.mocked(authService.getUserRole).mockResolvedValue({ name: 'editor', id: 'role-1' })
 
     const { result } = renderHook(() => useAuth())
 
@@ -33,11 +36,22 @@ describe('useAuth', () => {
     const session = { user: { email: 'a@b.com', app_metadata: {} } } as never
     vi.mocked(authService.getSession).mockResolvedValue(session)
     vi.mocked(authService.onAuthChange).mockReturnValue({ unsubscribe: vi.fn() } as never)
-    vi.mocked(authService.getUserRole).mockResolvedValue('owner')
+    vi.mocked(authService.getUserRole).mockResolvedValue({ name: 'owner', id: 'role-2' })
 
     const { result } = renderHook(() => useAuth())
 
     await waitFor(() => expect(result.current.isOwner).toBe(true))
     expect(result.current.isEditor).toBe(true)
+  })
+
+  it('define unauthorized quando getUserRole retorna null', async () => {
+    const session = { user: { email: 'a@b.com', app_metadata: {} } } as never
+    vi.mocked(authService.getSession).mockResolvedValue(session)
+    vi.mocked(authService.onAuthChange).mockReturnValue({ unsubscribe: vi.fn() } as never)
+    vi.mocked(authService.getUserRole).mockResolvedValue(null)
+
+    const { result } = renderHook(() => useAuth())
+
+    await waitFor(() => expect(result.current.unauthorized).toBe(true))
   })
 })
