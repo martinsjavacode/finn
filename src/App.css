@@ -79,6 +79,7 @@ body::before {
 
 .sidebar-footer { display: flex; flex-direction: column; gap: 0.6rem; padding-top: 1rem; border-top: 1px solid var(--border); }
 .sidebar-separator { height: 1px; background: var(--border); margin: 0.6rem 0; }
+.sidebar-group { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); padding: 0.8rem 0.8rem 0.3rem; font-weight: 600; }
 .sidebar-user { font-size: 0.75rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .main { flex: 1; margin-left: 240px; padding: 2rem 2rem; }
