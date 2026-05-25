@@ -31,11 +31,11 @@ export default function Auth() {
     if (!data) { setError('Email não autorizado. Solicite acesso ao administrador.'); setLoading(false); return }
 
     const { error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin + '/finn/' } })
-    if (error) setError(error.message)
-    else {
-      setSuccess('Conta criada! Você já pode fazer login.')
-      setMode('login')
-    }
+    if (error) { setError(error.message); setLoading(false); return }
+
+    // Login automático após cadastro
+    const { error: loginError } = await supabase.auth.signInWithPassword({ email, password })
+    if (loginError) setError(loginError.message)
     setLoading(false)
   }
 
