@@ -97,7 +97,18 @@ export default function App() {
     await loadData()
   }
 
-  useEffect(() => { loadData() }, [month])
+  useEffect(() => {
+    if (!month) return
+    const start = `${month}-01`
+    const [y, m] = month.split('-').map(Number)
+    const nextMonth = m === 12 ? `${y + 1}-01-01` : `${y}-${String(m + 1).padStart(2, '0')}-01`
+    ;(async () => {
+      const { data: t } = await supabase.from('transactions').select('*, categories(*)').gte('month', start).lt('month', nextMonth).order('month').order('type').order('description')
+      const { data: c } = await supabase.from('credit_cards').select('*').gte('month', start).lt('month', nextMonth).order('card').order('description')
+      setTransactions((t as Transaction[]) ?? [])
+      setCards(c ?? [])
+    })()
+  }, [month])
 
   if (loading) return <div className="auth"><p>Carregando...</p></div>
   if (!session) return <Auth />
