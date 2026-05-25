@@ -1,6 +1,7 @@
 import { supabase } from '../../lib/supabase'
 import type { Session } from '@supabase/supabase-js'
 
+
 export type Page = 'dashboard' | 'transactions' | 'recurring' | 'projection' | 'budgets' | 'access'
 
 interface Props {
