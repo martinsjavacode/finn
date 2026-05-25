@@ -83,7 +83,11 @@ body::before {
 .sidebar-group { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); padding: 0.8rem 0.8rem 0.3rem; font-weight: 600; }
 .sidebar-user { font-size: 0.75rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-.main { flex: 1; margin-left: 240px; padding: 2rem 2rem; max-width: 1200px; }
+.main { flex: 1; margin-left: 240px; padding: 2rem 3rem; max-width: calc(100vw - 240px); }
+
+@media (min-width: 1600px) {
+  .main { padding: 2rem 6rem; }
+}
 
 /* Hamburger */
 .hamburger {

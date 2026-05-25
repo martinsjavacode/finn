@@ -16,6 +16,7 @@ import BudgetsPage from './components/budgets/BudgetsPage'
 import AccessPage from './components/access/AccessPage'
 import CategoriesPage from './components/categories/CategoriesPage'
 import CardsPage from './components/cards/CardsPage'
+import RolesPage from './components/roles/RolesPage'
 import Button from './components/ui/Button'
 import ToastContainer from './components/ui/Toast'
 import ConfirmDialog from './components/ui/ConfirmDialog'
@@ -23,7 +24,7 @@ import ErrorBoundary from './components/ui/ErrorBoundary'
 import './App.css'
 
 function TransactionsPage() {
-  const { session, isEditor } = useAuth()
+  const { session, can } = useAuth()
   const { categories, cardsList, reloadAppData } = useAppData(!!session)
   const { month, setMonth, months, transactions, cards, reload, updateTransaction, removeTransaction, removeCard } = useTransactions(!!session)
   const [owner, setOwner] = useState<'all' | Owner>('all')
@@ -38,6 +39,8 @@ function TransactionsPage() {
   const cardTotal = fc.reduce((s, r) => s + +r.amount, 0)
 
   const handleReload = async () => { await reloadAppData(); await reload() }
+  const canCreate = can('transactions', 'create')
+  const canEdit = can('transactions', 'update')
 
   return (
     <>
@@ -53,7 +56,7 @@ function TransactionsPage() {
           options={[{ value: 'all', label: 'Todos' }, { value: 'personal', label: 'Pessoal' }, { value: 'mother_in_law', label: 'Sogra' }]}
         />
         <input type="text" className="search-input" placeholder="🔍 Buscar..." value={search} onChange={e => setSearch(e.target.value)} />
-        {isEditor && <Button onClick={() => setShowAdd(true)}>+ Novo</Button>}
+        {canCreate && <Button onClick={() => setShowAdd(true)}>+ Novo</Button>}
       </div>
 
       <SummaryCards income={income} expense={expense} cardTotal={cardTotal} />
@@ -61,7 +64,7 @@ function TransactionsPage() {
       <TransactionsTable
         transactions={ft}
         categories={categories}
-        canEdit={isEditor}
+        canEdit={canEdit}
         onUpdate={(id, data) => updateTransaction(id, data)}
         onDelete={removeTransaction}
       />
@@ -69,7 +72,7 @@ function TransactionsPage() {
       <CardsTable
         cards={fc}
         cardsList={cardsList}
-        canEdit={isEditor}
+        canEdit={can('credit_cards', 'delete')}
         onDelete={removeCard}
       />
 
@@ -86,15 +89,25 @@ function TransactionsPage() {
 }
 
 function AppLayout() {
-  const { session, loading, isOwner } = useAuth()
-  const { categories, cardsList } = useAppData(!!session)
+  const { session, loading, isOwner, unauthorized, can, signOut: logout } = useAuth()
+  const { categories, cardsList } = useAppData(!!session && !unauthorized)
 
   if (loading) return <div className="auth"><div className="skeleton" style={{ width: '120px', height: '2rem', margin: '0 auto' }} /><div className="skeleton" style={{ width: '200px', height: '1rem', margin: '1rem auto' }} /></div>
   if (!session) return <Auth />
+  if (unauthorized) return (
+    <div className="auth">
+      <div className="auth-card">
+        <div className="auth-brand"><h1>💰 Finn</h1></div>
+        <p className="auth-subtitle">Acesso não autorizado</p>
+        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'center' }}>O email <strong>{session.user.email}</strong> não está cadastrado no sistema. Solicite acesso ao administrador.</p>
+        <button className="auth-btn-primary" onClick={logout}>Sair</button>
+      </div>
+    </div>
+  )
 
   return (
     <div className="layout">
-      <Sidebar session={session} isOwner={isOwner} />
+      <Sidebar session={session} isOwner={isOwner} can={can} />
       <main className="main">
         <Routes>
           <Route path="/" element={<Dashboard categories={categories} />} />
@@ -103,6 +116,7 @@ function AppLayout() {
           <Route path="/projection" element={<Projection />} />
           <Route path="/budgets" element={<BudgetsPage categories={categories} />} />
           <Route path="/access" element={<AccessPage />} />
+          <Route path="/roles" element={<RolesPage />} />
           <Route path="/categories" element={<CategoriesPage />} />
           <Route path="/cards" element={<CardsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
