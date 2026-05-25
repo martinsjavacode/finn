@@ -1,19 +1,17 @@
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
-import type { Category, Owner, Card, TransactionType } from '../../types/database'
+import type { Category, Owner, TransactionType } from '../../types/database'
 import Select from '../ui/Select'
 import Button from '../ui/Button'
 
-const cards: Card[] = ['nubank', 'bradesco', 'inter', 'pague_menos', 'mercado_pago', 'neon']
-const cardLabels: Record<Card, string> = { nubank: 'Nubank', bradesco: 'Bradesco', inter: 'Inter', pague_menos: 'Pague Menos', mercado_pago: 'Mercado Pago', neon: 'Neon' }
-
 interface Props {
   categories: Category[]
+  cardsList: { name: string; label: string }[]
   onSaved: () => void
   onClose: () => void
 }
 
-export default function AddTransaction({ categories, onSaved, onClose }: Props) {
+export default function AddTransaction({ categories, cardsList, onSaved, onClose }: Props) {
   const [target, setTarget] = useState<'transaction' | 'credit_card'>('transaction')
   const [type, setType] = useState<TransactionType>('expense')
   const [description, setDescription] = useState('')
@@ -21,7 +19,7 @@ export default function AddTransaction({ categories, onSaved, onClose }: Props) 
   const [month, setMonth] = useState(new Date().toISOString().slice(0, 10))
   const [category, setCategory] = useState(categories[0]?.id ?? '')
   const [owner, setOwner] = useState<Owner>('personal')
-  const [card, setCard] = useState<Card>('nubank')
+  const [card, setCard] = useState(cardsList[0]?.name ?? '')
   const [saving, setSaving] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -67,7 +65,7 @@ export default function AddTransaction({ categories, onSaved, onClose }: Props) 
         {target === 'transaction' ? (
           <Select value={category} onChange={setCategory} options={categories.map(c => ({ value: c.id, label: c.label }))} />
         ) : (
-          <Select value={card} onChange={v => setCard(v as Card)} options={cards.map(c => ({ value: c, label: cardLabels[c] }))} />
+          <Select value={card} onChange={v => setCard(v)} options={cardsList.map(c => ({ value: c.name, label: c.label }))} />
         )}
 
         <Select value={owner} onChange={v => setOwner(v as Owner)} options={[{ value: 'personal', label: 'Pessoal' }, { value: 'mother_in_law', label: 'Sogra' }]} />

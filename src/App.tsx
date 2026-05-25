@@ -31,6 +31,7 @@ export default function App() {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [cards, setCards] = useState<CreditCard[]>([])
   const [categories, setCategories] = useState<Category[]>([])
+  const [cardsList, setCardsList] = useState<{ name: string; label: string }[]>([])
   const [showAdd, setShowAdd] = useState(false)
   const [page, setPage] = useState<Page>('dashboard')
   const [userRole, setUserRole] = useState<'editor' | 'viewer'>('viewer')
@@ -47,6 +48,9 @@ export default function App() {
     ;(async () => {
       const { data: cats } = await supabase.from('categories').select('*')
       setCategories(cats ?? [])
+
+      const { data: cardsData } = await supabase.from('cards').select('name, label').eq('active', true).order('label') as { data: { name: string; label: string }[] | null }
+      setCardsList(cardsData ?? [])
 
       // Carregar role do usuário (GitHub = sempre editor)
       const isGitHub = session.user.app_metadata?.provider === 'github' || session.user.identities?.some(i => i.provider === 'github')
@@ -81,6 +85,8 @@ export default function App() {
   const reload = async () => {
     const { data: cats } = await supabase.from('categories').select('*')
     setCategories(cats ?? [])
+    const { data: cardsData } = await supabase.from('cards').select('name, label').eq('active', true).order('label') as { data: { name: string; label: string }[] | null }
+    setCardsList(cardsData ?? [])
     const { data: t } = await supabase.from('transactions').select('month').order('month', { ascending: false })
     const { data: c } = await supabase.from('credit_cards').select('month').order('month', { ascending: false })
     const tMonths = (t as { month: string }[] | null) ?? []
@@ -143,6 +149,7 @@ export default function App() {
 
             <CardsTable
               cards={fc}
+              cardsList={cardsList}
               canEdit={isEditor}
               onDelete={id => setCards(prev => prev.filter(r => r.id !== id))}
             />
@@ -150,7 +157,7 @@ export default function App() {
         )}
 
         {page === 'recurring' && (
-          <RecurringPage categories={categories} />
+          <RecurringPage categories={categories} cardsList={cardsList} />
         )}
 
         {page === 'projection' && (
@@ -177,6 +184,7 @@ export default function App() {
       {showAdd && (
         <AddTransaction
           categories={categories}
+          cardsList={cardsList}
           onSaved={reload}
           onClose={() => setShowAdd(false)}
         />

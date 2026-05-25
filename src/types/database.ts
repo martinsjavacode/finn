@@ -1,6 +1,6 @@
 export type Owner = 'personal' | 'mother_in_law'
 export type TransactionType = 'expense' | 'income'
-export type Card = 'nubank' | 'bradesco' | 'inter' | 'pague_menos' | 'mercado_pago' | 'neon'
+export type Card = string
 
 export interface Category {
   id: string

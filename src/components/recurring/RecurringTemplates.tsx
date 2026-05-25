@@ -5,8 +5,6 @@ import Select from '../ui/Select'
 import Button from '../ui/Button'
 import './Recurring.css'
 
-const cardLabels: Record<Card, string> = { nubank: 'Nubank', bradesco: 'Bradesco', inter: 'Inter', pague_menos: 'Pague Menos', mercado_pago: 'Mercado Pago', neon: 'Neon' }
-const allCards: Card[] = ['nubank', 'bradesco', 'inter', 'pague_menos', 'mercado_pago', 'neon']
 const fmt = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 
 interface Template {
@@ -24,9 +22,10 @@ interface Template {
 
 interface Props {
   categories: Category[]
+  cardsList: { name: string; label: string }[]
 }
 
-export default function RecurringPage({ categories }: Props) {
+export default function RecurringPage({ categories, cardsList }: Props) {
   const [templates, setTemplates] = useState<Template[]>([])
   const [editing, setEditing] = useState<string | null>(null)
   const [editData, setEditData] = useState<Partial<Template>>({})
@@ -145,7 +144,7 @@ export default function RecurringPage({ categories }: Props) {
 
             {target === 'credit_card' && (
               <label className="form-label">Cartão
-                <Select value={card} onChange={v => setCard(v as Card)} options={allCards.map(c => ({ value: c, label: cardLabels[c] }))} />
+                <Select value={card} onChange={v => setCard(v as Card)} options={cardsList.map(c => ({ value: c.name, label: c.label }))} />
               </label>
             )}
 
@@ -175,7 +174,7 @@ export default function RecurringPage({ categories }: Props) {
                     <td><input type="text" value={editData.description ?? ''} onChange={e => setEditData(d => ({ ...d, description: e.target.value }))} className="inline-input" /></td>
                     <td><input type="number" step="0.01" value={editData.amount ?? ''} onChange={e => setEditData(d => ({ ...d, amount: +e.target.value }))} className="inline-input" /></td>
                     <td>{t.target === 'credit_card' ? '💳 Cartão' : t.type === 'income' ? '📈 Receita' : '📉 Despesa'}</td>
-                    <td>{t.target === 'credit_card' ? cardLabels[t.card as Card] : catLabel(t.category)}</td>
+                    <td>{t.target === 'credit_card' ? cardsList.find(c => c.name === t.card)?.label ?? t.card : catLabel(t.category)}</td>
                     <td>
                       <select value={editData.owner ?? t.owner} onChange={e => setEditData(d => ({ ...d, owner: e.target.value }))} className="inline-input">
                         <option value="personal">Pessoal</option>
@@ -191,7 +190,7 @@ export default function RecurringPage({ categories }: Props) {
                     <td>{t.description}</td>
                     <td>{fmt(+t.amount)}</td>
                     <td>{t.target === 'credit_card' ? '💳 Cartão' : t.type === 'income' ? '📈 Receita' : '📉 Despesa'}</td>
-                    <td>{t.target === 'credit_card' ? cardLabels[t.card as Card] : catLabel(t.category)}</td>
+                    <td>{t.target === 'credit_card' ? cardsList.find(c => c.name === t.card)?.label ?? t.card : catLabel(t.category)}</td>
                     <td><span className={`badge ${t.owner === 'personal' ? 'badge-personal' : 'badge-sogra'}`}>{t.owner === 'personal' ? 'Pessoal' : 'Sogra'}</span></td>
                     <td><button className={`paid-btn ${t.active ? 'paid' : ''}`} onClick={() => toggleActive(t.id, t.active)}>{t.active ? '✓' : '○'}</button></td>
                     <td>
