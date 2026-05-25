@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import type { Transaction, Category } from '../../types/database'
+import { fmt } from '../../utils/format'
 import { ChartSkeleton, CardsSkeleton } from '../ui/Skeleton'
 import './Dashboard.css'
-
-const fmt = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 
 interface MonthData { month: string; income: number; expense: number }
 

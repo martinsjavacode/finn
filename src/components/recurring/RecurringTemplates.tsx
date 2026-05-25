@@ -6,9 +6,7 @@ import { confirm } from '../../lib/confirm'
 import Select from '../ui/Select'
 import Button from '../ui/Button'
 import MobileCard from '../ui/MobileCard'
-import './Recurring.css'
-
-const fmt = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+import { fmt } from '../../utils/format'
 
 interface Template {
   id: string

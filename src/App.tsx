@@ -21,8 +21,6 @@ import ToastContainer from './components/ui/Toast'
 import ConfirmDialog from './components/ui/ConfirmDialog'
 import ErrorBoundary from './components/ui/ErrorBoundary'
 import './App.css'
-import './components/ui/Skeleton.css'
-import './components/ui/MobileCard.css'
 
 function TransactionsPage() {
   const { session, isEditor } = useAuth()

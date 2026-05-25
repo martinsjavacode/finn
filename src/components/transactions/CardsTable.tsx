@@ -1,13 +1,11 @@
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
-import type { CreditCard, Owner } from '../../types/database'
+import type { CreditCard } from '../../types/database'
 import { showError } from '../../lib/toast'
 import { confirm } from '../../lib/confirm'
+import { fmt, ownerLabel } from '../../utils/format'
 import Button from '../ui/Button'
 import MobileCard from '../ui/MobileCard'
-
-const fmt = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-const ownerBadge = (o: Owner) => o === 'personal' ? 'Pessoal' : 'Sogra'
 
 interface Props {
   cards: CreditCard[]
@@ -53,7 +51,7 @@ export default function CardsTable({ cards, cardsList, canEdit, onDelete }: Prop
               <td>{getLabel(r.card)}</td>
               <td>{r.current_installment && r.total_installments ? `${r.current_installment}/${r.total_installments}` : '-'}</td>
               <td>{fmt(+r.amount)}</td>
-              <td><span className={`badge ${r.owner === 'personal' ? 'badge-personal' : 'badge-sogra'}`}>{ownerBadge(r.owner)}</span></td>
+              <td><span className={`badge ${r.owner === 'personal' ? 'badge-personal' : 'badge-sogra'}`}>{ownerLabel(r.owner)}</span></td>
               {canEdit && (
                 <td>
                   <Button variant="icon" onClick={() => setEditing(editing === r.id ? null : r.id)}>✏️</Button>
@@ -72,7 +70,7 @@ export default function CardsTable({ cards, cardsList, canEdit, onDelete }: Prop
             key={r.id}
             title={r.description}
             value={fmt(+r.amount)}
-            subtitle={<>{getLabel(r.card)} · {ownerBadge(r.owner)}{r.current_installment ? ` · ${r.current_installment}/${r.total_installments}` : ''}</>}
+            subtitle={<>{getLabel(r.card)} · {ownerLabel(r.owner)}{r.current_installment ? ` · ${r.current_installment}/${r.total_installments}` : ''}</>}
             onTap={canEdit ? () => handleDelete(r.id) : undefined}
           />
         )) : <p className="empty">Nenhum lançamento</p>}

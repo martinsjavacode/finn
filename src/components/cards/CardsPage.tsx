@@ -2,10 +2,9 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { showError, toast } from '../../lib/toast'
 import { confirm } from '../../lib/confirm'
+import { fmt } from '../../utils/format'
 import Button from '../ui/Button'
 import MobileCard from '../ui/MobileCard'
-
-const fmt = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 
 interface CardInfo {
   id: string

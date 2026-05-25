@@ -3,12 +3,10 @@ import { supabase } from '../../lib/supabase'
 import type { Category } from '../../types/database'
 import { showError, toast } from '../../lib/toast'
 import { confirm } from '../../lib/confirm'
+import { fmt } from '../../utils/format'
 import Select from '../ui/Select'
 import Button from '../ui/Button'
 import MobileCard from '../ui/MobileCard'
-import '../recurring/Recurring.css'
-
-const fmt = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 
 interface Budget { id: string; category: string; monthly_limit: number }
 

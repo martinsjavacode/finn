@@ -3,12 +3,10 @@ import { supabase } from '../../lib/supabase'
 import type { Transaction, Category, Owner, TransactionType } from '../../types/database'
 import { showError } from '../../lib/toast'
 import { confirm } from '../../lib/confirm'
+import { fmt, ownerLabel } from '../../utils/format'
 import Button from '../ui/Button'
 import Select from '../ui/Select'
 import MobileCard from '../ui/MobileCard'
-
-const fmt = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-const ownerBadge = (o: Owner) => o === 'personal' ? 'Pessoal' : 'Sogra'
 
 interface Props {
   transactions: Transaction[]
@@ -113,7 +111,7 @@ export default function TransactionsTable({ transactions, categories, canEdit, o
                   <td>{r.type === 'income' ? '📈 Receita' : '📉 Despesa'}</td>
                   <td>{r.current_installment && r.total_installments ? `${r.current_installment}/${r.total_installments}` : '-'}</td>
                   <td>{fmt(+r.amount)}</td>
-                  <td><span className={`badge ${r.owner === 'personal' ? 'badge-personal' : 'badge-sogra'}`}>{ownerBadge(r.owner)}</span></td>
+                  <td><span className={`badge ${r.owner === 'personal' ? 'badge-personal' : 'badge-sogra'}`}>{ownerLabel(r.owner)}</span></td>
                   <td>{canEdit && <button className={`paid-btn ${r.paid ? 'paid' : ''}`} onClick={() => togglePaid(r.id, r.paid)}>{r.paid ? '✓' : '○'}</button>}</td>
                   {canEdit && (
                     <td>
@@ -137,7 +135,7 @@ export default function TransactionsTable({ transactions, categories, canEdit, o
             status={canEdit && <button className={`paid-btn ${r.paid ? 'paid' : ''}`} onClick={(e) => { e.stopPropagation(); togglePaid(r.id, r.paid) }}>{r.paid ? '✓' : '○'}</button>}
             title={r.description}
             value={fmt(+r.amount)}
-            subtitle={<>{getCatLabel(r)} · {new Date(r.month + 'T12:00:00').toLocaleDateString('pt-BR')} · {ownerBadge(r.owner)}{r.current_installment ? ` · ${r.current_installment}/${r.total_installments}` : ''}</>}
+            subtitle={<>{getCatLabel(r)} · {new Date(r.month + 'T12:00:00').toLocaleDateString('pt-BR')} · {ownerLabel(r.owner)}{r.current_installment ? ` · ${r.current_installment}/${r.total_installments}` : ''}</>}
             onTap={canEdit ? () => startEdit(r) : undefined}
           />
         )) : <p className="empty">Nenhum lançamento</p>}
