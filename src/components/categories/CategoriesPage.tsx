@@ -4,6 +4,7 @@ import type { Category } from '../../types/database'
 import { showError, toast } from '../../lib/toast'
 import { confirm } from '../../lib/confirm'
 import Button from '../ui/Button'
+import MobileCard from '../ui/MobileCard'
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([])
@@ -69,7 +70,7 @@ export default function CategoriesPage() {
       )}
 
       <section>
-        <table>
+        <table className="desktop-table">
           <thead><tr><th>Nome</th><th>Label</th><th></th></tr></thead>
           <tbody>
             {categories.map(c => (
@@ -96,6 +97,18 @@ export default function CategoriesPage() {
             {!categories.length && <tr><td colSpan={3} className="empty">Nenhuma categoria</td></tr>}
           </tbody>
         </table>
+
+        <div className="mobile-cards">
+          {categories.length ? categories.map(c => (
+            <MobileCard
+              key={c.id}
+              title={c.label}
+              value=""
+              subtitle={c.name}
+              onTap={() => startEdit(c)}
+            />
+          )) : <p className="empty">Nenhuma categoria</p>}
+        </div>
       </section>
     </div>
   )

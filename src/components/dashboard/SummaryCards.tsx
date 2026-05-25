@@ -1,4 +1,4 @@
-const fmt = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+import { fmt } from '../../utils/format'
 
 interface Props {
   income: number
