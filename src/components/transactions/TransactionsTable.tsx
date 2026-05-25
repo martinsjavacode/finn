@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import type { Transaction, Category, Owner, TransactionType } from '../../types/database'
 import Button from '../ui/Button'
+import Select from '../ui/Select'
 
 const fmt = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 const ownerBadge = (o: Owner) => o === 'personal' ? 'Pessoal' : 'Sogra'
@@ -18,6 +19,7 @@ export default function TransactionsTable({ transactions, categories, canEdit, o
   const [typeFilter, setTypeFilter] = useState<'all' | TransactionType>('all')
   const [catFilter, setCatFilter] = useState('all')
   const [editing, setEditing] = useState<string | null>(null)
+  const [editData, setEditData] = useState<Partial<Transaction>>({})
 
   const catLabel = (id: string) => categories.find(c => c.id === id)?.label ?? id
   const getCatLabel = (t: Transaction) => t.categories?.label ?? ''
@@ -32,6 +34,17 @@ export default function TransactionsTable({ transactions, categories, canEdit, o
   const togglePaid = (id: string, paid: boolean) => {
     supabase.from('transactions').update({ paid: !paid } as never).eq('id', id)
     onUpdate(id, { paid: !paid })
+  }
+
+  const startEdit = (r: Transaction) => {
+    setEditing(r.id)
+    setEditData({ description: r.description, amount: r.amount, category: r.category, owner: r.owner })
+  }
+
+  const saveEdit = async (id: string) => {
+    await supabase.from('transactions').update(editData as never).eq('id', id)
+    onUpdate(id, editData)
+    setEditing(null)
   }
 
   const handleDelete = async (id: string) => {
@@ -58,27 +71,42 @@ export default function TransactionsTable({ transactions, categories, canEdit, o
         ))}
       </div>
       <table>
-        <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Parcela</th><th>Valor</th><th>Resp.</th><th>Pago</th><th></th></tr></thead>
+        <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Parcela</th><th>Valor</th><th>Resp.</th><th>Pago</th>{canEdit && <th></th>}</tr></thead>
         <tbody>
           {filtered.length ? filtered.map(r => (
             <tr key={r.id} className={r.paid ? 'row-paid' : ''}>
-              <td>{new Date(r.month + 'T12:00:00').toLocaleDateString('pt-BR')}</td>
-              <td>{r.description}</td>
-              <td>{getCatLabel(r)}</td>
-              <td>{r.type === 'income' ? '📈 Receita' : '📉 Despesa'}</td>
-              <td>{r.current_installment && r.total_installments ? `${r.current_installment}/${r.total_installments}` : '-'}</td>
-              <td>{fmt(+r.amount)}</td>
-              <td><span className={`badge ${r.owner === 'personal' ? 'badge-personal' : 'badge-sogra'}`}>{ownerBadge(r.owner)}</span></td>
-              <td>{canEdit && <button className={`paid-btn ${r.paid ? 'paid' : ''}`} onClick={() => togglePaid(r.id, r.paid)}>{r.paid ? '✓' : '○'}</button>}</td>
-              <td>
-                {canEdit && (editing === r.id ? (
-                  <Button variant="icon" className="delete-btn" onClick={() => handleDelete(r.id)}>🗑️</Button>
-                ) : (
-                  <Button variant="icon" onClick={() => setEditing(r.id)}>⋯</Button>
-                ))}
-              </td>
+              {editing === r.id ? (
+                <>
+                  <td>{new Date(r.month + 'T12:00:00').toLocaleDateString('pt-BR')}</td>
+                  <td><input className="inline-input" value={editData.description ?? ''} onChange={e => setEditData(d => ({ ...d, description: e.target.value }))} /></td>
+                  <td><Select value={editData.category ?? ''} onChange={v => setEditData(d => ({ ...d, category: v }))} options={categories.map(c => ({ value: c.id, label: c.label }))} /></td>
+                  <td>{r.type === 'income' ? '📈' : '📉'}</td>
+                  <td>{r.current_installment && r.total_installments ? `${r.current_installment}/${r.total_installments}` : '-'}</td>
+                  <td><input className="inline-input" type="number" step="0.01" value={editData.amount ?? ''} onChange={e => setEditData(d => ({ ...d, amount: +e.target.value }))} style={{ width: '100px' }} /></td>
+                  <td><Select value={editData.owner ?? ''} onChange={v => setEditData(d => ({ ...d, owner: v as Owner }))} options={[{ value: 'personal', label: 'Pessoal' }, { value: 'mother_in_law', label: 'Sogra' }]} /></td>
+                  <td></td>
+                  <td><Button onClick={() => saveEdit(r.id)}>✓</Button></td>
+                </>
+              ) : (
+                <>
+                  <td>{new Date(r.month + 'T12:00:00').toLocaleDateString('pt-BR')}</td>
+                  <td>{r.description}</td>
+                  <td>{getCatLabel(r)}</td>
+                  <td>{r.type === 'income' ? '📈 Receita' : '📉 Despesa'}</td>
+                  <td>{r.current_installment && r.total_installments ? `${r.current_installment}/${r.total_installments}` : '-'}</td>
+                  <td>{fmt(+r.amount)}</td>
+                  <td><span className={`badge ${r.owner === 'personal' ? 'badge-personal' : 'badge-sogra'}`}>{ownerBadge(r.owner)}</span></td>
+                  <td>{canEdit && <button className={`paid-btn ${r.paid ? 'paid' : ''}`} onClick={() => togglePaid(r.id, r.paid)}>{r.paid ? '✓' : '○'}</button>}</td>
+                  {canEdit && (
+                    <td>
+                      <Button variant="icon" onClick={() => startEdit(r)}>✏️</Button>
+                      <Button variant="icon" className="delete-btn" onClick={() => handleDelete(r.id)}>🗑️</Button>
+                    </td>
+                  )}
+                </>
+              )}
             </tr>
-          )) : <tr><td colSpan={9} className="empty">Nenhum lançamento</td></tr>}
+          )) : <tr><td colSpan={canEdit ? 9 : 8} className="empty">Nenhum lançamento</td></tr>}
         </tbody>
       </table>
     </section>
