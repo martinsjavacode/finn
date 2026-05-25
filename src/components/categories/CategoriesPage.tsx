@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import type { Category } from '../../types/database'
+import { showError, toast } from '../../lib/toast'
+import { confirm } from '../../lib/confirm'
 import Button from '../ui/Button'
 
 export default function CategoriesPage() {
@@ -17,22 +19,27 @@ export default function CategoriesPage() {
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault()
-    const { data } = await supabase.from('categories').insert({ name: name.toLowerCase().replace(/\s+/g, '_'), label } as never).select().single()
+    const { data, error } = await supabase.from('categories').insert({ name: name.toLowerCase().replace(/\s+/g, '_'), label } as never).select().single()
+    if (error) return showError(error)
     if (data) setCategories(prev => [...prev, data as Category])
     setShowForm(false)
     setName(''); setLabel('')
+    toast('Categoria criada')
   }
 
   const startEdit = (c: Category) => { setEditing(c.id); setEditLabel(c.label) }
 
   const saveEdit = async (id: string) => {
-    await supabase.from('categories').update({ label: editLabel } as never).eq('id', id)
+    const { error } = await supabase.from('categories').update({ label: editLabel } as never).eq('id', id)
+    if (error) return showError(error)
     setCategories(prev => prev.map(c => c.id === id ? { ...c, label: editLabel } : c))
     setEditing(null)
   }
 
   const handleDelete = async (id: string) => {
-    await supabase.from('categories').delete().eq('id', id)
+    if (!await confirm('Tem certeza que deseja excluir esta categoria?')) return
+    const { error } = await supabase.from('categories').delete().eq('id', id)
+    if (error) return showError(error)
     setCategories(prev => prev.filter(c => c.id !== id))
   }
 
