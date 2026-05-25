@@ -1,9 +1,11 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { Eye, EyeOff, Github } from 'lucide-react'
 import './Auth.css'
 
 export default function Auth() {
+  const navigate = useNavigate()
   const [mode, setMode] = useState<'login' | 'signup'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -19,6 +21,7 @@ export default function Auth() {
 
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) setError(error.message === 'Invalid login credentials' ? 'Email ou senha incorretos.' : error.message)
+    else navigate('/', { replace: true })
     setLoading(false)
   }
 
@@ -38,6 +41,7 @@ export default function Auth() {
     // Login automático após cadastro
     const { error: loginError } = await supabase.auth.signInWithPassword({ email, password })
     if (loginError) setError(loginError.message)
+    else navigate('/', { replace: true })
     setLoading(false)
   }
 
