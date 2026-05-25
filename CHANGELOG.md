@@ -2,6 +2,39 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.0.5](https://github.com/martinsjavacode/finn/compare/v0.0.4...v0.0.5) (2026-05-25)
+
+
+### Bug Fixes
+
+* **ci:** trigger deploy via workflow_dispatch after tag creation ([cc6cbbc](https://github.com/martinsjavacode/finn/commit/cc6cbbc79ae69a341e297f8ccbc016862c45948d))
+
+## [0.0.4](https://github.com/martinsjavacode/finn/compare/v0.0.3...v0.0.4) (2026-05-25)
+
+
+### Bug Fixes
+
+* **ci:** use PAT to push tags so deploy workflow triggers ([4df54c1](https://github.com/martinsjavacode/finn/commit/4df54c19f47a436c27450d8f9f75d6ef6a7e36e0))
+
+## [0.0.3](https://github.com/martinsjavacode/finn/compare/v0.0.2...v0.0.3) (2026-05-25)
+
+
+### Features
+
+* **ui:** add error handling, toast notifications and delete confirmation ([2841f3d](https://github.com/martinsjavacode/finn/commit/2841f3dda4b20df31ee266dc19677dd42e45faec))
+
+
+### Bug Fixes
+
+* **ci:** use correct git user for tag creation ([cdd62be](https://github.com/martinsjavacode/finn/commit/cdd62be956828b6765423653d8be1fb002ced1ed))
+
+## [0.0.2](https://github.com/martinsjavacode/finn/compare/v0.0.1...v0.0.2) (2026-05-25)
+
+
+### Bug Fixes
+
+* redirect OAuth para /finn/ no GitHub Pages ([fd82f6c](https://github.com/martinsjavacode/finn/commit/fd82f6ca2d5a65f0f64f15de5236e0f79909fd10))
+
 ## 0.0.1 (2026-05-25)
 
 
