@@ -11,7 +11,7 @@ interface Props {
   categories: Category[]
 }
 
-export default function Dashboard({ categories: _categories }: Props) {
+export default function Dashboard({ categories }: Props) {
   const [monthsData, setMonthsData] = useState<MonthData[]>([])
   const [currentTransactions, setCurrentTransactions] = useState<Transaction[]>([])
   const [budgets, setBudgets] = useState<{ category: string; monthly_limit: number }[]>([])
@@ -105,16 +105,37 @@ export default function Dashboard({ categories: _categories }: Props) {
           <span className="legend-item"><span className="legend-dot green"></span>Receita</span>
           <span className="legend-item"><span className="legend-dot red"></span>Despesa</span>
         </div>
-        <div className="bar-chart">
-          {monthsData.map(d => (
-            <div key={d.month} className={`bar-group ${d.month === selectedMonth ? 'bar-group-active' : ''}`} onClick={() => setSelectedMonth(d.month)}>
-              <div className="bars">
-                <div className="bar income" style={{ height: `${(d.income / maxValue) * 100}%` }} title={fmt(d.income)}></div>
-                <div className="bar expense" style={{ height: `${(d.expense / maxValue) * 100}%` }} title={fmt(d.expense)}></div>
-              </div>
-              <span className="bar-label">{monthLabel(d.month)}</span>
-            </div>
-          ))}
+        <div className="line-chart-container">
+          <svg className="line-chart" viewBox="0 0 840 220">
+            {(() => {
+              const w = 840
+              const pad = 35
+              const usable = w - pad * 2
+              const getX = (i: number) => monthsData.length === 1 ? w / 2 : (i / (monthsData.length - 1)) * usable + pad
+              return (
+                <>
+                  {/* Grid lines */}
+                  {[0.25, 0.5, 0.75].map(p => (
+                    <line key={p} x1={pad} y1={p * 160 + 10} x2={w - pad} y2={p * 160 + 10} className="grid-line" />
+                  ))}
+                  {/* Income line */}
+                  <polyline fill="none" className="chart-line income"
+                    points={monthsData.map((d, i) => `${getX(i)},${170 - (d.income / maxValue) * 150}`).join(' ')} />
+                  {/* Expense line */}
+                  <polyline fill="none" className="chart-line expense"
+                    points={monthsData.map((d, i) => `${getX(i)},${170 - (d.expense / maxValue) * 150}`).join(' ')} />
+                  {/* Dots + Labels */}
+                  {monthsData.map((d, i) => (
+                    <g key={d.month} onClick={() => setSelectedMonth(d.month)} style={{ cursor: 'pointer' }}>
+                      <circle cx={getX(i)} cy={170 - (d.income / maxValue) * 150} r="4" className="chart-dot income"><title>{fmt(d.income)}</title></circle>
+                      <circle cx={getX(i)} cy={170 - (d.expense / maxValue) * 150} r="4" className="chart-dot expense"><title>{fmt(d.expense)}</title></circle>
+                      <text x={getX(i)} y="200" textAnchor="middle" className={`chart-label ${d.month === selectedMonth ? 'active' : ''}`}>{monthLabel(d.month)}</text>
+                    </g>
+                  ))}
+                </>
+              )
+            })()}
+          </svg>
         </div>
       </section>
 
@@ -153,7 +174,7 @@ export default function Dashboard({ categories: _categories }: Props) {
           {budgets.length > 0 ? (
             <div className="budget-list">
               {budgets.map(b => {
-                const catName = expenses.find(r => r.category === b.category)?.categories?.label ?? b.category
+                const catName = categories.find(c => c.id === b.category)?.label ?? b.category
                 const spent = expenses.filter(r => r.category === b.category).reduce((s, r) => s + +r.amount, 0)
                 const pct = Math.min((spent / b.monthly_limit) * 100, 100)
                 const over = spent > b.monthly_limit

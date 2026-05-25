@@ -22,3 +22,6 @@ alter table transactions add constraint fk_transactions_category foreign key (ca
 -- RLS
 alter table categories enable row level security;
 create policy "Public read" on categories for select using (true);
+create policy "Auth insert" on categories for insert with check (auth.role() = 'authenticated');
+create policy "Auth update" on categories for update using (auth.role() = 'authenticated');
+create policy "Auth delete" on categories for delete using (auth.role() = 'authenticated');

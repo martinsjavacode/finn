@@ -18,7 +18,7 @@ export default function Projection() {
   useEffect(() => {
     ;(async () => {
       // Buscar recorrentes ativos
-      const { data: templates } = await supabase.from('recurring_templates').select('amount').eq('active', true) as { data: { amount: number }[] | null }
+      const { data: templates } = await supabase.from('recurring_templates').select('amount').eq('active', true).eq('type', 'expense') as { data: { amount: number }[] | null }
       const monthlyRecurring = (templates ?? []).reduce((s, t) => s + +t.amount, 0)
 
       // Buscar parcelas futuras (credit_cards e transactions com installments)

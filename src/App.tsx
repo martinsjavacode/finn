@@ -14,6 +14,8 @@ import Dashboard from './components/dashboard/Dashboard'
 import Projection from './components/projection/Projection'
 import BudgetsPage from './components/budgets/BudgetsPage'
 import AccessPage from './components/access/AccessPage'
+import CategoriesPage from './components/categories/CategoriesPage'
+import CardsPage from './components/cards/CardsPage'
 import Button from './components/ui/Button'
 import './App.css'
 
@@ -21,11 +23,15 @@ export default function App() {
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
   const [months, setMonths] = useState<string[]>([])
-  const [month, setMonth] = useState('')
+  const [month, setMonth] = useState(() => {
+    const now = new Date()
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+  })
   const [owner, setOwner] = useState<'all' | Owner>('all')
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [cards, setCards] = useState<CreditCard[]>([])
   const [categories, setCategories] = useState<Category[]>([])
+  const [cardsList, setCardsList] = useState<{ name: string; label: string }[]>([])
   const [showAdd, setShowAdd] = useState(false)
   const [page, setPage] = useState<Page>('dashboard')
   const [userRole, setUserRole] = useState<'editor' | 'viewer'>('viewer')
@@ -43,6 +49,9 @@ export default function App() {
       const { data: cats } = await supabase.from('categories').select('*')
       setCategories(cats ?? [])
 
+      const { data: cardsData } = await supabase.from('cards').select('name, label').eq('active', true).order('label') as { data: { name: string; label: string }[] | null }
+      setCardsList(cardsData ?? [])
+
       // Carregar role do usuário (GitHub = sempre editor)
       const isGitHub = session.user.app_metadata?.provider === 'github' || session.user.identities?.some(i => i.provider === 'github')
       if (isGitHub) {
@@ -59,7 +68,6 @@ export default function App() {
       const toYM = (d: string) => d.substring(0, 7)
       const all = [...new Set([...tMonths.map(r => toYM(r.month)), ...cMonths.map(r => toYM(r.month))])].sort()
       setMonths(all)
-      if (all.length) setMonth(all[all.length - 1])
     })()
   }, [session])
 
@@ -74,7 +82,33 @@ export default function App() {
     setCards(c ?? [])
   }
 
-  useEffect(() => { loadData() }, [month])
+  const reload = async () => {
+    const { data: cats } = await supabase.from('categories').select('*')
+    setCategories(cats ?? [])
+    const { data: cardsData } = await supabase.from('cards').select('name, label').eq('active', true).order('label') as { data: { name: string; label: string }[] | null }
+    setCardsList(cardsData ?? [])
+    const { data: t } = await supabase.from('transactions').select('month').order('month', { ascending: false })
+    const { data: c } = await supabase.from('credit_cards').select('month').order('month', { ascending: false })
+    const tMonths = (t as { month: string }[] | null) ?? []
+    const cMonths = (c as { month: string }[] | null) ?? []
+    const toYM = (d: string) => d.substring(0, 7)
+    const all = [...new Set([...tMonths.map(r => toYM(r.month)), ...cMonths.map(r => toYM(r.month))])].sort()
+    setMonths(all)
+    await loadData()
+  }
+
+  useEffect(() => {
+    if (!month) return
+    const start = `${month}-01`
+    const [y, m] = month.split('-').map(Number)
+    const nextMonth = m === 12 ? `${y + 1}-01-01` : `${y}-${String(m + 1).padStart(2, '0')}-01`
+    ;(async () => {
+      const { data: t } = await supabase.from('transactions').select('*, categories(*)').gte('month', start).lt('month', nextMonth).order('month').order('type').order('description')
+      const { data: c } = await supabase.from('credit_cards').select('*').gte('month', start).lt('month', nextMonth).order('card').order('description')
+      setTransactions((t as Transaction[]) ?? [])
+      setCards(c ?? [])
+    })()
+  }, [month])
 
   if (loading) return <div className="auth"><p>Carregando...</p></div>
   if (!session) return <Auth />
@@ -126,6 +160,7 @@ export default function App() {
 
             <CardsTable
               cards={fc}
+              cardsList={cardsList}
               canEdit={isEditor}
               onDelete={id => setCards(prev => prev.filter(r => r.id !== id))}
             />
@@ -133,7 +168,7 @@ export default function App() {
         )}
 
         {page === 'recurring' && (
-          <RecurringPage categories={categories} />
+          <RecurringPage categories={categories} cardsList={cardsList} />
         )}
 
         {page === 'projection' && (
@@ -147,12 +182,21 @@ export default function App() {
         {page === 'access' && (
           <AccessPage />
         )}
+
+        {page === 'categories' && (
+          <CategoriesPage />
+        )}
+
+        {page === 'cards' && (
+          <CardsPage />
+        )}
       </main>
 
       {showAdd && (
         <AddTransaction
           categories={categories}
-          onSaved={loadData}
+          cardsList={cardsList}
+          onSaved={reload}
           onClose={() => setShowAdd(false)}
         />
       )}
