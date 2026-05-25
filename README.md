@@ -39,9 +39,9 @@ Acesse `http://localhost:5173/finn/`
 2. Cadastre o owner na tabela `users`:
 ```sql
 INSERT INTO users (email, display_name, role_id, activated)
-VALUES ('seu@email.com', 'Seu Nome', (SELECT id FROM roles WHERE name = 'owner'), true);
+VALUES ('seu@email.com', 'Seu Nome', (SELECT id FROM roles WHERE name = 'owner'), false);
 ```
-3. Crie o usuário no Supabase Auth (Authentication → Users → Add user)
+3. Acesse o app e crie sua conta (tela de login → "Criar conta")
 
 ## Scripts
 
