@@ -77,6 +77,19 @@ export default function App() {
     setCards(c ?? [])
   }
 
+  const reload = async () => {
+    const { data: cats } = await supabase.from('categories').select('*')
+    setCategories(cats ?? [])
+    const { data: t } = await supabase.from('transactions').select('month').order('month', { ascending: false })
+    const { data: c } = await supabase.from('credit_cards').select('month').order('month', { ascending: false })
+    const tMonths = (t as { month: string }[] | null) ?? []
+    const cMonths = (c as { month: string }[] | null) ?? []
+    const toYM = (d: string) => d.substring(0, 7)
+    const all = [...new Set([...tMonths.map(r => toYM(r.month)), ...cMonths.map(r => toYM(r.month))])].sort()
+    setMonths(all)
+    await loadData()
+  }
+
   useEffect(() => { loadData() }, [month])
 
   if (loading) return <div className="auth"><p>Carregando...</p></div>
@@ -159,7 +172,7 @@ export default function App() {
       {showAdd && (
         <AddTransaction
           categories={categories}
-          onSaved={loadData}
+          onSaved={reload}
           onClose={() => setShowAdd(false)}
         />
       )}
