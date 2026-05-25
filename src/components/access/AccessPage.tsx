@@ -69,7 +69,7 @@ export default function AccessPage() {
   return (
     <div>
       <div className="page-header">
-        <h2>👥 Usuários</h2>
+        <h2>Usuários</h2>
         <Button onClick={openNew}>+ Novo</Button>
       </div>
 

@@ -60,7 +60,7 @@ export default function Dashboard({ categories }: Props) {
     })()
   }, [selectedMonth])
 
-  if (loading) return <div><h2 className="dashboard-title">📊 Dashboard</h2><ChartSkeleton /><CardsSkeleton /></div>
+  if (loading) return <div><h2 className="dashboard-title">Dashboard</h2><ChartSkeleton /><CardsSkeleton /></div>
 
   // Evolução anual
   const maxValue = Math.max(...monthsData.flatMap(d => [d.income, d.expense]), 1)
@@ -96,7 +96,7 @@ export default function Dashboard({ categories }: Props) {
 
   return (
     <div>
-      <h2 className="dashboard-title">📊 Dashboard</h2>
+      <h2 className="dashboard-title">Dashboard</h2>
 
       {/* Evolução Anual */}
       <section>

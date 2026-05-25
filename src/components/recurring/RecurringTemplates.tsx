@@ -112,7 +112,7 @@ export default function RecurringPage({ categories, cardsList }: Props) {
   return (
     <div>
       <div className="page-header">
-        <h2>🔄 Lançamentos Recorrentes</h2>
+        <h2>Lançamentos Recorrentes</h2>
         <div className="page-actions">
           <input type="month" value={genMonth} onChange={e => setGenMonth(e.target.value)} className="input-month" />
           <Button onClick={handleGenerate} disabled={generating}>
@@ -187,7 +187,7 @@ export default function RecurringPage({ categories, cardsList }: Props) {
                 <td>{t.day}</td>
                 <td>{t.description}</td>
                 <td>{fmt(+t.amount)}</td>
-                <td>{t.target === 'credit_card' ? '💳 Cartão' : t.type === 'income' ? '📈 Receita' : '📉 Despesa'}</td>
+                <td>{t.target === 'credit_card' ? 'Cartão' : t.type === 'income' ? 'Receita' : 'Despesa'}</td>
                 <td>{t.target === 'credit_card' ? cardsList.find(c => c.name === t.card)?.label ?? t.card : catLabel(t.category)}</td>
                 <td><span className={`badge ${t.owner === 'personal' ? 'badge-personal' : 'badge-sogra'}`}>{t.owner === 'personal' ? 'Pessoal' : 'Sogra'}</span></td>
                 <td><button className={`paid-btn ${t.active ? 'paid' : ''}`} onClick={() => toggleActive(t.id, t.active)}>{t.active ? <Check size={14} /> : <Circle size={14} />}</button></td>
@@ -209,7 +209,7 @@ export default function RecurringPage({ categories, cardsList }: Props) {
               status={<button className={`paid-btn ${t.active ? 'paid' : ''}`} onClick={(e) => { e.stopPropagation(); toggleActive(t.id, t.active) }}>{t.active ? <Check size={14} /> : <Circle size={14} />}</button>}
               title={t.description}
               value={fmt(+t.amount)}
-              subtitle={<>Dia {t.day} · {t.target === 'credit_card' ? `💳 ${cardsList.find(c => c.name === t.card)?.label ?? t.card}` : catLabel(t.category)} · {t.owner === 'personal' ? 'Pessoal' : 'Sogra'}</>}
+              subtitle={<>Dia {t.day} · {t.target === 'credit_card' ? cardsList.find(c => c.name === t.card)?.label ?? t.card : catLabel(t.category)} · {t.owner === 'personal' ? 'Pessoal' : 'Sogra'}</>}
               onTap={() => openEdit(t)}
             />
           )) : <p className="empty">Nenhum template cadastrado</p>}

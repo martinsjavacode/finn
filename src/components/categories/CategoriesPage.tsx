@@ -48,7 +48,7 @@ export default function CategoriesPage() {
   return (
     <div>
       <div className="page-header">
-        <h2>🏷️ Categorias</h2>
+        <h2>Categorias</h2>
         <Button onClick={() => setShowForm(!showForm)}>+ Nova</Button>
       </div>
 

@@ -79,7 +79,7 @@ export default function RolesPage() {
   return (
     <div>
       <div className="page-header">
-        <h2>🔐 Roles e Permissões</h2>
+        <h2>Roles e Permissões</h2>
         <Button onClick={openNew}>+ Nova Role</Button>
       </div>
 

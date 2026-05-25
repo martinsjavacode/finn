@@ -82,7 +82,7 @@ export default function CardsPage() {
   return (
     <div>
       <div className="page-header">
-        <h2>💳 Cartões</h2>
+        <h2>Cartões</h2>
         <Button onClick={openNew}>+ Novo</Button>
       </div>
 

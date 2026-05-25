@@ -1,4 +1,4 @@
-import { Pencil, Trash2, Check, Circle } from 'lucide-react'
+import { Pencil, Trash2, Check, Circle, TrendingUp, TrendingDown } from 'lucide-react'
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import type { Transaction, Category, Owner, TransactionType } from '../../types/database'
@@ -67,7 +67,7 @@ export default function TransactionsTable({ transactions, categories, canEdit, o
       <div className="tabs">
         {(['all', 'income', 'expense'] as const).map(t => (
           <Button key={t} variant="tab" active={t === typeFilter} onClick={() => setTypeFilter(t)}>
-            {t === 'all' ? 'Todos' : t === 'income' ? '📈 Receitas' : '📉 Despesas'}
+            {t === 'all' ? 'Todos' : t === 'income' ? <><TrendingUp size={14} /> Receitas</> : <><TrendingDown size={14} /> Despesas</>}
           </Button>
         ))}
       </div>
@@ -97,7 +97,7 @@ export default function TransactionsTable({ transactions, categories, canEdit, o
                   <td><input className="inline-input" type="date" value={editData.month ?? r.month} onChange={e => setEditData(d => ({ ...d, month: e.target.value }))} /></td>
                   <td><input className="inline-input" value={editData.description ?? ''} onChange={e => setEditData(d => ({ ...d, description: e.target.value }))} /></td>
                   <td><Select value={editData.category ?? ''} onChange={v => setEditData(d => ({ ...d, category: v }))} options={categories.map(c => ({ value: c.id, label: c.label }))} /></td>
-                  <td>{r.type === 'income' ? '📈' : '📉'}</td>
+                  <td>{r.type === 'income' ? <TrendingUp size={14} /> : <TrendingDown size={14} />}</td>
                   <td>{r.current_installment && r.total_installments ? `${r.current_installment}/${r.total_installments}` : '-'}</td>
                   <td><input className="inline-input" type="number" step="0.01" value={editData.amount ?? ''} onChange={e => setEditData(d => ({ ...d, amount: +e.target.value }))} style={{ width: '100px' }} /></td>
                   <td><Select value={editData.owner ?? ''} onChange={v => setEditData(d => ({ ...d, owner: v as Owner }))} options={[{ value: 'personal', label: 'Pessoal' }, { value: 'mother_in_law', label: 'Sogra' }]} /></td>
@@ -109,7 +109,7 @@ export default function TransactionsTable({ transactions, categories, canEdit, o
                   <td>{new Date(r.month + 'T12:00:00').toLocaleDateString('pt-BR')}</td>
                   <td>{r.description}</td>
                   <td>{getCatLabel(r)}</td>
-                  <td>{r.type === 'income' ? '📈 Receita' : '📉 Despesa'}</td>
+                  <td>{r.type === 'income' ? 'Receita' : 'Despesa'}</td>
                   <td>{r.current_installment && r.total_installments ? `${r.current_installment}/${r.total_installments}` : '-'}</td>
                   <td>{fmt(+r.amount)}</td>
                   <td><span className={`badge ${r.owner === 'personal' ? 'badge-personal' : 'badge-sogra'}`}>{ownerLabel(r.owner)}</span></td>
