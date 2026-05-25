@@ -14,10 +14,10 @@
 .chart-line { stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; fill: none; }
 .chart-line.income { stroke: var(--green); }
 .chart-line.expense { stroke: var(--red); }
-.chart-dot { transition: r 0.2s; }
+.chart-dot { transition: r 0.2s; cursor: pointer; }
 .chart-dot.income { fill: var(--green); }
 .chart-dot.expense { fill: var(--red); }
-.chart-dot:hover { r: 6; }
+.chart-dot:hover { r: 7; }
 .chart-label { font-size: 11px; fill: var(--text-muted); text-transform: capitalize; }
 .chart-label.active { fill: var(--purple); font-weight: 600; }
 

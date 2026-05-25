@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 import { signOut } from '../../services/auth'
 import type { Session } from '@supabase/supabase-js'
 
@@ -8,8 +8,20 @@ interface Props {
   isOwner: boolean
 }
 
+const pageTitles: Record<string, string> = {
+  '/': '📊 Dashboard',
+  '/transactions': '📋 Lançamentos',
+  '/recurring': '🔄 Recorrentes',
+  '/projection': '📈 Projeção',
+  '/budgets': '💰 Orçamentos',
+  '/categories': '🏷️ Categorias',
+  '/cards': '💳 Cartões',
+  '/access': '👥 Acessos',
+}
+
 export default function Sidebar({ session, isOwner }: Props) {
   const [open, setOpen] = useState(false)
+  const location = useLocation()
 
   const link = (to: string, label: string) => (
     <NavLink to={to} className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`} onClick={() => setOpen(false)}>{label}</NavLink>
@@ -17,6 +29,10 @@ export default function Sidebar({ session, isOwner }: Props) {
 
   return (
     <>
+      <div className="mobile-header">
+        <span className="mobile-header-title">{pageTitles[location.pathname] ?? 'Finn'}</span>
+      </div>
+
       <button className="hamburger" onClick={() => setOpen(true)} aria-label="Abrir menu">
         <span /><span /><span />
       </button>
