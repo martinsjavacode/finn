@@ -147,6 +147,7 @@ migrations/
 
 ### Lançamentos
 - Filtros por mês, responsável, tipo, categoria, status (pago/pendente), busca
+- Paginação com seleção de itens por página (10/20/50)
 - Tabela de cartões de crédito com filtro por bandeira
 - Adicionar/editar/excluir (baseado em permissões)
 - Edição via modal

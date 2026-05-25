@@ -254,6 +254,17 @@ tbody tr { cursor: pointer; transition: background 0.15s; }
 
 /* States */
 .empty { text-align: center; color: var(--text-muted); padding: 3rem 1rem; font-size: 0.9rem; }
+
+/* Pagination */
+.pagination { display: flex; align-items: center; justify-content: space-between; margin-top: 1.2rem; gap: 12px; }
+.pagination-left { display: flex; align-items: center; gap: 6px; }
+.pagination-right { display: flex; align-items: center; gap: 4px; }
+.pagination-btn { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); color: var(--text); cursor: pointer; transition: all 0.15s; }
+.pagination-btn:hover:not(:disabled) { background: var(--border); }
+.pagination-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.pagination-select { height: 32px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); color: var(--text); font-size: 0.8rem; padding: 0 8px; cursor: pointer; }
+.pagination-label { font-size: 0.75rem; color: var(--text-muted); }
+.pagination-info { font-size: 0.8rem; color: var(--text-muted); }
 .row-paid td { opacity: 0.5; }
 
 /* Page transition */

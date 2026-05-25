@@ -7,6 +7,7 @@ import { confirm } from '../../lib/confirm'
 import { fmt, ownerLabel } from '../../utils/format'
 import Button from '../ui/Button'
 import MobileCard from '../ui/MobileCard'
+import Pagination from '../ui/Pagination'
 
 interface Props {
   cards: CreditCard[]
@@ -20,10 +21,15 @@ export default function CardsTable({ cards, cardsList, canUpdate, canDelete, onD
   const canEdit = canUpdate || canDelete
   const [cardFilter, setCardFilter] = useState('all')
   const [editing, setEditing] = useState<string | null>(null)
+  const [page, setPage] = useState(1)
+  const [perPage, setPerPage] = useState(10)
 
   const getLabel = (name: string) => cardsList.find(c => c.name === name)?.label ?? name
   const cardNames = ['all', ...new Set(cards.map(r => r.card))]
   const filtered = cardFilter === 'all' ? cards : cards.filter(r => r.card === cardFilter)
+
+  const totalPages = Math.ceil(filtered.length / perPage)
+  const paginated = filtered.slice((page - 1) * perPage, page * perPage)
 
   const handleDelete = async (id: string) => {
     if (!await confirm('Tem certeza que deseja excluir este lançamento de cartão?')) return
@@ -38,7 +44,7 @@ export default function CardsTable({ cards, cardsList, canUpdate, canDelete, onD
       <h2>Cartões de Crédito</h2>
       <div className="tabs">
         {cardNames.map(c => (
-          <Button key={c} variant="tab" active={c === cardFilter} onClick={() => setCardFilter(c)}>
+          <Button key={c} variant="tab" active={c === cardFilter} onClick={() => { setCardFilter(c); setPage(1) }}>
             {c === 'all' ? 'Todos' : getLabel(c)}
           </Button>
         ))}
@@ -48,7 +54,7 @@ export default function CardsTable({ cards, cardsList, canUpdate, canDelete, onD
       <table className="desktop-table">
         <thead><tr><th>Descrição</th><th>Cartão</th><th>Parcela</th><th>Valor</th><th>Resp.</th>{canEdit && <th></th>}</tr></thead>
         <tbody>
-          {filtered.length ? filtered.map(r => (
+          {filtered.length ? paginated.map(r => (
             <tr key={r.id}>
               <td>{r.description}</td>
               <td>{getLabel(r.card)}</td>
@@ -68,7 +74,7 @@ export default function CardsTable({ cards, cardsList, canUpdate, canDelete, onD
 
       {/* Mobile */}
       <div className="mobile-cards">
-        {filtered.length ? filtered.map(r => (
+        {filtered.length ? paginated.map(r => (
           <MobileCard
             key={r.id}
             title={r.description}
@@ -78,6 +84,7 @@ export default function CardsTable({ cards, cardsList, canUpdate, canDelete, onD
           />
         )) : <p className="empty">Nenhum lançamento</p>}
       </div>
+      <Pagination currentPage={page} totalPages={totalPages} totalItems={filtered.length} perPage={perPage} onPageChange={setPage} onPerPageChange={setPerPage} />
     </section>
   )
 }

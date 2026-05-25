@@ -32,6 +32,7 @@
 - [x] Badges de status (Pago/Pendente, Ativo/Inativo) para read-only
 - [x] Redirect para dashboard após login
 - [x] Redirect para `/` ao sair
+- [x] Paginação client-side com seleção de itens por página
 
 ## 🎯 Curto prazo (quick wins)
 

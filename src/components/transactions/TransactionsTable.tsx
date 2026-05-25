@@ -8,6 +8,7 @@ import { fmt, ownerLabel } from '../../utils/format'
 import Button from '../ui/Button'
 import Select from '../ui/Select'
 import MobileCard from '../ui/MobileCard'
+import Pagination from '../ui/Pagination'
 
 interface Props {
   transactions: Transaction[]
@@ -25,6 +26,8 @@ export default function TransactionsTable({ transactions, categories, canUpdate,
   const [paidFilter, setPaidFilter] = useState<'all' | 'paid' | 'pending'>('all')
   const [editing, setEditing] = useState<string | null>(null)
   const [editData, setEditData] = useState<Partial<Transaction>>({})
+  const [page, setPage] = useState(1)
+  const [perPage, setPerPage] = useState(10)
 
   const catLabel = (id: string) => categories.find(c => c.id === id)?.label ?? id
   const getCatLabel = (t: Transaction) => t.categories?.label ?? ''
@@ -34,6 +37,9 @@ export default function TransactionsTable({ transactions, categories, canUpdate,
     (catFilter === 'all' || r.category === catFilter) &&
     (paidFilter === 'all' || (paidFilter === 'paid' ? r.paid : !r.paid))
   )
+
+  const totalPages = Math.ceil(filtered.length / perPage)
+  const paginated = filtered.slice((page - 1) * perPage, page * perPage)
 
   const usedCats = ['all', ...new Set(transactions.map(r => r.category))]
 
@@ -68,21 +74,21 @@ export default function TransactionsTable({ transactions, categories, canUpdate,
       <h2>Lançamentos</h2>
       <div className="tabs">
         {(['all', 'income', 'expense'] as const).map(t => (
-          <Button key={t} variant="tab" active={t === typeFilter} onClick={() => setTypeFilter(t)}>
+          <Button key={t} variant="tab" active={t === typeFilter} onClick={() => { setTypeFilter(t); setPage(1) }}>
             {t === 'all' ? 'Todos' : t === 'income' ? <><TrendingUp size={14} /> Receitas</> : <><TrendingDown size={14} /> Despesas</>}
           </Button>
         ))}
       </div>
       <div className="tabs">
         {usedCats.map(c => (
-          <Button key={c} variant="tab" active={c === catFilter} onClick={() => setCatFilter(c)}>
+          <Button key={c} variant="tab" active={c === catFilter} onClick={() => { setCatFilter(c); setPage(1) }}>
             {c === 'all' ? 'Todas categorias' : catLabel(c)}
           </Button>
         ))}
       </div>
       <div className="tabs">
         {(['all', 'pending', 'paid'] as const).map(s => (
-          <Button key={s} variant="tab" active={s === paidFilter} onClick={() => setPaidFilter(s)}>
+          <Button key={s} variant="tab" active={s === paidFilter} onClick={() => { setPaidFilter(s); setPage(1) }}>
             {s === 'all' ? 'Todos status' : s === 'paid' ? '✓ Pagos' : '○ Pendentes'}
           </Button>
         ))}
@@ -92,7 +98,7 @@ export default function TransactionsTable({ transactions, categories, canUpdate,
       <table className="desktop-table">
         <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Parcela</th><th>Valor</th><th>Resp.</th><th>Pago</th>{canEdit && <th></th>}</tr></thead>
         <tbody>
-          {filtered.length ? filtered.map(r => (
+          {filtered.length ? paginated.map(r => (
             <tr key={r.id} className={r.paid ? 'row-paid' : ''}>
               {editing === r.id ? (
                 <>
@@ -131,7 +137,7 @@ export default function TransactionsTable({ transactions, categories, canUpdate,
 
       {/* Mobile */}
       <div className="mobile-cards">
-        {filtered.length ? filtered.map(r => (
+        {filtered.length ? paginated.map(r => (
           <MobileCard
             key={r.id}
             className={r.paid ? 'row-paid' : ''}
@@ -143,6 +149,7 @@ export default function TransactionsTable({ transactions, categories, canUpdate,
           />
         )) : <p className="empty">Nenhum lançamento</p>}
       </div>
+      <Pagination currentPage={page} totalPages={totalPages} totalItems={filtered.length} perPage={perPage} onPageChange={setPage} onPerPageChange={setPerPage} />
     </section>
   )
 }
