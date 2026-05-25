@@ -23,7 +23,7 @@
 ## Usabilidade
 - [ ] Duplicar mês (copiar lançamentos como base para o próximo)
 - [x] Edição inline nas tabelas (clicar no valor/descrição e editar direto)
-- [ ] Filtro por status de pagamento (pendentes / pagos)
+- [x] Filtro por status de pagamento (pendentes / pagos)
 
 ## Visão
 - [ ] Resumo anual (total receita/despesa/saldo do ano)
@@ -38,24 +38,24 @@
 - [x] Error handling com toast notifications em todas as operações Supabase
 - [x] Tipagem completa do Database (todas as 8 tabelas)
 - [x] Confirmação antes de exclusões
-- [ ] Testes unitários (Vitest + Testing Library)
-- [ ] Error boundaries (React) para evitar tela branca
-- [ ] Loading states/skeletons em todas as páginas
+- [x] Testes unitários (Vitest + Testing Library)
+- [x] Error boundaries (React) para evitar tela branca
+- [x] Loading states/skeletons em todas as páginas
 
 ## Refatoração
-- [ ] Extrair `fmt()` e utilitários duplicados para `src/utils/`
-- [ ] Extrair custom hooks (`useTransactions`, `useAuth`, `useCategories`)
-- [ ] Extrair CSS compartilhado (classes genéricas em `shared.css`)
-- [ ] Reduzir prop drilling com Context para dados globais
+- [x] Extrair `fmt()` e utilitários duplicados para `src/utils/`
+- [x] Extrair custom hooks (`useTransactions`, `useAuth`, `useCategories`)
+- [x] Extrair CSS compartilhado (classes genéricas em `shared.css`)
+- [x] Reduzir prop drilling com Context para dados globais
 
 ## Performance
-- [ ] Criar RPC agregada para Projection (evitar 12 queries em loop)
-- [ ] `useMemo`/`useCallback` nos handlers passados como props
+- [x] Criar RPC agregada para Projection (evitar 12 queries em loop)
+- [x] `useMemo`/`useCallback` nos handlers passados como props
 - [ ] React Query ou SWR para cache e retry automático
 
 ## Infraestrutura
 - [x] CI/CD pipeline progressivo (feature → develop → main → deploy)
 - [x] Fix git user para criação de tags válidas
-- [ ] React Router para deep linking e navegação por URL
+- [x] React Router para deep linking e navegação por URL
 - [ ] Accessibility audit (axe-core, focus trap em modais, aria-labels)
 - [ ] i18n (preparar para internacionalização)

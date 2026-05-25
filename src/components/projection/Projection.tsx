@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
+import { fmt } from '../../utils/format'
+import { TableSkeleton } from '../ui/Skeleton'
 import '../dashboard/Dashboard.css'
-
-const fmt = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 
 interface MonthProjection {
   month: string
@@ -17,42 +17,41 @@ export default function Projection() {
 
   useEffect(() => {
     ;(async () => {
-      // Buscar recorrentes ativos
-      const { data: templates } = await supabase.from('recurring_templates').select('amount').eq('active', true).eq('type', 'expense') as { data: { amount: number }[] | null }
-      const monthlyRecurring = (templates ?? []).reduce((s, t) => s + +t.amount, 0)
+      // Tenta usar RPC agregada (migration 009)
+      const { data, error } = await supabase.rpc('get_projection', { months_ahead: 6 } as never)
 
-      // Buscar parcelas futuras (credit_cards e transactions com installments)
-      const today = new Date()
-      const futureMonths: MonthProjection[] = []
+      if (!error && data) {
+        setProjections((data as { month: string; recurring: number; installments: number }[]).map(r => ({
+          ...r, total: +r.recurring + +r.installments
+        })))
+      } else {
+        // Fallback: método antigo (N+1)
+        const { data: templates } = await supabase.from('recurring_templates').select('amount').eq('active', true).eq('type', 'expense') as { data: { amount: number }[] | null }
+        const monthlyRecurring = (templates ?? []).reduce((s, t) => s + +t.amount, 0)
+        const today = new Date()
+        const results: MonthProjection[] = []
 
-      for (let i = 0; i < 6; i++) {
-        const d = new Date(today.getFullYear(), today.getMonth() + i, 1)
-        const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-        const start = `${ym}-01`
-        const nextM = d.getMonth() === 11 ? `${d.getFullYear() + 1}-01-01` : `${d.getFullYear()}-${String(d.getMonth() + 2).padStart(2, '0')}-01`
+        for (let i = 0; i < 6; i++) {
+          const d = new Date(today.getFullYear(), today.getMonth() + i, 1)
+          const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+          const start = `${ym}-01`
+          const nextM = d.getMonth() === 11 ? `${d.getFullYear() + 1}-01-01` : `${d.getFullYear()}-${String(d.getMonth() + 2).padStart(2, '0')}-01`
 
-        // Parcelas de cartão já geradas
-        const { data: cards } = await supabase.from('credit_cards').select('amount').gte('month', start).lt('month', nextM)
-        const cardTotal = (cards ?? []).reduce((s, r) => s + +(r as { amount: number }).amount, 0)
+          const { data: cards } = await supabase.from('credit_cards').select('amount').gte('month', start).lt('month', nextM)
+          const { data: txInstall } = await supabase.from('transactions').select('amount').gte('month', start).lt('month', nextM).not('total_installments', 'is', null)
 
-        // Parcelas de transactions já geradas (com installment)
-        const { data: txInstall } = await supabase.from('transactions').select('amount').gte('month', start).lt('month', nextM).not('total_installments', 'is', null)
-        const txInstallTotal = (txInstall ?? []).reduce((s, r) => s + +(r as { amount: number }).amount, 0)
+          const cardTotal = (cards ?? []).reduce((s, r) => s + +(r as { amount: number }).amount, 0)
+          const txTotal = (txInstall ?? []).reduce((s, r) => s + +(r as { amount: number }).amount, 0)
 
-        futureMonths.push({
-          month: ym,
-          recurring: monthlyRecurring,
-          installments: cardTotal + txInstallTotal,
-          total: monthlyRecurring + cardTotal + txInstallTotal
-        })
+          results.push({ month: ym, recurring: monthlyRecurring, installments: cardTotal + txTotal, total: monthlyRecurring + cardTotal + txTotal })
+        }
+        setProjections(results)
       }
-
-      setProjections(futureMonths)
       setLoading(false)
     })()
   }, [])
 
-  if (loading) return <div className="empty">Carregando projeção...</div>
+  if (loading) return <div><h2 className="dashboard-title">📈 Projeção Futura</h2><TableSkeleton rows={6} cols={4} /></div>
 
   const monthLabel = (ym: string) => new Date(ym + '-01T12:00:00').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
 

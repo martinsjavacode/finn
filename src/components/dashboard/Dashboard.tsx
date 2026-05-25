@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import type { Transaction, Category } from '../../types/database'
+import { ChartSkeleton, CardsSkeleton } from '../ui/Skeleton'
 import './Dashboard.css'
 
 const fmt = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -60,7 +61,7 @@ export default function Dashboard({ categories }: Props) {
     })()
   }, [selectedMonth])
 
-  if (loading) return <div className="empty">Carregando dashboard...</div>
+  if (loading) return <div><h2 className="dashboard-title">📊 Dashboard</h2><ChartSkeleton /><CardsSkeleton /></div>
 
   // Evolução anual
   const maxValue = Math.max(...monthsData.flatMap(d => [d.income, d.expense]), 1)

@@ -20,6 +20,7 @@ interface Props {
 export default function TransactionsTable({ transactions, categories, canEdit, onUpdate, onDelete }: Props) {
   const [typeFilter, setTypeFilter] = useState<'all' | TransactionType>('all')
   const [catFilter, setCatFilter] = useState('all')
+  const [paidFilter, setPaidFilter] = useState<'all' | 'paid' | 'pending'>('all')
   const [editing, setEditing] = useState<string | null>(null)
   const [editData, setEditData] = useState<Partial<Transaction>>({})
 
@@ -28,7 +29,8 @@ export default function TransactionsTable({ transactions, categories, canEdit, o
 
   const filtered = transactions.filter(r =>
     (typeFilter === 'all' || r.type === typeFilter) &&
-    (catFilter === 'all' || r.category === catFilter)
+    (catFilter === 'all' || r.category === catFilter) &&
+    (paidFilter === 'all' || (paidFilter === 'paid' ? r.paid : !r.paid))
   )
 
   const usedCats = ['all', ...new Set(transactions.map(r => r.category))]
@@ -73,6 +75,13 @@ export default function TransactionsTable({ transactions, categories, canEdit, o
         {usedCats.map(c => (
           <Button key={c} variant="tab" active={c === catFilter} onClick={() => setCatFilter(c)}>
             {c === 'all' ? 'Todas categorias' : catLabel(c)}
+          </Button>
+        ))}
+      </div>
+      <div className="tabs">
+        {(['all', 'pending', 'paid'] as const).map(s => (
+          <Button key={s} variant="tab" active={s === paidFilter} onClick={() => setPaidFilter(s)}>
+            {s === 'all' ? 'Todos status' : s === 'paid' ? '✓ Pagos' : '○ Pendentes'}
           </Button>
         ))}
       </div>
