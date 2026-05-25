@@ -22,6 +22,9 @@ export default function Sidebar({ session, page, isOwner, onNavigate }: Props) {
         <button className={`sidebar-link ${page === 'transactions' ? 'active' : ''}`} onClick={() => onNavigate('transactions')}>📋 Lançamentos</button>
         <button className={`sidebar-link ${page === 'recurring' ? 'active' : ''}`} onClick={() => onNavigate('recurring')}>🔄 Recorrentes</button>
         <button className={`sidebar-link ${page === 'projection' ? 'active' : ''}`} onClick={() => onNavigate('projection')}>📈 Projeção</button>
+
+        <div className="sidebar-separator" />
+
         <button className={`sidebar-link ${page === 'budgets' ? 'active' : ''}`} onClick={() => onNavigate('budgets')}>💰 Orçamentos</button>
         <button className={`sidebar-link ${page === 'categories' ? 'active' : ''}`} onClick={() => onNavigate('categories')}>🏷️ Categorias</button>
         <button className={`sidebar-link ${page === 'cards' ? 'active' : ''}`} onClick={() => onNavigate('cards')}>💳 Cartões</button>

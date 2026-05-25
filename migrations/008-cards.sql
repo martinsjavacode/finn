@@ -15,12 +15,3 @@ create policy "Auth read" on cards for select using (auth.role() = 'authenticate
 create policy "Auth insert" on cards for insert with check (auth.role() = 'authenticated');
 create policy "Auth update" on cards for update using (auth.role() = 'authenticated');
 create policy "Auth delete" on cards for delete using (auth.role() = 'authenticated');
-
--- Seed com cartões existentes
-insert into cards (name, label, closing_day, due_day) values
-('nubank', 'Nubank', 3, 10),
-('bradesco', 'Bradesco', 20, 1),
-('inter', 'Inter', 15, 22),
-('pague_menos', 'Pague Menos', 10, 17),
-('mercado_pago', 'Mercado Pago', 1, 8),
-('neon', 'Neon', 25, 2);
