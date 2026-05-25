@@ -44,6 +44,7 @@ function TransactionsPage() {
 
   return (
     <>
+      <h2 className="dashboard-title">Lançamentos</h2>
       <div className="controls">
         <Select
           value={month}
