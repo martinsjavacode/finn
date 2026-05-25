@@ -29,6 +29,7 @@ export default function App() {
   const [showAdd, setShowAdd] = useState(false)
   const [page, setPage] = useState<Page>('dashboard')
   const [userRole, setUserRole] = useState<'editor' | 'viewer'>('viewer')
+  const [search, setSearch] = useState('')
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => { setSession(data.session); setLoading(false) })
@@ -78,8 +79,8 @@ export default function App() {
   if (loading) return <div className="auth"><p>Carregando...</p></div>
   if (!session) return <Auth />
 
-  const ft = transactions.filter(r => owner === 'all' || r.owner === owner)
-  const fc = cards.filter(r => owner === 'all' || r.owner === owner)
+  const ft = transactions.filter(r => (owner === 'all' || r.owner === owner) && (!search || r.description.toLowerCase().includes(search.toLowerCase())))
+  const fc = cards.filter(r => (owner === 'all' || r.owner === owner) && (!search || r.description.toLowerCase().includes(search.toLowerCase())))
 
   const income = ft.filter(r => r.type === 'income').reduce((s, r) => s + +r.amount, 0)
   const expense = ft.filter(r => r.type === 'expense').reduce((s, r) => s + +r.amount, 0)
@@ -109,6 +110,7 @@ export default function App() {
                 onChange={v => setOwner(v as 'all' | Owner)}
                 options={[{ value: 'all', label: 'Todos' }, { value: 'personal', label: 'Pessoal' }, { value: 'mother_in_law', label: 'Sogra' }]}
               />
+              <input type="text" className="search-input" placeholder="🔍 Buscar..." value={search} onChange={e => setSearch(e.target.value)} />
               {isEditor && <Button onClick={() => setShowAdd(true)}>+ Novo</Button>}
             </div>
 

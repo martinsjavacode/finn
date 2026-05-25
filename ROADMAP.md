@@ -16,6 +16,6 @@
 - [x] Alertas de vencimento (próximos dias)
 
 ## Qualidade de vida
-- [ ] Busca por descrição
+- [x] Busca por descrição
 - [ ] Exportar para CSV
 - [ ] Dark/light mode toggle
