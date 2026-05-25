@@ -21,7 +21,10 @@ export default function App() {
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
   const [months, setMonths] = useState<string[]>([])
-  const [month, setMonth] = useState('')
+  const [month, setMonth] = useState(() => {
+    const now = new Date()
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+  })
   const [owner, setOwner] = useState<'all' | Owner>('all')
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [cards, setCards] = useState<CreditCard[]>([])
@@ -59,7 +62,6 @@ export default function App() {
       const toYM = (d: string) => d.substring(0, 7)
       const all = [...new Set([...tMonths.map(r => toYM(r.month)), ...cMonths.map(r => toYM(r.month))])].sort()
       setMonths(all)
-      if (all.length) setMonth(all[all.length - 1])
     })()
   }, [session])
 
