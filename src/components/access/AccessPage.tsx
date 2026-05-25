@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
+import { showError, toast } from '../../lib/toast'
+import { confirm } from '../../lib/confirm'
 import Button from '../ui/Button'
 import Select from '../ui/Select'
 
@@ -19,22 +21,27 @@ export default function AccessPage() {
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault()
-    const { data } = await supabase.from('access_control').insert({ email, role } as never).select().single()
+    const { data, error } = await supabase.from('access_control').insert({ email, role } as never).select().single()
+    if (error) return showError(error)
     if (data) setUsers(prev => [...prev, data as Access])
     setShowForm(false)
     setEmail('')
+    toast('Acesso adicionado')
   }
 
   const startEdit = (u: Access) => { setEditing(u.id); setEditRole(u.role) }
 
   const saveEdit = async (id: string) => {
-    await supabase.from('access_control').update({ role: editRole } as never).eq('id', id)
+    const { error } = await supabase.from('access_control').update({ role: editRole } as never).eq('id', id)
+    if (error) return showError(error)
     setUsers(prev => prev.map(u => u.id === id ? { ...u, role: editRole } : u))
     setEditing(null)
   }
 
   const handleDelete = async (id: string) => {
-    await supabase.from('access_control').delete().eq('id', id)
+    if (!await confirm('Tem certeza que deseja remover este acesso?')) return
+    const { error } = await supabase.from('access_control').delete().eq('id', id)
+    if (error) return showError(error)
     setUsers(prev => prev.filter(u => u.id !== id))
   }
 

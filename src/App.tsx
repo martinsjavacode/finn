@@ -17,6 +17,8 @@ import AccessPage from './components/access/AccessPage'
 import CategoriesPage from './components/categories/CategoriesPage'
 import CardsPage from './components/cards/CardsPage'
 import Button from './components/ui/Button'
+import ToastContainer from './components/ui/Toast'
+import ConfirmDialog from './components/ui/ConfirmDialog'
 import './App.css'
 
 export default function App() {
@@ -200,6 +202,8 @@ export default function App() {
           onClose={() => setShowAdd(false)}
         />
       )}
+      <ToastContainer />
+      <ConfirmDialog />
     </div>
   )
 }

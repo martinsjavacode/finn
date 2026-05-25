@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import type { Transaction, Category, Owner, TransactionType } from '../../types/database'
+import { showError } from '../../lib/toast'
+import { confirm } from '../../lib/confirm'
 import Button from '../ui/Button'
 import Select from '../ui/Select'
 
@@ -31,8 +33,9 @@ export default function TransactionsTable({ transactions, categories, canEdit, o
 
   const usedCats = ['all', ...new Set(transactions.map(r => r.category))]
 
-  const togglePaid = (id: string, paid: boolean) => {
-    supabase.from('transactions').update({ paid: !paid } as never).eq('id', id)
+  const togglePaid = async (id: string, paid: boolean) => {
+    const { error } = await supabase.from('transactions').update({ paid: !paid } as never).eq('id', id)
+    if (error) return showError(error)
     onUpdate(id, { paid: !paid })
   }
 
@@ -42,13 +45,16 @@ export default function TransactionsTable({ transactions, categories, canEdit, o
   }
 
   const saveEdit = async (id: string) => {
-    await supabase.from('transactions').update(editData as never).eq('id', id)
+    const { error } = await supabase.from('transactions').update(editData as never).eq('id', id)
+    if (error) return showError(error)
     onUpdate(id, editData)
     setEditing(null)
   }
 
   const handleDelete = async (id: string) => {
-    await supabase.from('transactions').delete().eq('id', id)
+    if (!await confirm('Tem certeza que deseja excluir este lançamento?')) return
+    const { error } = await supabase.from('transactions').delete().eq('id', id)
+    if (error) return showError(error)
     onDelete(id)
     setEditing(null)
   }

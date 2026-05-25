@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import type { Category } from '../../types/database'
+import { showError, toast } from '../../lib/toast'
+import { confirm } from '../../lib/confirm'
 import Select from '../ui/Select'
 import Button from '../ui/Button'
 import '../recurring/Recurring.css'
@@ -25,22 +27,27 @@ export default function BudgetsPage({ categories }: Props) {
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault()
-    const { data } = await supabase.from('budgets').insert({ category: newCat, monthly_limit: +newLimit } as never).select().single()
+    const { data, error } = await supabase.from('budgets').insert({ category: newCat, monthly_limit: +newLimit } as never).select().single()
+    if (error) return showError(error)
     if (data) setBudgets(prev => [...prev, data as Budget])
     setShowForm(false)
     setNewLimit('')
+    toast('Orçamento criado')
   }
 
   const startEdit = (b: Budget) => { setEditing(b.id); setEditLimit(String(b.monthly_limit)) }
 
   const saveEdit = async (id: string) => {
-    await supabase.from('budgets').update({ monthly_limit: +editLimit } as never).eq('id', id)
+    const { error } = await supabase.from('budgets').update({ monthly_limit: +editLimit } as never).eq('id', id)
+    if (error) return showError(error)
     setBudgets(prev => prev.map(b => b.id === id ? { ...b, monthly_limit: +editLimit } : b))
     setEditing(null)
   }
 
   const handleDelete = async (id: string) => {
-    await supabase.from('budgets').delete().eq('id', id)
+    if (!await confirm('Tem certeza que deseja excluir este orçamento?')) return
+    const { error } = await supabase.from('budgets').delete().eq('id', id)
+    if (error) return showError(error)
     setBudgets(prev => prev.filter(b => b.id !== id))
   }
 
