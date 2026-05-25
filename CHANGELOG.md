@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.0.6](https://github.com/martinsjavacode/finn/compare/v0.0.5...v0.0.6) (2026-05-25)
+
+
+### Features
+
+* add payment filter, projection RPC and fix deploy pipeline ([ce954b5](https://github.com/martinsjavacode/finn/commit/ce954b567256490da4e28dfa955aec1458526076))
+* responsive mobile layout, PWA and UX improvements ([1ff3341](https://github.com/martinsjavacode/finn/commit/1ff33414c9139577668f051632cca156121a50fe))
+
 ## [0.0.5](https://github.com/martinsjavacode/finn/compare/v0.0.4...v0.0.5) (2026-05-25)
 
 
