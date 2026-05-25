@@ -28,11 +28,18 @@ jobs:
       # SAST - audit de dependências
       - run: npm audit --audit-level=high || true
 
-      # Gerar versão automática baseada na data
+      # Gerar versão automática vYYYY.major.minor
       - name: Create tag
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          VERSION="v$(date +'%Y.%m.%d')-$(git rev-parse --short HEAD)"
+          YEAR=$(date +'%Y')
+          LAST_TAG=$(git tag -l "v${YEAR}.*" --sort=-v:refname | head -1)
+          if [ -z "$LAST_TAG" ]; then
+            VERSION="v${YEAR}.1.0"
+          else
+            MAJOR=$(echo "$LAST_TAG" | cut -d. -f2)
+            VERSION="v${YEAR}.$((MAJOR + 1)).0"
+          fi
           git tag "$VERSION"
           git push origin "$VERSION"
