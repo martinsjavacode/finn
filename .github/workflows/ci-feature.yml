@@ -1,0 +1,39 @@
+name: CI Feature
+
+on:
+  push:
+    branches: ['feature/**']
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+        env:
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+
+  open-pr:
+    needs: ci
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create PR to develop
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          EXISTING=$(gh pr list --head "${{ github.ref_name }}" --base develop --json number -q '.[0].number')
+          if [ -z "$EXISTING" ]; then
+            gh pr create --base develop --head "${{ github.ref_name }}" \
+              --title "Merge ${{ github.ref_name }} into develop" \
+              --body "Auto-created by CI after successful build."
+          fi
