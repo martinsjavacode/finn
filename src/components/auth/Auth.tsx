@@ -33,7 +33,7 @@ export default function Auth() {
   }
 
   const handleGitHub = () => {
-    supabase.auth.signInWithOAuth({ provider: 'github' })
+    supabase.auth.signInWithOAuth({ provider: 'github', options: { redirectTo: window.location.origin + '/finn/' } })
   }
 
   if (step === 'code') {

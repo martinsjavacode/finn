@@ -1,5 +1,15 @@
 # 💰 Finn - Controle Financeiro
 
+[![Deploy](https://github.com/martinsjavacode/finn/actions/workflows/deploy.yml/badge.svg)](https://github.com/martinsjavacode/finn/actions/workflows/deploy.yml)
+[![CI Feature](https://github.com/martinsjavacode/finn/actions/workflows/ci-feature.yml/badge.svg)](https://github.com/martinsjavacode/finn/actions/workflows/ci-feature.yml)
+[![CI Main](https://github.com/martinsjavacode/finn/actions/workflows/ci-main.yml/badge.svg)](https://github.com/martinsjavacode/finn/actions/workflows/ci-main.yml)
+![Version](https://img.shields.io/github/package-json/v/martinsjavacode/finn?color=purple)
+![Node](https://img.shields.io/badge/node-%3E%3D24-green)
+![React](https://img.shields.io/badge/react-19-blue)
+![TypeScript](https://img.shields.io/badge/typescript-6-blue)
+![License](https://img.shields.io/github/license/martinsjavacode/finn)
+![Last Commit](https://img.shields.io/github/last-commit/martinsjavacode/finn)
+
 Aplicação de controle financeiro pessoal com dashboard, lançamentos, cartões de crédito, parcelamentos e projeção futura.
 
 ## Stack
@@ -7,6 +17,7 @@ Aplicação de controle financeiro pessoal com dashboard, lançamentos, cartões
 - React 19 + TypeScript + Vite
 - Supabase (PostgreSQL + Auth com OTP/GitHub)
 - Deploy via GitHub Pages
+- CI/CD com GitHub Actions (commitlint, ESLint, CodeQL, gitleaks)
 
 ## Rodar localmente
 
@@ -19,19 +30,34 @@ npm run dev
 
 Acesse `http://localhost:5173/finn/`
 
+## Scripts
+
+| Comando | Descrição |
+|---------|-----------|
+| `npm run dev` | Dev server |
+| `npm run build` | Build de produção |
+| `npm run lint` | ESLint |
+| `npm run commit` | Commitizen (commit padronizado) |
+| `npm run release` | Bump de versão + changelog |
+
 ## Variáveis de ambiente
 
 | Variável | Descrição |
 |----------|-----------|
 | `VITE_SUPABASE_ANON_KEY` | Anon Key do projeto Supabase (a URL é extraída automaticamente do JWT) |
 
-## Build e deploy
+## CI/CD Pipeline
 
-```bash
-npm run build
+```
+feature push → commitlint + tsc + lint + build → abre PR para develop
+develop merge → lint + build + bundle size + gitleaks → abre PR para main
+main merge → lint + build + CodeQL + npm audit → tag automática → deploy
 ```
 
-O deploy é automático via GitHub Actions ao fazer push na `main`. Configure `VITE_SUPABASE_ANON_KEY` como secret no repositório.
+Configure no repositório:
+- Secret `VITE_SUPABASE_ANON_KEY`
+- Settings → Actions → Allow GitHub Actions to create PRs
+- Settings → Environments → github-pages → Add tag rule `v*`
 
 ## Banco de dados (Supabase)
 
@@ -40,6 +66,7 @@ O deploy é automático via GitHub Actions ao fazer push na `main`. Configure `V
 | Tabela | Descrição |
 |--------|-----------|
 | `categories` | Categorias de lançamentos |
+| `cards` | Cartões de crédito cadastrados |
 | `transactions` | Receitas e despesas mensais |
 | `credit_cards` | Lançamentos de cartão de crédito |
 | `installment_purchases` | Compras parceladas (gera parcelas automaticamente) |
@@ -57,7 +84,8 @@ migrations/
 ├── 004-crud.sql          — policies de insert/delete/update
 ├── 005-recurring.sql     — templates recorrentes + função generate
 ├── 006-budgets.sql       — orçamentos por categoria
-└── 007-access.sql        — controle de acesso (email + role)
+├── 007-access.sql        — controle de acesso (email + role)
+└── 008-cards.sql         — cartões de crédito cadastrados
 ```
 
 ## Funcionalidades
@@ -68,7 +96,7 @@ migrations/
 - Controle de acesso: Viewer (somente leitura) / Editor (CRUD completo)
 
 ### Dashboard
-- Gráfico de evolução anual (receita vs despesa)
+- Gráfico de evolução anual em linhas (receita vs despesa)
 - Gráfico de pizza por categoria
 - Orçamento por categoria (limite vs gasto)
 - Progresso de pagamento do mês
@@ -77,7 +105,8 @@ migrations/
 ### Lançamentos
 - Tabela de receitas/despesas com filtros (mês, responsável, tipo, categoria, busca)
 - Tabela de cartões de crédito com filtro por bandeira
-- Adicionar/excluir lançamentos
+- Adicionar/editar/excluir lançamentos
+- Edição inline (data, descrição, valor, categoria, responsável)
 - Marcar como pago
 
 ### Recorrentes
@@ -86,23 +115,27 @@ migrations/
 - Ativar/desativar templates
 
 ### Projeção
-- Visão dos próximos 6 meses com valores comprometidos (recorrentes + parcelamentos)
+- Visão dos próximos 6 meses com despesas comprometidas (recorrentes + parcelamentos)
 
 ### Orçamentos
 - Definir limite mensal por categoria
 - Visualização no dashboard com barra de progresso
 
+### Categorias
+- CRUD completo de categorias
+
+### Cartões
+- CRUD de cartões (nome, limite, fechamento, vencimento, cor)
+- Dados dinâmicos do banco (sem hardcode)
+
 ### Parcelamentos
 - Cartão parcelado ou boleto/pix parcelado
 - Trigger automático distribui parcelas nos meses
 
-## Cartões suportados
-
-Nubank, Bradesco, Inter, Pague Menos, Mercado Pago, Neon
-
-## Categorias
-
-Casa, Empresa, Estudos, Diversas, Lazer, Investimento, Espiritual
+### Controle de Acesso
+- Cadastro de emails autorizados
+- Roles: Viewer / Editor
+- GitHub login = sempre Editor (owner)
 
 ## Estrutura do projeto
 
@@ -115,6 +148,8 @@ src/
 │   ├── transactions/  — TransactionsTable, CardsTable, AddTransaction
 │   ├── recurring/     — RecurringTemplates
 │   ├── budgets/       — BudgetsPage
+│   ├── categories/    — CategoriesPage
+│   ├── cards/         — CardsPage
 │   ├── projection/    — Projection
 │   └── access/        — AccessPage
 ├── lib/               — Supabase client
