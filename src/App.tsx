@@ -14,6 +14,7 @@ import Dashboard from './components/dashboard/Dashboard'
 import Projection from './components/projection/Projection'
 import BudgetsPage from './components/budgets/BudgetsPage'
 import AccessPage from './components/access/AccessPage'
+import CategoriesPage from './components/categories/CategoriesPage'
 import Button from './components/ui/Button'
 import './App.css'
 
@@ -148,6 +149,10 @@ export default function App() {
 
         {page === 'access' && (
           <AccessPage />
+        )}
+
+        {page === 'categories' && (
+          <CategoriesPage />
         )}
       </main>
 
