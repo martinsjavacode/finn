@@ -38,7 +38,7 @@ export default function TransactionsTable({ transactions, categories, canEdit, o
 
   const startEdit = (r: Transaction) => {
     setEditing(r.id)
-    setEditData({ description: r.description, amount: r.amount, category: r.category, owner: r.owner })
+    setEditData({ description: r.description, amount: r.amount, category: r.category, owner: r.owner, month: r.month })
   }
 
   const saveEdit = async (id: string) => {
@@ -77,7 +77,7 @@ export default function TransactionsTable({ transactions, categories, canEdit, o
             <tr key={r.id} className={r.paid ? 'row-paid' : ''}>
               {editing === r.id ? (
                 <>
-                  <td>{new Date(r.month + 'T12:00:00').toLocaleDateString('pt-BR')}</td>
+                  <td><input className="inline-input" type="date" value={editData.month ?? r.month} onChange={e => setEditData(d => ({ ...d, month: e.target.value }))} /></td>
                   <td><input className="inline-input" value={editData.description ?? ''} onChange={e => setEditData(d => ({ ...d, description: e.target.value }))} /></td>
                   <td><Select value={editData.category ?? ''} onChange={v => setEditData(d => ({ ...d, category: v }))} options={categories.map(c => ({ value: c.id, label: c.label }))} /></td>
                   <td>{r.type === 'income' ? '📈' : '📉'}</td>
