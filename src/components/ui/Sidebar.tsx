@@ -16,7 +16,8 @@ const pageTitles: Record<string, string> = {
   '/budgets': '💰 Orçamentos',
   '/categories': '🏷️ Categorias',
   '/cards': '💳 Cartões',
-  '/access': '👥 Acessos',
+  '/access': '👥 Usuários',
+  '/roles': '🔐 Permissões',
 }
 
 export default function Sidebar({ session, isOwner }: Props) {
@@ -55,7 +56,8 @@ export default function Sidebar({ session, isOwner }: Props) {
           {link('/budgets', '💰 Orçamentos')}
           {link('/categories', '🏷️ Categorias')}
           {link('/cards', '💳 Cartões')}
-          {isOwner && link('/access', '👥 Acessos')}
+          {isOwner && link('/access', '👥 Usuários')}
+        {isOwner && link('/roles', '🔐 Permissões')}
         </nav>
         <div className="sidebar-footer">
           <span className="sidebar-user">{session.user.email}</span>

@@ -16,6 +16,7 @@ import BudgetsPage from './components/budgets/BudgetsPage'
 import AccessPage from './components/access/AccessPage'
 import CategoriesPage from './components/categories/CategoriesPage'
 import CardsPage from './components/cards/CardsPage'
+import RolesPage from './components/roles/RolesPage'
 import Button from './components/ui/Button'
 import ToastContainer from './components/ui/Toast'
 import ConfirmDialog from './components/ui/ConfirmDialog'
@@ -103,6 +104,7 @@ function AppLayout() {
           <Route path="/projection" element={<Projection />} />
           <Route path="/budgets" element={<BudgetsPage categories={categories} />} />
           <Route path="/access" element={<AccessPage />} />
+          <Route path="/roles" element={<RolesPage />} />
           <Route path="/categories" element={<CategoriesPage />} />
           <Route path="/cards" element={<CardsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />

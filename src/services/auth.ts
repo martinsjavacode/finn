@@ -16,17 +16,12 @@ export async function signOut() {
   await supabase.auth.signOut()
 }
 
-export function isGitHubUser(session: Session) {
-  return session.user.app_metadata?.provider === 'github' ||
-    session.user.identities?.some(i => i.provider === 'github') || false
-}
-
 export async function getUserRole(session: Session): Promise<Role> {
-  if (isGitHubUser(session)) return 'editor'
   const { data } = await supabase
-    .from('access_control')
-    .select('role')
+    .from('users')
+    .select('roles(name)')
     .eq('email', session.user.email ?? '')
     .single()
-  return ((data as { role: string } | null)?.role as Role) ?? 'viewer'
+  const roleName = (data as { roles: { name: string } } | null)?.roles?.name
+  return (roleName as Role) ?? 'viewer'
 }

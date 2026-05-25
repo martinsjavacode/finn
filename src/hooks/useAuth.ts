@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import type { Role } from '../types/database'
-import { getSession, onAuthChange, getUserRole, isGitHubUser } from '../services/auth'
+import { getSession, onAuthChange, getUserRole } from '../services/auth'
 
 export function useAuth() {
   const [session, setSession] = useState<Session | null>(null)
@@ -19,8 +19,8 @@ export function useAuth() {
     getUserRole(session).then(setRole)
   }, [session])
 
-  const isEditor = role === 'editor'
-  const isOwner = session ? isGitHubUser(session) : false
+  const isOwner = role === 'owner'
+  const isEditor = role === 'editor' || isOwner
 
   return { session, loading, role, isEditor, isOwner }
 }

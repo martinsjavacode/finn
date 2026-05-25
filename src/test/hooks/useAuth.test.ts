@@ -22,7 +22,6 @@ describe('useAuth', () => {
     vi.mocked(authService.getSession).mockResolvedValue(session)
     vi.mocked(authService.onAuthChange).mockReturnValue({ unsubscribe: vi.fn() } as never)
     vi.mocked(authService.getUserRole).mockResolvedValue('editor')
-    vi.mocked(authService.isGitHubUser).mockReturnValue(false)
 
     const { result } = renderHook(() => useAuth())
 
@@ -30,16 +29,15 @@ describe('useAuth', () => {
     expect(result.current.session).toBe(session)
   })
 
-  it('define isEditor quando role é editor', async () => {
+  it('define isOwner quando role é owner', async () => {
     const session = { user: { email: 'a@b.com', app_metadata: {} } } as never
     vi.mocked(authService.getSession).mockResolvedValue(session)
     vi.mocked(authService.onAuthChange).mockReturnValue({ unsubscribe: vi.fn() } as never)
-    vi.mocked(authService.getUserRole).mockResolvedValue('editor')
-    vi.mocked(authService.isGitHubUser).mockReturnValue(true)
+    vi.mocked(authService.getUserRole).mockResolvedValue('owner')
 
     const { result } = renderHook(() => useAuth())
 
-    await waitFor(() => expect(result.current.isEditor).toBe(true))
-    expect(result.current.isOwner).toBe(true)
+    await waitFor(() => expect(result.current.isOwner).toBe(true))
+    expect(result.current.isEditor).toBe(true)
   })
 })

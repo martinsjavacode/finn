@@ -1,7 +1,7 @@
 export type Owner = 'personal' | 'mother_in_law'
 export type TransactionType = 'expense' | 'income'
 export type Card = string
-export type Role = 'viewer' | 'editor'
+export type Role = 'viewer' | 'editor' | 'owner'
 export type InstallmentTarget = 'credit_card' | 'transaction'
 
 export interface Category {
