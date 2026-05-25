@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { useAuth, useAppData, useTransactions } from './hooks'
 import type { Owner } from './types/database'
 import Auth from './components/auth/Auth'
@@ -95,6 +95,7 @@ function TransactionsPage() {
 function AppLayout() {
   const { session, loading, isOwner, unauthorized, can, signOut: logout } = useAuth()
   const { categories, cardsList } = useAppData(!!session && !unauthorized)
+  const navigate = useNavigate()
 
   if (loading) return <div className="auth"><div className="skeleton" style={{ width: '120px', height: '2rem', margin: '0 auto' }} /><div className="skeleton" style={{ width: '200px', height: '1rem', margin: '1rem auto' }} /></div>
   if (!session) return <Auth />
@@ -104,7 +105,7 @@ function AppLayout() {
         <div className="auth-brand"><h1>💰 Finn</h1></div>
         <p className="auth-subtitle">Acesso não autorizado</p>
         <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'center' }}>O email <strong>{session.user.email}</strong> não está cadastrado no sistema. Solicite acesso ao administrador.</p>
-        <button className="auth-btn-primary" onClick={logout}>Sair</button>
+        <button className="auth-btn-primary" onClick={() => { logout(); navigate('/', { replace: true }) }}>Sair</button>
       </div>
     </div>
   )

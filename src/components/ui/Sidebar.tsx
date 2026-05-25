@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { NavLink, useLocation } from 'react-router-dom'
+import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { signOut } from '../../services/auth'
 import type { Session } from '@supabase/supabase-js'
 import { LayoutDashboard, Receipt, Repeat, TrendingUp, Wallet, Tags, CreditCard, Users, Shield, LogOut, Menu, X } from 'lucide-react'
@@ -25,6 +25,7 @@ const pageTitles: Record<string, string> = {
 export default function Sidebar({ session, isOwner, can }: Props) {
   const [open, setOpen] = useState(false)
   const location = useLocation()
+  const navigate = useNavigate()
 
   const link = (to: string, label: React.ReactNode) => (
     <NavLink to={to} className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`} onClick={() => setOpen(false)}>{label}</NavLink>
@@ -63,7 +64,7 @@ export default function Sidebar({ session, isOwner, can }: Props) {
         </nav>
         <div className="sidebar-footer">
           <span className="sidebar-user">{session.user.email}</span>
-          <button className="tab" onClick={() => signOut()}><LogOut size={14} /> Sair</button>
+          <button className="tab" onClick={() => { signOut(); navigate('/', { replace: true }) }}><LogOut size={14} /> Sair</button>
         </div>
       </aside>
     </>
