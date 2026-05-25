@@ -125,11 +125,15 @@ migrations/
 - Login com email + senha
 - Login/cadastro via GitHub OAuth
 - Cadastro self-service (só emails pré-autorizados em `users`)
+- Redirect automático para dashboard após login
+- Redirect para `/` ao sair
 - Tela de acesso negado para emails não cadastrados
 
 ### RBAC (Controle de Acesso)
 - 3 roles padrão: Owner, Editor, Viewer
 - Permissões granulares por recurso × ação (read/create/update/delete)
+- Botões de criar, editar e excluir condicionais por permissão
+- Badges de status (Pago/Pendente, Ativo/Inativo) para usuários read-only
 - Sidebar e ações condicionais baseadas em `can(resource, action)`
 - Tela de gerenciamento de roles com matriz de permissões (owner only)
 - Roles customizáveis (criar novas roles com permissões específicas)
@@ -226,3 +230,12 @@ npm run test:run  # execução única (CI)
 ```
 
 Cobertura: utils, services, hooks e componentes (Auth, Button, SummaryCards, ErrorBoundary).
+
+## Use este projeto
+
+Quer usar o Finn como base para seu próprio controle financeiro? Faça um **fork**:
+
+1. Clique em **Fork** no GitHub
+2. Clone seu fork: `git clone https://github.com/SEU_USER/finn.git`
+3. Configure seu Supabase e `.env`
+4. Personalize à vontade — o projeto é seu!

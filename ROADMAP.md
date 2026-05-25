@@ -28,6 +28,10 @@
 - [x] RPC agregada para Projection
 - [x] CI/CD pipeline progressivo (feature → develop → main → deploy)
 - [x] Display name no controle de acesso
+- [x] RBAC granular em todas as páginas (create/update/delete condicionais)
+- [x] Badges de status (Pago/Pendente, Ativo/Inativo) para read-only
+- [x] Redirect para dashboard após login
+- [x] Redirect para `/` ao sair
 
 ## 🎯 Curto prazo (quick wins)
 
