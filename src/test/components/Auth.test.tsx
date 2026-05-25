@@ -10,47 +10,27 @@ describe('Auth', () => {
     render(<Auth />)
     expect(screen.getByText('💰 Finn')).toBeInTheDocument()
     expect(screen.getByPlaceholderText('seu@email.com')).toBeInTheDocument()
-    expect(screen.getByText('Enviar código')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('••••••••')).toBeInTheDocument()
+    expect(screen.getByText('Entrar')).toBeInTheDocument()
     expect(screen.getByText('Entrar com GitHub')).toBeInTheDocument()
   })
 
-  it('mostra erro quando email não autorizado', async () => {
-    const mockFrom = vi.fn().mockReturnValue({
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({ data: null, error: null }),
-        }),
-      }),
-    })
-    vi.mocked(supabase.from).mockImplementation(mockFrom)
+  it('mostra erro com credenciais inválidas', async () => {
+    vi.mocked(supabase.auth.signInWithPassword).mockResolvedValue({ data: { user: null, session: null }, error: { message: 'Invalid login credentials' } } as never)
 
     render(<Auth />)
-    fireEvent.change(screen.getByPlaceholderText('seu@email.com'), { target: { value: 'bad@email.com' } })
-    fireEvent.click(screen.getByText('Enviar código'))
+    fireEvent.change(screen.getByPlaceholderText('seu@email.com'), { target: { value: 'a@b.com' } })
+    fireEvent.change(screen.getByPlaceholderText('••••••••'), { target: { value: '123456' } })
+    fireEvent.click(screen.getByText('Entrar'))
 
     await waitFor(() => {
-      expect(screen.getByText('Email não autorizado.')).toBeInTheDocument()
+      expect(screen.getByText('Email ou senha incorretos.')).toBeInTheDocument()
     })
   })
 
-  it('avança para tela de código quando email autorizado', async () => {
-    const mockFrom = vi.fn().mockReturnValue({
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({ data: { id: '1' }, error: null }),
-        }),
-      }),
-    })
-    vi.mocked(supabase.from).mockImplementation(mockFrom)
-    vi.mocked(supabase.auth.signInWithOtp).mockResolvedValue({ data: { user: null, session: null }, error: null })
-
+  it('permite alternar para tela de cadastro', () => {
     render(<Auth />)
-    fireEvent.change(screen.getByPlaceholderText('seu@email.com'), { target: { value: 'ok@email.com' } })
-    fireEvent.click(screen.getByText('Enviar código'))
-
-    await waitFor(() => {
-      expect(screen.getByText(/Código enviado para/)).toBeInTheDocument()
-      expect(screen.getByPlaceholderText('Digite o código')).toBeInTheDocument()
-    })
+    fireEvent.click(screen.getByText('Não tem conta? Criar conta'))
+    expect(screen.getByText('Criar conta')).toBeInTheDocument()
   })
 })

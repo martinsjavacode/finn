@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import type { Role } from '../types/database'
-import { getSession, onAuthChange, getUserRole, isGitHubUser } from '../services/auth'
+import { getSession, onAuthChange, getUserRole, signOut } from '../services/auth'
+import { usePermissions } from './usePermissions'
 
 export function useAuth() {
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
-  const [role, setRole] = useState<Role>('viewer')
+  const [role, setRole] = useState<Role | null>(null)
+  const [roleId, setRoleId] = useState<string | null>(null)
+  const [unauthorized, setUnauthorized] = useState(false)
 
   useEffect(() => {
     getSession().then(s => { setSession(s); setLoading(false) })
@@ -16,11 +19,19 @@ export function useAuth() {
 
   useEffect(() => {
     if (!session) return
-    getUserRole(session).then(setRole)
+    let cancelled = false
+    getUserRole(session).then(r => {
+      if (cancelled) return
+      if (r) { setRole(r.name); setRoleId(r.id); setUnauthorized(false) }
+      else { setRole(null); setRoleId(null); setUnauthorized(true) }
+    })
+    return () => { cancelled = true }
   }, [session])
 
-  const isEditor = role === 'editor'
-  const isOwner = session ? isGitHubUser(session) : false
+  const { can } = usePermissions(roleId)
 
-  return { session, loading, role, isEditor, isOwner }
+  const isOwner = role === 'owner'
+  const isEditor = role === 'editor' || isOwner
+
+  return { session, loading, role, roleId, isEditor, isOwner, unauthorized, can, signOut }
 }
