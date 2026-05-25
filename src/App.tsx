@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react'
-import { supabase } from './lib/supabase'
-import type { Transaction, CreditCard, Category, Owner } from './types/database'
-import type { Session } from '@supabase/supabase-js'
+import { useState } from 'react'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { useAuth, useAppData, useTransactions } from './hooks'
+import type { Owner } from './types/database'
 import Auth from './components/auth/Auth'
-import Sidebar, { type Page } from './components/ui/Sidebar'
+import Sidebar from './components/ui/Sidebar'
 import Select from './components/ui/Select'
 import SummaryCards from './components/dashboard/SummaryCards'
 import TransactionsTable from './components/transactions/TransactionsTable'
@@ -19,101 +19,17 @@ import CardsPage from './components/cards/CardsPage'
 import Button from './components/ui/Button'
 import ToastContainer from './components/ui/Toast'
 import ConfirmDialog from './components/ui/ConfirmDialog'
+import ErrorBoundary from './components/ui/ErrorBoundary'
 import './App.css'
+import './components/ui/Skeleton.css'
 
-export default function App() {
-  const [session, setSession] = useState<Session | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [months, setMonths] = useState<string[]>([])
-  const [month, setMonth] = useState(() => {
-    const now = new Date()
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-  })
+function TransactionsPage() {
+  const { session, isEditor } = useAuth()
+  const { categories, cardsList, reloadAppData } = useAppData(!!session)
+  const { month, setMonth, months, transactions, cards, reload, updateTransaction, removeTransaction, removeCard } = useTransactions(!!session)
   const [owner, setOwner] = useState<'all' | Owner>('all')
-  const [transactions, setTransactions] = useState<Transaction[]>([])
-  const [cards, setCards] = useState<CreditCard[]>([])
-  const [categories, setCategories] = useState<Category[]>([])
-  const [cardsList, setCardsList] = useState<{ name: string; label: string }[]>([])
-  const [showAdd, setShowAdd] = useState(false)
-  const [page, setPage] = useState<Page>('dashboard')
-  const [userRole, setUserRole] = useState<'editor' | 'viewer'>('viewer')
   const [search, setSearch] = useState('')
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => { setSession(data.session); setLoading(false) })
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => setSession(s))
-    return () => subscription.unsubscribe()
-  }, [])
-
-  useEffect(() => {
-    if (!session) return
-    ;(async () => {
-      const { data: cats } = await supabase.from('categories').select('*')
-      setCategories(cats ?? [])
-
-      const { data: cardsData } = await supabase.from('cards').select('name, label').eq('active', true).order('label') as { data: { name: string; label: string }[] | null }
-      setCardsList(cardsData ?? [])
-
-      // Carregar role do usuário (GitHub = sempre editor)
-      const isGitHub = session.user.app_metadata?.provider === 'github' || session.user.identities?.some(i => i.provider === 'github')
-      if (isGitHub) {
-        setUserRole('editor')
-      } else {
-        const { data: access } = await supabase.from('access_control').select('role').eq('email', session.user.email ?? '').single() as { data: { role: string } | null }
-        setUserRole((access?.role as 'editor' | 'viewer') ?? 'viewer')
-      }
-
-      const { data: t } = await supabase.from('transactions').select('month').order('month', { ascending: false })
-      const { data: c } = await supabase.from('credit_cards').select('month').order('month', { ascending: false })
-      const tMonths = (t as { month: string }[] | null) ?? []
-      const cMonths = (c as { month: string }[] | null) ?? []
-      const toYM = (d: string) => d.substring(0, 7)
-      const all = [...new Set([...tMonths.map(r => toYM(r.month)), ...cMonths.map(r => toYM(r.month))])].sort()
-      setMonths(all)
-    })()
-  }, [session])
-
-  const loadData = async () => {
-    if (!month) return
-    const start = `${month}-01`
-    const [y, m] = month.split('-').map(Number)
-    const nextMonth = m === 12 ? `${y + 1}-01-01` : `${y}-${String(m + 1).padStart(2, '0')}-01`
-    const { data: t } = await supabase.from('transactions').select('*, categories(*)').gte('month', start).lt('month', nextMonth).order('month').order('type').order('description')
-    const { data: c } = await supabase.from('credit_cards').select('*').gte('month', start).lt('month', nextMonth).order('card').order('description')
-    setTransactions((t as Transaction[]) ?? [])
-    setCards(c ?? [])
-  }
-
-  const reload = async () => {
-    const { data: cats } = await supabase.from('categories').select('*')
-    setCategories(cats ?? [])
-    const { data: cardsData } = await supabase.from('cards').select('name, label').eq('active', true).order('label') as { data: { name: string; label: string }[] | null }
-    setCardsList(cardsData ?? [])
-    const { data: t } = await supabase.from('transactions').select('month').order('month', { ascending: false })
-    const { data: c } = await supabase.from('credit_cards').select('month').order('month', { ascending: false })
-    const tMonths = (t as { month: string }[] | null) ?? []
-    const cMonths = (c as { month: string }[] | null) ?? []
-    const toYM = (d: string) => d.substring(0, 7)
-    const all = [...new Set([...tMonths.map(r => toYM(r.month)), ...cMonths.map(r => toYM(r.month))])].sort()
-    setMonths(all)
-    await loadData()
-  }
-
-  useEffect(() => {
-    if (!month) return
-    const start = `${month}-01`
-    const [y, m] = month.split('-').map(Number)
-    const nextMonth = m === 12 ? `${y + 1}-01-01` : `${y}-${String(m + 1).padStart(2, '0')}-01`
-    ;(async () => {
-      const { data: t } = await supabase.from('transactions').select('*, categories(*)').gte('month', start).lt('month', nextMonth).order('month').order('type').order('description')
-      const { data: c } = await supabase.from('credit_cards').select('*').gte('month', start).lt('month', nextMonth).order('card').order('description')
-      setTransactions((t as Transaction[]) ?? [])
-      setCards(c ?? [])
-    })()
-  }, [month])
-
-  if (loading) return <div className="auth"><p>Carregando...</p></div>
-  if (!session) return <Auth />
+  const [showAdd, setShowAdd] = useState(false)
 
   const ft = transactions.filter(r => (owner === 'all' || r.owner === owner) && (!search || r.description.toLowerCase().includes(search.toLowerCase())))
   const fc = cards.filter(r => (owner === 'all' || r.owner === owner) && (!search || r.description.toLowerCase().includes(search.toLowerCase())))
@@ -122,88 +38,89 @@ export default function App() {
   const expense = ft.filter(r => r.type === 'expense').reduce((s, r) => s + +r.amount, 0)
   const cardTotal = fc.reduce((s, r) => s + +r.amount, 0)
 
-  const isEditor = userRole === 'editor'
-  const isOwner = session.user.app_metadata?.provider === 'github' || session.user.identities?.some(i => i.provider === 'github') || false
+  const handleReload = async () => { await reloadAppData(); await reload() }
 
   return (
-    <div className="layout">
-      <Sidebar session={session} page={page} isOwner={isOwner} onNavigate={setPage} />
-      <main className="main">
-        {page === 'dashboard' && (
-          <Dashboard categories={categories} />
-        )}
+    <>
+      <div className="controls">
+        <Select
+          value={month}
+          onChange={setMonth}
+          options={months.length ? months.map(m => ({ value: m, label: new Date(m + '-01T12:00:00').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }) })) : [{ value: '', label: 'Sem dados' }]}
+        />
+        <Select
+          value={owner}
+          onChange={v => setOwner(v as 'all' | Owner)}
+          options={[{ value: 'all', label: 'Todos' }, { value: 'personal', label: 'Pessoal' }, { value: 'mother_in_law', label: 'Sogra' }]}
+        />
+        <input type="text" className="search-input" placeholder="🔍 Buscar..." value={search} onChange={e => setSearch(e.target.value)} />
+        {isEditor && <Button onClick={() => setShowAdd(true)}>+ Novo</Button>}
+      </div>
 
-        {page === 'transactions' && (
-          <>
-            <div className="controls">
-              <Select
-                value={month}
-                onChange={setMonth}
-                options={months.length ? months.map(m => ({ value: m, label: new Date(m + '-01T12:00:00').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }) })) : [{ value: '', label: 'Sem dados' }]}
-              />
-              <Select
-                value={owner}
-                onChange={v => setOwner(v as 'all' | Owner)}
-                options={[{ value: 'all', label: 'Todos' }, { value: 'personal', label: 'Pessoal' }, { value: 'mother_in_law', label: 'Sogra' }]}
-              />
-              <input type="text" className="search-input" placeholder="🔍 Buscar..." value={search} onChange={e => setSearch(e.target.value)} />
-              {isEditor && <Button onClick={() => setShowAdd(true)}>+ Novo</Button>}
-            </div>
+      <SummaryCards income={income} expense={expense} cardTotal={cardTotal} />
 
-            <SummaryCards income={income} expense={expense} cardTotal={cardTotal} />
+      <TransactionsTable
+        transactions={ft}
+        categories={categories}
+        canEdit={isEditor}
+        onUpdate={(id, data) => updateTransaction(id, data)}
+        onDelete={removeTransaction}
+      />
 
-            <TransactionsTable
-              transactions={ft}
-              categories={categories}
-              canEdit={isEditor}
-              onUpdate={(id, data) => setTransactions(prev => prev.map(r => r.id === id ? { ...r, ...data } : r))}
-              onDelete={id => setTransactions(prev => prev.filter(r => r.id !== id))}
-            />
-
-            <CardsTable
-              cards={fc}
-              cardsList={cardsList}
-              canEdit={isEditor}
-              onDelete={id => setCards(prev => prev.filter(r => r.id !== id))}
-            />
-          </>
-        )}
-
-        {page === 'recurring' && (
-          <RecurringPage categories={categories} cardsList={cardsList} />
-        )}
-
-        {page === 'projection' && (
-          <Projection />
-        )}
-
-        {page === 'budgets' && (
-          <BudgetsPage categories={categories} />
-        )}
-
-        {page === 'access' && (
-          <AccessPage />
-        )}
-
-        {page === 'categories' && (
-          <CategoriesPage />
-        )}
-
-        {page === 'cards' && (
-          <CardsPage />
-        )}
-      </main>
+      <CardsTable
+        cards={fc}
+        cardsList={cardsList}
+        canEdit={isEditor}
+        onDelete={removeCard}
+      />
 
       {showAdd && (
         <AddTransaction
           categories={categories}
           cardsList={cardsList}
-          onSaved={reload}
+          onSaved={handleReload}
           onClose={() => setShowAdd(false)}
         />
       )}
+    </>
+  )
+}
+
+function AppLayout() {
+  const { session, loading, isOwner } = useAuth()
+  const { categories, cardsList } = useAppData(!!session)
+
+  if (loading) return <div className="auth"><div className="skeleton" style={{ width: '120px', height: '2rem', margin: '0 auto' }} /><div className="skeleton" style={{ width: '200px', height: '1rem', margin: '1rem auto' }} /></div>
+  if (!session) return <Auth />
+
+  return (
+    <div className="layout">
+      <Sidebar session={session} isOwner={isOwner} />
+      <main className="main">
+        <Routes>
+          <Route path="/" element={<Dashboard categories={categories} />} />
+          <Route path="/transactions" element={<TransactionsPage />} />
+          <Route path="/recurring" element={<RecurringPage categories={categories} cardsList={cardsList} />} />
+          <Route path="/projection" element={<Projection />} />
+          <Route path="/budgets" element={<BudgetsPage categories={categories} />} />
+          <Route path="/access" element={<AccessPage />} />
+          <Route path="/categories" element={<CategoriesPage />} />
+          <Route path="/cards" element={<CardsPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </main>
       <ToastContainer />
       <ConfirmDialog />
     </div>
+  )
+}
+
+export default function App() {
+  return (
+    <ErrorBoundary>
+      <BrowserRouter basename="/finn">
+        <AppLayout />
+      </BrowserRouter>
+    </ErrorBoundary>
   )
 }
