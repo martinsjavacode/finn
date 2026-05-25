@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.0.4](https://github.com/martinsjavacode/finn/compare/v0.0.3...v0.0.4) (2026-05-25)
+
+
+### Bug Fixes
+
+* **ci:** use PAT to push tags so deploy workflow triggers ([4df54c1](https://github.com/martinsjavacode/finn/commit/4df54c19f47a436c27450d8f9f75d6ef6a7e36e0))
+
 ## [0.0.3](https://github.com/martinsjavacode/finn/compare/v0.0.2...v0.0.3) (2026-05-25)
 
 
