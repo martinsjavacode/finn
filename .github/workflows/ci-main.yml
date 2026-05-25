@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      security-events: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -20,15 +21,26 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+
+      # Lint + Build
       - run: npm run lint
       - run: npm run build
         env:
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
-      # SAST - audit de dependências
-      - run: npm audit --audit-level=high || true
+      # npm audit
+      - name: Security audit
+        run: npm audit --audit-level=high || true
 
-      # Bump de versão e criação de tag via commit-and-tag-version
+      # CodeQL SAST
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+      # Bump de versão e criação de tag
       - name: Bump version and tag
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

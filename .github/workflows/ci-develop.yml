@@ -14,15 +14,38 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
       - run: npm ci
+
+      # Lint + Build
       - run: npm run lint
       - run: npm run build
         env:
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+
+      # Bundle size check
+      - name: Bundle size
+        run: |
+          JS_SIZE=$(stat -c%s dist/assets/*.js | awk '{sum+=$1} END {print sum}')
+          CSS_SIZE=$(stat -c%s dist/assets/*.css | awk '{sum+=$1} END {print sum}')
+          echo "📦 JS: $((JS_SIZE / 1024))KB | CSS: $((CSS_SIZE / 1024))KB"
+          if [ "$JS_SIZE" -gt 524288 ]; then
+            echo "⚠️ Bundle JS > 512KB!"
+            exit 1
+          fi
+
+      # Gitleaks - scan de secrets
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Criar PR para main
       - name: Create PR to main
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
