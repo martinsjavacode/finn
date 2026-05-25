@@ -10,14 +10,15 @@
 ![License](https://img.shields.io/github/license/martinsjavacode/finn)
 ![Last Commit](https://img.shields.io/github/last-commit/martinsjavacode/finn)
 
-Aplicação de controle financeiro pessoal com dashboard, lançamentos, cartões de crédito, parcelamentos e projeção futura. PWA instalável com layout responsivo.
+Aplicação de controle financeiro pessoal com dashboard, lançamentos, cartões de crédito, parcelamentos e projeção futura. PWA instalável com layout responsivo e RBAC granular.
 
 ## Stack
 
 - React 19 + TypeScript 6 + Vite 8
 - React Router 7 (navegação por URL)
-- Supabase (PostgreSQL + Auth com OTP/GitHub + RPC)
-- Vitest + Testing Library (34 testes)
+- Supabase (PostgreSQL + Auth + RLS + RPC)
+- RBAC (roles + permissions granulares por recurso/ação)
+- Vitest + Testing Library (32 testes)
 - Deploy via GitHub Pages (PWA)
 - CI/CD com GitHub Actions (commitlint, ESLint, CodeQL, gitleaks)
 
@@ -31,6 +32,16 @@ npm run dev
 ```
 
 Acesse `http://localhost:5173/finn/`
+
+## Setup inicial (Supabase)
+
+1. Rode todas as migrations em ordem no SQL Editor
+2. Cadastre o owner na tabela `users`:
+```sql
+INSERT INTO users (email, display_name, role_id, activated)
+VALUES ('seu@email.com', 'Seu Nome', (SELECT id FROM roles WHERE name = 'owner'), true);
+```
+3. Crie o usuário no Supabase Auth (Authentication → Users → Add user)
 
 ## Scripts
 
@@ -69,6 +80,10 @@ Configure no repositório:
 
 | Tabela | Descrição |
 |--------|-----------|
+| `users` | Usuários autorizados (email + display_name + role_id + activated) |
+| `roles` | Roles do sistema (owner, editor, viewer + custom) |
+| `permissions` | Permissões (resource + action) |
+| `role_permissions` | Relação N:N entre roles e permissions |
 | `categories` | Categorias de lançamentos |
 | `cards` | Cartões de crédito cadastrados |
 | `transactions` | Receitas e despesas mensais |
@@ -76,7 +91,6 @@ Configure no repositório:
 | `installment_purchases` | Compras parceladas (gera parcelas automaticamente) |
 | `recurring_templates` | Templates de lançamentos recorrentes |
 | `budgets` | Orçamento mensal por categoria |
-| `access_control` | Controle de acesso (email + display_name + role) |
 
 ### Funções RPC
 
@@ -98,15 +112,27 @@ migrations/
 ├── 007-access.sql             — controle de acesso (email + role)
 ├── 008-cards.sql              — cartões de crédito cadastrados
 ├── 009-projection-rpc.sql     — RPC agregada para projeção futura
-└── 010-access-display-name.sql — campo display_name em access_control
+├── 010-access-display-name.sql — campo display_name
+├── 011-access-activated.sql   — campo activated
+├── 012-access-owner-role.sql  — role owner no check constraint
+├── 013-rbac.sql               — tabelas roles, permissions, role_permissions + rename para users
+└── 014-rbac-write-policies.sql — policies de escrita para tabelas RBAC
 ```
 
 ## Funcionalidades
 
 ### Autenticação
-- Login via OTP por email (só emails autorizados)
-- Login via GitHub (acesso total)
-- Controle de acesso: Viewer (somente leitura) / Editor (CRUD completo)
+- Login com email + senha
+- Login/cadastro via GitHub OAuth
+- Cadastro self-service (só emails pré-autorizados em `users`)
+- Tela de acesso negado para emails não cadastrados
+
+### RBAC (Controle de Acesso)
+- 3 roles padrão: Owner, Editor, Viewer
+- Permissões granulares por recurso × ação (read/create/update/delete)
+- Sidebar e ações condicionais baseadas em `can(resource, action)`
+- Tela de gerenciamento de roles com matriz de permissões (owner only)
+- Roles customizáveis (criar novas roles com permissões específicas)
 
 ### Dashboard
 - Gráfico de evolução anual em linhas (receita vs despesa)
@@ -118,8 +144,8 @@ migrations/
 ### Lançamentos
 - Filtros por mês, responsável, tipo, categoria, status (pago/pendente), busca
 - Tabela de cartões de crédito com filtro por bandeira
-- Adicionar/editar/excluir lançamentos
-- Edição via modal (mobile) ou inline (desktop)
+- Adicionar/editar/excluir (baseado em permissões)
+- Edição via modal
 - Marcar como pago
 
 ### Recorrentes
@@ -147,10 +173,10 @@ migrations/
 - Cartão parcelado ou boleto/pix parcelado
 - Trigger automático distribui parcelas nos meses
 
-### Controle de Acesso
+### Gerenciamento de Usuários (owner)
 - Cadastro de emails autorizados com display name
-- Roles: Viewer / Editor
-- GitHub login = sempre Editor (owner)
+- Atribuição de role por usuário
+- Indicador de status (ativo/pendente)
 
 ### Mobile / PWA
 - Layout responsivo com hamburger menu (≤ 1024px)
@@ -164,7 +190,7 @@ migrations/
 src/
 ├── components/
 │   ├── ui/            — Button, Select, Sidebar, Toast, Skeleton, MobileCard, ErrorBoundary
-│   ├── auth/          — Auth (login OTP + GitHub)
+│   ├── auth/          — Auth (login email+senha + GitHub)
 │   ├── dashboard/     — Dashboard, SummaryCards
 │   ├── transactions/  — TransactionsTable, CardsTable, AddTransaction
 │   ├── recurring/     — RecurringTemplates
@@ -172,13 +198,14 @@ src/
 │   ├── categories/    — CategoriesPage
 │   ├── cards/         — CardsPage
 │   ├── projection/    — Projection
-│   └── access/        — AccessPage
-├── hooks/             — useAuth, useTransactions, useAppData
+│   ├── access/        — AccessPage (gerenciamento de usuários)
+│   └── roles/         — RolesPage (gerenciamento de permissões)
+├── hooks/             — useAuth, usePermissions, useTransactions, useAppData
 ├── services/          — auth, transactions, categories, recurring
 ├── utils/             — format (fmt, ownerLabel, monthRange, etc.)
 ├── lib/               — Supabase client, toast, confirm
 ├── types/             — TypeScript types (Database)
-├── test/              — Vitest + Testing Library (34 testes)
+├── test/              — Vitest + Testing Library (32 testes)
 └── App.tsx            — Router + Layout + ErrorBoundary
 ```
 
@@ -186,8 +213,9 @@ src/
 
 - **DRY** — Utilitários centralizados em `utils/format.ts`
 - **SRP** — Camada de serviço separa acesso a dados dos componentes
+- **OCP** — RBAC extensível via banco (novas roles/permissões sem alterar código)
 - **KISS** — CSS global único, sem over-engineering
-- **YAGNI** — Sem abstrações desnecessárias
+- **YAGNI** — Permissões granulares no banco, consumo simples no frontend (`can()`)
 - **Clean Architecture** — hooks → services → supabase (camadas bem definidas)
 
 ## Testes
