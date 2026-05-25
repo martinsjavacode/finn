@@ -20,11 +20,7 @@ export default function AccessPage() {
   const [roleId, setRoleId] = useState('')
 
   useEffect(() => {
-    supabase.from('roles').select('id, name').order('name').then(({ data }) => {
-      const r = (data ?? []) as RoleOption[]
-      setRoles(r)
-      if (r.length && !roleId) setRoleId(r.find(x => x.name === 'viewer')?.id ?? r[0].id)
-    })
+    supabase.from('roles').select('id, name').order('name').then(({ data }) => setRoles((data ?? []) as RoleOption[]))
     supabase.from('users').select('*, roles(name)').order('created_at').then(({ data }) => setUsers((data ?? []) as User[]))
   }, [])
 
