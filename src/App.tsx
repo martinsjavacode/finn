@@ -62,14 +62,6 @@ export default function App() {
       const toYM = (d: string) => d.substring(0, 7)
       const all = [...new Set([...tMonths.map(r => toYM(r.month)), ...cMonths.map(r => toYM(r.month))])].sort()
       setMonths(all)
-      // Se mês atual não tem dados, usar próximo mês
-      const now = new Date()
-      const current = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-      if (!all.includes(current)) {
-        const next = new Date(now.getFullYear(), now.getMonth() + 1, 1)
-        const nextYM = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}`
-        setMonth(nextYM)
-      }
     })()
   }, [session])
 
