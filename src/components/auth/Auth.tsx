@@ -33,7 +33,6 @@ export default function Auth() {
     const { error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin + '/finn/' } })
     if (error) setError(error.message)
     else {
-      await supabase.from('users').update({ activated: true } as never).eq('email', email)
       setSuccess('Conta criada! Você já pode fazer login.')
       setMode('login')
     }

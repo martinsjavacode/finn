@@ -17,12 +17,16 @@ export async function signOut() {
 }
 
 export async function getUserRole(session: Session): Promise<{ name: Role; id: string } | null> {
+  const email = session.user.email ?? ''
   const { data } = await supabase
     .from('users')
-    .select('role_id, roles(name)')
-    .eq('email', session.user.email ?? '')
+    .select('role_id, activated, roles(name)')
+    .eq('email', email)
     .single()
   if (!data) return null
-  const row = data as { role_id: string; roles: { name: string } }
+  const row = data as { role_id: string; activated: boolean; roles: { name: string } }
+  if (!row.activated) {
+    await supabase.from('users').update({ activated: true } as never).eq('email', email)
+  }
   return { name: row.roles.name as Role, id: row.role_id }
 }
