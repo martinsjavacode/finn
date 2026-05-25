@@ -5,6 +5,7 @@ import { showError } from '../../lib/toast'
 import { confirm } from '../../lib/confirm'
 import Button from '../ui/Button'
 import Select from '../ui/Select'
+import MobileCard from '../ui/MobileCard'
 
 const fmt = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 const ownerBadge = (o: Owner) => o === 'personal' ? 'Pessoal' : 'Sogra'
@@ -85,7 +86,9 @@ export default function TransactionsTable({ transactions, categories, canEdit, o
           </Button>
         ))}
       </div>
-      <table>
+
+      {/* Desktop */}
+      <table className="desktop-table">
         <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Parcela</th><th>Valor</th><th>Resp.</th><th>Pago</th>{canEdit && <th></th>}</tr></thead>
         <tbody>
           {filtered.length ? filtered.map(r => (
@@ -124,6 +127,35 @@ export default function TransactionsTable({ transactions, categories, canEdit, o
           )) : <tr><td colSpan={canEdit ? 9 : 8} className="empty">Nenhum lançamento</td></tr>}
         </tbody>
       </table>
+
+      {/* Mobile */}
+      <div className="mobile-cards">
+        {filtered.length ? filtered.map(r => (
+          <MobileCard
+            key={r.id}
+            className={r.paid ? 'row-paid' : ''}
+            title={r.description}
+            fields={[
+              { label: 'Data', value: new Date(r.month + 'T12:00:00').toLocaleDateString('pt-BR') },
+              { label: 'Valor', value: <strong>{fmt(+r.amount)}</strong> },
+              { label: 'Categoria', value: getCatLabel(r) },
+              { label: 'Tipo', value: r.type === 'income' ? '📈 Receita' : '📉 Despesa' },
+              { label: 'Responsável', value: <span className={`badge ${r.owner === 'personal' ? 'badge-personal' : 'badge-sogra'}`}>{ownerBadge(r.owner)}</span> },
+              ...(r.current_installment ? [{ label: 'Parcela', value: `${r.current_installment}/${r.total_installments}` }] : []),
+            ]}
+            actions={canEdit ? (
+              <>
+                <button className={`paid-btn ${r.paid ? 'paid' : ''}`} onClick={() => togglePaid(r.id, r.paid)}>{r.paid ? '✓' : '○'}</button>
+                <span className="mobile-card-spacer" />
+                <Button variant="icon" onClick={() => startEdit(r)}>✏️</Button>
+                <Button variant="icon" className="delete-btn" onClick={() => handleDelete(r.id)}>🗑️</Button>
+              </>
+            ) : (
+              <button className={`paid-btn ${r.paid ? 'paid' : ''}`} onClick={() => {}}>{r.paid ? '✓ Pago' : '○ Pendente'}</button>
+            )}
+          />
+        )) : <p className="empty">Nenhum lançamento</p>}
+      </div>
     </section>
   )
 }

@@ -4,6 +4,7 @@ import type { CreditCard, Owner } from '../../types/database'
 import { showError } from '../../lib/toast'
 import { confirm } from '../../lib/confirm'
 import Button from '../ui/Button'
+import MobileCard from '../ui/MobileCard'
 
 const fmt = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 const ownerBadge = (o: Owner) => o === 'personal' ? 'Pessoal' : 'Sogra'
@@ -41,7 +42,9 @@ export default function CardsTable({ cards, cardsList, canEdit, onDelete }: Prop
           </Button>
         ))}
       </div>
-      <table>
+
+      {/* Desktop */}
+      <table className="desktop-table">
         <thead><tr><th>Descrição</th><th>Cartão</th><th>Parcela</th><th>Valor</th><th>Resp.</th>{canEdit && <th></th>}</tr></thead>
         <tbody>
           {filtered.length ? filtered.map(r => (
@@ -61,6 +64,23 @@ export default function CardsTable({ cards, cardsList, canEdit, onDelete }: Prop
           )) : <tr><td colSpan={canEdit ? 6 : 5} className="empty">Nenhum lançamento</td></tr>}
         </tbody>
       </table>
+
+      {/* Mobile */}
+      <div className="mobile-cards">
+        {filtered.length ? filtered.map(r => (
+          <MobileCard
+            key={r.id}
+            title={r.description}
+            fields={[
+              { label: 'Cartão', value: getLabel(r.card) },
+              { label: 'Valor', value: <strong>{fmt(+r.amount)}</strong> },
+              { label: 'Responsável', value: <span className={`badge ${r.owner === 'personal' ? 'badge-personal' : 'badge-sogra'}`}>{ownerBadge(r.owner)}</span> },
+              ...(r.current_installment ? [{ label: 'Parcela', value: `${r.current_installment}/${r.total_installments}` }] : []),
+            ]}
+            actions={canEdit ? <Button variant="icon" className="delete-btn" onClick={() => handleDelete(r.id)}>🗑️</Button> : undefined}
+          />
+        )) : <p className="empty">Nenhum lançamento</p>}
+      </div>
     </section>
   )
 }

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { fmt } from '../../utils/format'
 import { TableSkeleton } from '../ui/Skeleton'
+import MobileCard from '../ui/MobileCard'
 import '../dashboard/Dashboard.css'
 
 interface MonthProjection {
@@ -63,7 +64,7 @@ export default function Projection() {
       </p>
 
       <section>
-        <table>
+        <table className="desktop-table">
           <thead>
             <tr><th>Mês</th><th>Recorrentes</th><th>Parcelamentos</th><th>Total Comprometido</th></tr>
           </thead>
@@ -78,6 +79,20 @@ export default function Projection() {
             ))}
           </tbody>
         </table>
+
+        <div className="mobile-cards">
+          {projections.map(p => (
+            <MobileCard
+              key={p.month}
+              title={<span style={{ textTransform: 'capitalize' }}>{monthLabel(p.month)}</span>}
+              fields={[
+                { label: 'Recorrentes', value: fmt(p.recurring) },
+                { label: 'Parcelamentos', value: fmt(p.installments) },
+                { label: 'Total Comprometido', value: <strong>{fmt(p.total)}</strong>, fullWidth: true },
+              ]}
+            />
+          ))}
+        </div>
       </section>
     </div>
   )

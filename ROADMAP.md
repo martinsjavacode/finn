@@ -30,9 +30,9 @@
 - [ ] Comparativo mês anterior (% variação no dashboard)
 
 ## Polish
-- [ ] Responsivo mobile (menu hamburger)
-- [ ] Notificação por email (lembrete de vencimento via Edge Functions)
-- [ ] PWA (instalar como app no celular)
+- [x] Responsivo mobile (menu hamburger)
+- [ ] ~~Notificação por email (lembrete de vencimento via Edge Functions)~~ — despriorizado
+- [x] PWA (instalar como app no celular)
 
 ## Robustez
 - [x] Error handling com toast notifications em todas as operações Supabase

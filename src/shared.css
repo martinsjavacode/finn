@@ -34,4 +34,3 @@
 .dashboard-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 1.5rem; }
 .dashboard-month-filter { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1.5rem; font-size: 0.85rem; color: var(--text-muted); }
 .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
-@media (max-width: 900px) { .dashboard-grid { grid-template-columns: 1fr; } }
