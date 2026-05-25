@@ -11,7 +11,7 @@ interface Props {
   categories: Category[]
 }
 
-export default function Dashboard({ categories: _categories }: Props) {
+export default function Dashboard({ categories }: Props) {
   const [monthsData, setMonthsData] = useState<MonthData[]>([])
   const [currentTransactions, setCurrentTransactions] = useState<Transaction[]>([])
   const [budgets, setBudgets] = useState<{ category: string; monthly_limit: number }[]>([])
@@ -153,7 +153,7 @@ export default function Dashboard({ categories: _categories }: Props) {
           {budgets.length > 0 ? (
             <div className="budget-list">
               {budgets.map(b => {
-                const catName = expenses.find(r => r.category === b.category)?.categories?.label ?? b.category
+                const catName = categories.find(c => c.id === b.category)?.label ?? b.category
                 const spent = expenses.filter(r => r.category === b.category).reduce((s, r) => s + +r.amount, 0)
                 const pct = Math.min((spent / b.monthly_limit) * 100, 100)
                 const over = spent > b.monthly_limit
