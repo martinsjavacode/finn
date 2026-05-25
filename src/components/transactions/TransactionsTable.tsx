@@ -1,3 +1,4 @@
+import { Pencil, Trash2, Check, Circle } from 'lucide-react'
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import type { Transaction, Category, Owner, TransactionType } from '../../types/database'
@@ -101,7 +102,7 @@ export default function TransactionsTable({ transactions, categories, canEdit, o
                   <td><input className="inline-input" type="number" step="0.01" value={editData.amount ?? ''} onChange={e => setEditData(d => ({ ...d, amount: +e.target.value }))} style={{ width: '100px' }} /></td>
                   <td><Select value={editData.owner ?? ''} onChange={v => setEditData(d => ({ ...d, owner: v as Owner }))} options={[{ value: 'personal', label: 'Pessoal' }, { value: 'mother_in_law', label: 'Sogra' }]} /></td>
                   <td></td>
-                  <td><Button onClick={() => saveEdit(r.id)}>✓</Button></td>
+                  <td><Button onClick={() => saveEdit(r.id)}><Check size={14} /></Button></td>
                 </>
               ) : (
                 <>
@@ -112,11 +113,11 @@ export default function TransactionsTable({ transactions, categories, canEdit, o
                   <td>{r.current_installment && r.total_installments ? `${r.current_installment}/${r.total_installments}` : '-'}</td>
                   <td>{fmt(+r.amount)}</td>
                   <td><span className={`badge ${r.owner === 'personal' ? 'badge-personal' : 'badge-sogra'}`}>{ownerLabel(r.owner)}</span></td>
-                  <td>{canEdit && <button className={`paid-btn ${r.paid ? 'paid' : ''}`} onClick={() => togglePaid(r.id, r.paid)}>{r.paid ? '✓' : '○'}</button>}</td>
+                  <td>{canEdit && <button className={`paid-btn ${r.paid ? 'paid' : ''}`} onClick={() => togglePaid(r.id, r.paid)}>{r.paid ? <Check size={14} /> : <Circle size={14} />}</button>}</td>
                   {canEdit && (
                     <td>
-                      <Button variant="icon" onClick={() => startEdit(r)}>✏️</Button>
-                      <Button variant="icon" className="delete-btn" onClick={() => handleDelete(r.id)}>🗑️</Button>
+                      <Button variant="icon" onClick={() => startEdit(r)}><Pencil size={14} /></Button>
+                      <Button variant="icon" className="delete-btn" onClick={() => handleDelete(r.id)}><Trash2 size={14} /></Button>
                     </td>
                   )}
                 </>
@@ -132,7 +133,7 @@ export default function TransactionsTable({ transactions, categories, canEdit, o
           <MobileCard
             key={r.id}
             className={r.paid ? 'row-paid' : ''}
-            status={canEdit && <button className={`paid-btn ${r.paid ? 'paid' : ''}`} onClick={(e) => { e.stopPropagation(); togglePaid(r.id, r.paid) }}>{r.paid ? '✓' : '○'}</button>}
+            status={canEdit && <button className={`paid-btn ${r.paid ? 'paid' : ''}`} onClick={(e) => { e.stopPropagation(); togglePaid(r.id, r.paid) }}>{r.paid ? <Check size={14} /> : <Circle size={14} />}</button>}
             title={r.description}
             value={fmt(+r.amount)}
             subtitle={<>{getCatLabel(r)} · {new Date(r.month + 'T12:00:00').toLocaleDateString('pt-BR')} · {ownerLabel(r.owner)}{r.current_installment ? ` · ${r.current_installment}/${r.total_installments}` : ''}</>}

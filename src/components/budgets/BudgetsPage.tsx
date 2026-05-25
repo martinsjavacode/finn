@@ -1,3 +1,4 @@
+import { Pencil, Trash2, Check } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import type { Category } from '../../types/database'
@@ -57,7 +58,7 @@ export default function BudgetsPage({ categories }: Props) {
   return (
     <div>
       <div className="page-header">
-        <h2>💰 Orçamentos</h2>
+        <h2>Orçamentos</h2>
         <Button onClick={() => { setShowForm(!showForm); if (!newCat && availableCats.length) setNewCat(availableCats[0].id) }}>+ Novo</Button>
       </div>
 
@@ -94,11 +95,11 @@ export default function BudgetsPage({ categories }: Props) {
                 </td>
                 <td>
                   {editing === b.id ? (
-                    <Button onClick={() => saveEdit(b.id)}>✓</Button>
+                    <Button onClick={() => saveEdit(b.id)}><Check size={14} /></Button>
                   ) : (
                     <>
-                      <Button variant="icon" onClick={() => startEdit(b)}>✏️</Button>
-                      <Button variant="icon" className="delete-btn" onClick={() => handleDelete(b.id)}>🗑️</Button>
+                      <Button variant="icon" onClick={() => startEdit(b)}><Pencil size={14} /></Button>
+                      <Button variant="icon" className="delete-btn" onClick={() => handleDelete(b.id)}><Trash2 size={14} /></Button>
                     </>
                   )}
                 </td>

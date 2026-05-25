@@ -1,3 +1,4 @@
+import { Pencil, Trash2, Check } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import type { Category } from '../../types/database'
@@ -84,11 +85,11 @@ export default function CategoriesPage() {
                 </td>
                 <td>
                   {editing === c.id ? (
-                    <Button onClick={() => saveEdit(c.id)}>✓</Button>
+                    <Button onClick={() => saveEdit(c.id)}><Check size={14} /></Button>
                   ) : (
                     <>
-                      <Button variant="icon" onClick={() => startEdit(c)}>✏️</Button>
-                      <Button variant="icon" className="delete-btn" onClick={() => handleDelete(c.id)}>🗑️</Button>
+                      <Button variant="icon" onClick={() => startEdit(c)}><Pencil size={14} /></Button>
+                      <Button variant="icon" className="delete-btn" onClick={() => handleDelete(c.id)}><Trash2 size={14} /></Button>
                     </>
                   )}
                 </td>

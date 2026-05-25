@@ -1,3 +1,4 @@
+import { Pencil, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { showError, toast } from '../../lib/toast'
@@ -103,8 +104,8 @@ export default function AccessPage() {
                 <td><span className={`badge ${getRoleName(u) !== 'viewer' ? 'badge-personal' : 'badge-sogra'}`}>{roleLabel(getRoleName(u))}</span></td>
                 <td><span className={`badge ${u.activated ? 'badge-personal' : 'badge-sogra'}`}>{u.activated ? 'Ativo' : 'Pendente'}</span></td>
                 <td>
-                  <Button variant="icon" onClick={() => openEdit(u)}>✏️</Button>
-                  <Button variant="icon" className="delete-btn" onClick={() => handleDelete(u.id)}>🗑️</Button>
+                  <Button variant="icon" onClick={() => openEdit(u)}><Pencil size={14} /></Button>
+                  <Button variant="icon" className="delete-btn" onClick={() => handleDelete(u.id)}><Trash2 size={14} /></Button>
                 </td>
               </tr>
             ))}

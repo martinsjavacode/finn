@@ -1,3 +1,4 @@
+import { Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import type { CreditCard } from '../../types/database'
@@ -54,8 +55,8 @@ export default function CardsTable({ cards, cardsList, canEdit, onDelete }: Prop
               <td><span className={`badge ${r.owner === 'personal' ? 'badge-personal' : 'badge-sogra'}`}>{ownerLabel(r.owner)}</span></td>
               {canEdit && (
                 <td>
-                  <Button variant="icon" onClick={() => setEditing(editing === r.id ? null : r.id)}>✏️</Button>
-                  {editing === r.id && <Button variant="icon" className="delete-btn" onClick={() => handleDelete(r.id)}>🗑️</Button>}
+                  <Button variant="icon" onClick={() => setEditing(editing === r.id ? null : r.id)}><Pencil size={14} /></Button>
+                  {editing === r.id && <Button variant="icon" className="delete-btn" onClick={() => handleDelete(r.id)}><Trash2 size={14} /></Button>}
                 </td>
               )}
             </tr>

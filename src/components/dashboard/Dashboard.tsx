@@ -192,7 +192,7 @@ export default function Dashboard({ categories }: Props) {
               })}
             </div>
           ) : (
-            <p className="empty">Nenhum orçamento cadastrado. Acesse 💰 Orçamentos para configurar.</p>
+            <p className="empty">Nenhum orçamento cadastrado. Acesse Orçamentos para configurar.</p>
           )}
         </section>
       </div>

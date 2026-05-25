@@ -254,7 +254,6 @@ tbody tr { cursor: pointer; transition: background 0.15s; }
 
 /* States */
 .empty { text-align: center; color: var(--text-muted); padding: 3rem 1rem; font-size: 0.9rem; }
-.empty::before { content: '📭'; display: block; font-size: 2rem; margin-bottom: 0.5rem; }
 .row-paid td { opacity: 0.5; }
 
 /* Page transition */

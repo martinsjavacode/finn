@@ -1,3 +1,4 @@
+import { Pencil, Trash2, Check, Circle } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import type { Category, Owner, Card } from '../../types/database'
@@ -189,10 +190,10 @@ export default function RecurringPage({ categories, cardsList }: Props) {
                 <td>{t.target === 'credit_card' ? '💳 Cartão' : t.type === 'income' ? '📈 Receita' : '📉 Despesa'}</td>
                 <td>{t.target === 'credit_card' ? cardsList.find(c => c.name === t.card)?.label ?? t.card : catLabel(t.category)}</td>
                 <td><span className={`badge ${t.owner === 'personal' ? 'badge-personal' : 'badge-sogra'}`}>{t.owner === 'personal' ? 'Pessoal' : 'Sogra'}</span></td>
-                <td><button className={`paid-btn ${t.active ? 'paid' : ''}`} onClick={() => toggleActive(t.id, t.active)}>{t.active ? '✓' : '○'}</button></td>
+                <td><button className={`paid-btn ${t.active ? 'paid' : ''}`} onClick={() => toggleActive(t.id, t.active)}>{t.active ? <Check size={14} /> : <Circle size={14} />}</button></td>
                 <td>
-                  <Button variant="icon" onClick={() => openEdit(t)}>✏️</Button>
-                  <Button variant="icon" className="delete-btn" onClick={() => handleDelete(t.id)}>🗑️</Button>
+                  <Button variant="icon" onClick={() => openEdit(t)}><Pencil size={14} /></Button>
+                  <Button variant="icon" className="delete-btn" onClick={() => handleDelete(t.id)}><Trash2 size={14} /></Button>
                 </td>
               </tr>
             ))}
@@ -205,7 +206,7 @@ export default function RecurringPage({ categories, cardsList }: Props) {
             <MobileCard
               key={t.id}
               className={!t.active ? 'row-paid' : ''}
-              status={<button className={`paid-btn ${t.active ? 'paid' : ''}`} onClick={(e) => { e.stopPropagation(); toggleActive(t.id, t.active) }}>{t.active ? '✓' : '○'}</button>}
+              status={<button className={`paid-btn ${t.active ? 'paid' : ''}`} onClick={(e) => { e.stopPropagation(); toggleActive(t.id, t.active) }}>{t.active ? <Check size={14} /> : <Circle size={14} />}</button>}
               title={t.description}
               value={fmt(+t.amount)}
               subtitle={<>Dia {t.day} · {t.target === 'credit_card' ? `💳 ${cardsList.find(c => c.name === t.card)?.label ?? t.card}` : catLabel(t.category)} · {t.owner === 'personal' ? 'Pessoal' : 'Sogra'}</>}

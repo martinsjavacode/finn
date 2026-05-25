@@ -1,3 +1,4 @@
+import { Pencil, Trash2, Check, Circle } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { showError, toast } from '../../lib/toast'
@@ -128,10 +129,10 @@ export default function CardsPage() {
                 <td>{fmt(c.credit_limit)}</td>
                 <td>Dia {c.closing_day}</td>
                 <td>Dia {c.due_day}</td>
-                <td><button className={`paid-btn ${c.active ? 'paid' : ''}`} onClick={() => toggleActive(c.id, c.active)}>{c.active ? '✓' : '○'}</button></td>
+                <td><button className={`paid-btn ${c.active ? 'paid' : ''}`} onClick={() => toggleActive(c.id, c.active)}>{c.active ? <Check size={14} /> : <Circle size={14} />}</button></td>
                 <td>
-                  <Button variant="icon" onClick={() => openEdit(c)}>✏️</Button>
-                  <Button variant="icon" className="delete-btn" onClick={() => handleDelete(c.id)}>🗑️</Button>
+                  <Button variant="icon" onClick={() => openEdit(c)}><Pencil size={14} /></Button>
+                  <Button variant="icon" className="delete-btn" onClick={() => handleDelete(c.id)}><Trash2 size={14} /></Button>
                 </td>
               </tr>
             ))}
@@ -144,7 +145,7 @@ export default function CardsPage() {
             <MobileCard
               key={c.id}
               className={!c.active ? 'row-paid' : ''}
-              status={<button className={`paid-btn ${c.active ? 'paid' : ''}`} onClick={(e) => { e.stopPropagation(); toggleActive(c.id, c.active) }}>{c.active ? '✓' : '○'}</button>}
+              status={<button className={`paid-btn ${c.active ? 'paid' : ''}`} onClick={(e) => { e.stopPropagation(); toggleActive(c.id, c.active) }}>{c.active ? <Check size={14} /> : <Circle size={14} />}</button>}
               title={<><span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: c.color, marginRight: 6 }} />{c.label}</>}
               value={fmt(c.credit_limit)}
               subtitle={<>Fecha dia {c.closing_day} · Vence dia {c.due_day}</>}
