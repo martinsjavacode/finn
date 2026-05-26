@@ -1,56 +1,51 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { Transaction, CreditCard } from '../types/database'
 import { fetchTransactions, fetchCreditCards, fetchAvailableMonths } from '../services/transactions'
 import { currentYearMonth } from '../utils/format'
 
 export function useTransactions(authenticated: boolean) {
   const [month, setMonth] = useState(currentYearMonth)
-  const [months, setMonths] = useState<string[]>([])
-  const [transactions, setTransactions] = useState<Transaction[]>([])
-  const [cards, setCards] = useState<CreditCard[]>([])
+  const queryClient = useQueryClient()
 
-  const loadMonth = useCallback(async (ym: string) => {
-    const [t, c] = await Promise.all([fetchTransactions(ym), fetchCreditCards(ym)])
-    setTransactions(t.data)
-    setCards(c.data)
-  }, [])
+  const { data: months = [] } = useQuery<string[]>({
+    queryKey: ['months'],
+    queryFn: fetchAvailableMonths,
+    enabled: authenticated,
+  })
 
-  const loadMonths = useCallback(async () => {
-    const all = await fetchAvailableMonths()
-    setMonths(all)
-  }, [])
+  const { data: transactions = [] } = useQuery<Transaction[]>({
+    queryKey: ['transactions', month],
+    queryFn: async () => (await fetchTransactions(month)).data,
+    enabled: authenticated && !!month,
+  })
 
-  useEffect(() => {
-    if (!authenticated) return
-    let cancelled = false
-    fetchAvailableMonths().then(all => { if (!cancelled) setMonths(all) })
-    return () => { cancelled = true }
-  }, [authenticated])
+  const { data: cards = [] } = useQuery<CreditCard[]>({
+    queryKey: ['creditCards', month],
+    queryFn: async () => (await fetchCreditCards(month)).data,
+    enabled: authenticated && !!month,
+  })
 
-  useEffect(() => {
-    if (!authenticated || !month) return
-    let cancelled = false
-    Promise.all([fetchTransactions(month), fetchCreditCards(month)]).then(([t, c]) => {
-      if (cancelled) return
-      setTransactions(t.data)
-      setCards(c.data)
-    })
-    return () => { cancelled = true }
-  }, [authenticated, month])
-
-  const reload = async () => {
-    await loadMonths()
-    await loadMonth(month)
+  const reload = () => {
+    queryClient.invalidateQueries({ queryKey: ['months'] })
+    queryClient.invalidateQueries({ queryKey: ['transactions', month] })
+    queryClient.invalidateQueries({ queryKey: ['creditCards', month] })
   }
 
   const updateTransaction = (id: string, data: Partial<Transaction>) =>
-    setTransactions(prev => prev.map(r => r.id === id ? { ...r, ...data } : r))
+    queryClient.setQueryData<Transaction[]>(['transactions', month], prev =>
+      (prev ?? []).map(r => r.id === id ? { ...r, ...data } : r)
+    )
 
   const removeTransaction = (id: string) =>
-    setTransactions(prev => prev.filter(r => r.id !== id))
+    queryClient.setQueryData<Transaction[]>(['transactions', month], prev =>
+      (prev ?? []).filter(r => r.id !== id)
+    )
 
   const removeCard = (id: string) =>
-    setCards(prev => prev.filter(r => r.id !== id))
+    queryClient.setQueryData<CreditCard[]>(['creditCards', month], prev =>
+      (prev ?? []).filter(r => r.id !== id)
+    )
 
   return {
     month, setMonth, months,

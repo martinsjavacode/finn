@@ -1,24 +1,26 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { Category, CardListItem } from '../types/database'
 import { fetchCategories, fetchActiveCards } from '../services/categories'
 
 export function useAppData(authenticated: boolean) {
-  const [categories, setCategories] = useState<Category[]>([])
-  const [cardsList, setCardsList] = useState<CardListItem[]>([])
+  const queryClient = useQueryClient()
 
-  const reload = useCallback(async () => {
-    const [cats, cards] = await Promise.all([fetchCategories(), fetchActiveCards()])
-    setCategories(cats.data)
-    setCardsList(cards.data)
-  }, [])
+  const { data: categories = [] } = useQuery<Category[]>({
+    queryKey: ['categories'],
+    queryFn: async () => (await fetchCategories()).data,
+    enabled: authenticated,
+  })
 
-  useEffect(() => {
-    if (!authenticated) return
-    let cancelled = false
-    fetchCategories().then(cats => { if (!cancelled) setCategories(cats.data) })
-    fetchActiveCards().then(cards => { if (!cancelled) setCardsList(cards.data) })
-    return () => { cancelled = true }
-  }, [authenticated])
+  const { data: cardsList = [] } = useQuery<CardListItem[]>({
+    queryKey: ['cardsList'],
+    queryFn: async () => (await fetchActiveCards()).data,
+    enabled: authenticated,
+  })
 
-  return { categories, cardsList, reloadAppData: reload }
+  const reloadAppData = () => {
+    queryClient.invalidateQueries({ queryKey: ['categories'] })
+    queryClient.invalidateQueries({ queryKey: ['cardsList'] })
+  }
+
+  return { categories, cardsList, reloadAppData }
 }

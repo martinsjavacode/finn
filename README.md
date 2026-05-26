@@ -16,9 +16,10 @@ Aplicação de controle financeiro pessoal com dashboard, lançamentos, cartões
 
 - React 19 + TypeScript 6 + Vite 8
 - React Router 7 (navegação por URL)
+- TanStack Query (cache, retry, loading automático)
 - Supabase (PostgreSQL + Auth + RLS + RPC)
 - RBAC (roles + permissions granulares por recurso/ação)
-- Vitest + Testing Library (32 testes)
+- Vitest + Testing Library (38 testes)
 - Deploy via GitHub Pages (PWA)
 - CI/CD com GitHub Actions (commitlint, ESLint, CodeQL, gitleaks)
 

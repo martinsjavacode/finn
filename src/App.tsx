@@ -20,8 +20,13 @@ import RolesPage from './components/roles/RolesPage'
 import Button from './components/ui/Button'
 import ToastContainer from './components/ui/Toast'
 import ConfirmDialog from './components/ui/ConfirmDialog'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import ErrorBoundary from './components/ui/ErrorBoundary'
 import './App.css'
+
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { staleTime: 1000 * 60 * 5, retry: 1, refetchOnWindowFocus: false } },
+})
 
 function TransactionsPage() {
   const { session, can } = useAuth()
@@ -136,9 +141,11 @@ function AppLayout() {
 export default function App() {
   return (
     <ErrorBoundary>
-      <BrowserRouter basename="/finn">
-        <AppLayout />
-      </BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter basename="/finn">
+          <AppLayout />
+        </BrowserRouter>
+      </QueryClientProvider>
     </ErrorBoundary>
   )
 }

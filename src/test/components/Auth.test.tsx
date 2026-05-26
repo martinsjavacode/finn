@@ -1,13 +1,16 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { vi } from 'vitest'
 import Auth from '../../components/auth/Auth'
 import { supabase } from '../../lib/supabase'
+
+const renderAuth = () => render(<MemoryRouter><Auth /></MemoryRouter>)
 
 describe('Auth', () => {
   beforeEach(() => vi.clearAllMocks())
 
   it('renderiza formulário de login', () => {
-    render(<Auth />)
+    renderAuth()
     expect(screen.getByText('💰 Finn')).toBeInTheDocument()
     expect(screen.getByPlaceholderText('seu@email.com')).toBeInTheDocument()
     expect(screen.getByPlaceholderText('••••••••')).toBeInTheDocument()
@@ -18,7 +21,7 @@ describe('Auth', () => {
   it('mostra erro com credenciais inválidas', async () => {
     vi.mocked(supabase.auth.signInWithPassword).mockResolvedValue({ data: { user: null, session: null }, error: { message: 'Invalid login credentials' } } as never)
 
-    render(<Auth />)
+    renderAuth()
     fireEvent.change(screen.getByPlaceholderText('seu@email.com'), { target: { value: 'a@b.com' } })
     fireEvent.change(screen.getByPlaceholderText('••••••••'), { target: { value: '123456' } })
     fireEvent.click(screen.getByText('Entrar'))
@@ -29,7 +32,7 @@ describe('Auth', () => {
   })
 
   it('permite alternar para tela de cadastro', () => {
-    render(<Auth />)
+    renderAuth()
     fireEvent.click(screen.getByText('Não tem conta? Criar conta'))
     expect(screen.getByText('Criar conta')).toBeInTheDocument()
   })

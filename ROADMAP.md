@@ -43,7 +43,7 @@
 
 ## 🔧 Técnico (qualidade)
 
-- [ ] React Query para cache, retry e loading automático
+- [x] React Query para cache, retry e loading automático
 - [ ] Accessibility audit (aria-labels, focus trap em modais, axe-core)
 - [ ] Aumentar cobertura de testes (componentes de página)
 
