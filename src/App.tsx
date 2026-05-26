@@ -30,8 +30,8 @@ const queryClient = new QueryClient({
 
 function TransactionsPage() {
   const { session, can } = useAuth()
-  const { categories, cardsList, reloadAppData } = useAppData(!!session)
-  const { month, setMonth, months, transactions, cards, reload, updateTransaction, removeTransaction, removeCard } = useTransactions(!!session)
+  const { categories, cardsList } = useAppData(!!session)
+  const { month, setMonth, months, transactions, cards } = useTransactions(!!session)
   const [owner, setOwner] = useState<'all' | Owner>('all')
   const [search, setSearch] = useState('')
   const [showAdd, setShowAdd] = useState(false)
@@ -43,7 +43,6 @@ function TransactionsPage() {
   const expense = ft.filter(r => r.type === 'expense').reduce((s, r) => s + +r.amount, 0)
   const cardTotal = fc.reduce((s, r) => s + +r.amount, 0)
 
-  const handleReload = async () => { await reloadAppData(); await reload() }
   const canCreate = can('transactions', 'create')
   const canUpdate = can('transactions', 'update')
   const canDelete = can('transactions', 'delete')
@@ -71,25 +70,24 @@ function TransactionsPage() {
       <TransactionsTable
         transactions={ft}
         categories={categories}
+        month={month}
         canUpdate={canUpdate}
         canDelete={canDelete}
-        onUpdate={(id, data) => updateTransaction(id, data)}
-        onDelete={removeTransaction}
       />
 
       <CardsTable
         cards={fc}
         cardsList={cardsList}
+        month={month}
         canUpdate={can('credit_cards', 'update')}
         canDelete={can('credit_cards', 'delete')}
-        onDelete={removeCard}
       />
 
       {showAdd && (
         <AddTransaction
           categories={categories}
           cardsList={cardsList}
-          onSaved={handleReload}
+          month={month}
           onClose={() => setShowAdd(false)}
         />
       )}

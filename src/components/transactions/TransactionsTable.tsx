@@ -1,10 +1,9 @@
 import { Pencil, Trash2, Check, Circle, TrendingUp, TrendingDown } from 'lucide-react'
 import { useState } from 'react'
-import { supabase } from '../../lib/supabase'
 import type { Transaction, Category, Owner, TransactionType } from '../../types/database'
-import { showError } from '../../lib/toast'
 import { confirm } from '../../lib/confirm'
 import { fmt, ownerLabel } from '../../utils/format'
+import { useTransactionMutations } from '../../hooks/useTransactionMutations'
 import Button from '../ui/Button'
 import Select from '../ui/Select'
 import MobileCard from '../ui/MobileCard'
@@ -13,14 +12,14 @@ import Pagination from '../ui/Pagination'
 interface Props {
   transactions: Transaction[]
   categories: Category[]
+  month: string
   canUpdate: boolean
   canDelete: boolean
-  onUpdate: (id: string, data: Partial<Transaction>) => void
-  onDelete: (id: string) => void
 }
 
-export default function TransactionsTable({ transactions, categories, canUpdate, canDelete, onUpdate, onDelete }: Props) {
+export default function TransactionsTable({ transactions, categories, month, canUpdate, canDelete }: Props) {
   const canEdit = canUpdate || canDelete
+  const { togglePaid: togglePaidMutation, editTransaction, removeTransaction } = useTransactionMutations(month)
   const [typeFilter, setTypeFilter] = useState<'all' | TransactionType>('all')
   const [catFilter, setCatFilter] = useState('all')
   const [paidFilter, setPaidFilter] = useState<'all' | 'paid' | 'pending'>('all')
@@ -44,29 +43,21 @@ export default function TransactionsTable({ transactions, categories, canUpdate,
 
   const usedCats = ['all', ...new Set(transactions.map(r => r.category))]
 
-  const togglePaid = async (id: string, paid: boolean) => {
-    const { error } = await supabase.from('transactions').update({ paid: !paid } as never).eq('id', id)
-    if (error) return showError(error)
-    onUpdate(id, { paid: !paid })
-  }
+  const togglePaid = (id: string, paid: boolean) => togglePaidMutation.mutate({ id, paid })
 
   const startEdit = (r: Transaction) => {
     setEditing(r.id)
     setEditData({ description: r.description, amount: r.amount, category: r.category, owner: r.owner, month: r.month })
   }
 
-  const saveEdit = async (id: string) => {
-    const { error } = await supabase.from('transactions').update(editData as never).eq('id', id)
-    if (error) return showError(error)
-    onUpdate(id, editData)
+  const saveEdit = (id: string) => {
+    editTransaction.mutate({ id, data: editData })
     setEditing(null)
   }
 
   const handleDelete = async (id: string) => {
     if (!await confirm('Tem certeza que deseja excluir este lançamento?')) return
-    const { error } = await supabase.from('transactions').delete().eq('id', id)
-    if (error) return showError(error)
-    onDelete(id)
+    removeTransaction.mutate(id)
     setEditing(null)
   }
 

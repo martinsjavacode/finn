@@ -65,9 +65,9 @@ VALUES ('seu@email.com', 'Seu Nome', (SELECT id FROM roles WHERE name = 'owner')
 ## CI/CD Pipeline
 
 ```
-feature push → commitlint + tsc + lint + build → abre PR para develop
-develop merge → lint + build + bundle size + gitleaks → abre PR para main
-main merge → lint + build + CodeQL + npm audit → tag automática → deploy
+feature push → commitlint + tsc + lint + test + build → abre PR para develop
+develop merge → lint + test + build + bundle size + gitleaks → abre PR para main
+main merge → lint + test + build + CodeQL + npm audit → tag automática → deploy
 ```
 
 Configure no repositório:

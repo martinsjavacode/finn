@@ -1,7 +1,6 @@
 import { useState } from 'react'
-import { supabase } from '../../lib/supabase'
 import type { Category, Owner, TransactionType, CardListItem } from '../../types/database'
-import { showError, toast } from '../../lib/toast'
+import { useTransactionMutations } from '../../hooks/useTransactionMutations'
 import { useModal } from '../../hooks/useModal'
 import Select from '../ui/Select'
 import Button from '../ui/Button'
@@ -9,41 +8,29 @@ import Button from '../ui/Button'
 interface Props {
   categories: Category[]
   cardsList: CardListItem[]
-  onSaved: () => void
+  month: string
   onClose: () => void
 }
 
-export default function AddTransaction({ categories, cardsList, onSaved, onClose }: Props) {
+export default function AddTransaction({ categories, cardsList, month, onClose }: Props) {
   const modalRef = useModal<HTMLFormElement>(onClose)
+  const { addTransaction, addCreditCard } = useTransactionMutations(month)
   const [target, setTarget] = useState<'transaction' | 'credit_card'>('transaction')
   const [type, setType] = useState<TransactionType>('expense')
   const [description, setDescription] = useState('')
   const [amount, setAmount] = useState('')
-  const [month, setMonth] = useState(new Date().toISOString().slice(0, 10))
+  const [txDate, setTxDate] = useState(new Date().toISOString().slice(0, 10))
   const [category, setCategory] = useState(categories[0]?.id ?? '')
   const [owner, setOwner] = useState<Owner>('personal')
   const [card, setCard] = useState(cardsList[0]?.name ?? '')
-  const [saving, setSaving] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setSaving(true)
-
-    let error
     if (target === 'transaction') {
-      ({ error } = await supabase.from('transactions').insert({
-        month, description, amount: +amount, type, category, owner, paid: false
-      } as never))
+      addTransaction.mutate({ month: txDate, description, amount: +amount, type, category, owner, paid: false })
     } else {
-      ({ error } = await supabase.from('credit_cards').insert({
-        month, description, amount: +amount, card, owner
-      } as never))
+      addCreditCard.mutate({ month: txDate, description, amount: +amount, card, owner })
     }
-
-    setSaving(false)
-    if (error) return showError(error)
-    toast('Lançamento criado')
-    onSaved()
     onClose()
   }
 
@@ -64,7 +51,7 @@ export default function AddTransaction({ categories, cardsList, onSaved, onClose
           </div>
         )}
 
-        <input type="date" value={month} onChange={e => setMonth(e.target.value)} required />
+        <input type="date" value={txDate} onChange={e => setTxDate(e.target.value)} required />
         <input type="text" placeholder="Descrição" value={description} onChange={e => setDescription(e.target.value)} required />
         <input type="number" step="0.01" placeholder="Valor" value={amount} onChange={e => setAmount(e.target.value)} required />
 
@@ -78,7 +65,7 @@ export default function AddTransaction({ categories, cardsList, onSaved, onClose
 
         <div className="form-actions">
           <Button variant="tab" onClick={onClose}>Cancelar</Button>
-          <Button variant="primary" type="submit" disabled={saving}>{saving ? 'Salvando...' : 'Salvar'}</Button>
+          <Button variant="primary" type="submit">Salvar</Button>
         </div>
       </form>
     </div>

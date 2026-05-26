@@ -1,10 +1,9 @@
 import { Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
-import { supabase } from '../../lib/supabase'
 import type { CreditCard, CardListItem } from '../../types/database'
-import { showError } from '../../lib/toast'
 import { confirm } from '../../lib/confirm'
 import { fmt, ownerLabel } from '../../utils/format'
+import { useTransactionMutations } from '../../hooks/useTransactionMutations'
 import Button from '../ui/Button'
 import MobileCard from '../ui/MobileCard'
 import Pagination from '../ui/Pagination'
@@ -12,13 +11,14 @@ import Pagination from '../ui/Pagination'
 interface Props {
   cards: CreditCard[]
   cardsList: CardListItem[]
+  month: string
   canUpdate: boolean
   canDelete: boolean
-  onDelete: (id: string) => void
 }
 
-export default function CardsTable({ cards, cardsList, canUpdate, canDelete, onDelete }: Props) {
+export default function CardsTable({ cards, cardsList, month, canUpdate, canDelete }: Props) {
   const canEdit = canUpdate || canDelete
+  const { removeCreditCard } = useTransactionMutations(month)
   const [cardFilter, setCardFilter] = useState('all')
   const [editing, setEditing] = useState<string | null>(null)
   const [page, setPage] = useState(1)
@@ -35,9 +35,7 @@ export default function CardsTable({ cards, cardsList, canUpdate, canDelete, onD
 
   const handleDelete = async (id: string) => {
     if (!await confirm('Tem certeza que deseja excluir este lançamento de cartão?')) return
-    const { error } = await supabase.from('credit_cards').delete().eq('id', id)
-    if (error) return showError(error)
-    onDelete(id)
+    removeCreditCard.mutate(id)
     setEditing(null)
   }
 
