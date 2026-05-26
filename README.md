@@ -87,8 +87,7 @@ Configure no repositório:
 | `role_permissions` | Relação N:N entre roles e permissions |
 | `categories` | Categorias de lançamentos |
 | `cards` | Cartões de crédito cadastrados |
-| `transactions` | Receitas e despesas mensais |
-| `credit_cards` | Lançamentos de cartão de crédito |
+| `entries` | Lançamentos unificados (receitas, despesas, cartão) |
 | `installment_purchases` | Compras parceladas (gera parcelas automaticamente) |
 | `recurring_templates` | Templates de lançamentos recorrentes |
 | `budgets` | Orçamento mensal por categoria |
@@ -178,6 +177,7 @@ migrations/
 
 ### Categorias
 - CRUD completo de categorias
+- Subcategorias hierárquicas (ex: Educação > EAD, Escola)
 
 ### Cartões
 - CRUD de cartões (nome, limite, fechamento, vencimento, cor)

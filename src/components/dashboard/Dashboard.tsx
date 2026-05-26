@@ -1,19 +1,17 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import type { Transaction, Category } from '../../types/database'
+import type { Transaction } from '../../types/database'
 import { fetchAllTransactions, fetchTransactions } from '../../services/transactions'
 import { fetchBudgets } from '../../services/categories'
+import { useAppData } from '../../hooks'
 import { fmt } from '../../utils/format'
 import { ChartSkeleton, CardsSkeleton } from '../ui/Skeleton'
 import './Dashboard.css'
 
 interface MonthData { month: string; income: number; expense: number }
 
-interface Props {
-  categories: Category[]
-}
-
-export default function Dashboard({ categories }: Props) {
+export default function Dashboard() {
+  const { categories } = useAppData(true)
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date()
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`

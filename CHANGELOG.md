@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.0.9](https://github.com/martinsjavacode/finn/compare/v0.0.8...v0.0.9) (2026-05-26)
+
+
+### Features
+
+* **a11y:** accessibility audit - aria-labels, focus trap, landmarks ([22d5dee](https://github.com/martinsjavacode/finn/commit/22d5deef0fe5a0f8d9e5f9c5f5cfb55de8aae003))
+* card invoices with partial payment, category in credit cards, improved UX ([a1c38a7](https://github.com/martinsjavacode/finn/commit/a1c38a74a02c34d9a4dad6ba6d54c4ae80dbd9ce))
+* integrate TanStack Query replacing manual data fetching ([1bdffe8](https://github.com/martinsjavacode/finn/commit/1bdffe87dbc90772ef60d1bd67930b005a78bf68))
+* standardize mutations with useMutation, migrate Dashboard to TanStack Query, add tests to CI ([15d95bc](https://github.com/martinsjavacode/finn/commit/15d95bc604af598d6f1fdf5069a1c43b4d8744db))
+* **transactions:** add installment CRUD with cascade delete and category support ([e0deb97](https://github.com/martinsjavacode/finn/commit/e0deb9753d4dba7e467906d04742de17dc20c31d))
+* **transactions:** add installment purchase form with toggle and preview ([410287c](https://github.com/martinsjavacode/finn/commit/410287c0398af8b8ab6c62e56aa50f8aceb3086b))
+
 ## [0.0.8](https://github.com/martinsjavacode/finn/compare/v0.0.7...v0.0.8) (2026-05-26)
 
 

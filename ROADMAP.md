@@ -39,10 +39,13 @@
 - [x] Parcelamentos com cadastro, preview e exclusão em cascata
 - [x] Fatura de cartão com pagamento parcial
 - [x] Categoria em lançamentos de cartão de crédito
+- [x] Subcategorias (parent_id hierárquico)
+- [x] Tabela unificada entries (normalização do banco)
 
 ## 🎯 Quick Wins
 
-- [ ] Criar sub-categorias
+- [ ] Exportar para CSV
+- [ ] Ajustar Ediçao de Categorias - no mobile
 
 ## 🔧 Técnico (qualidade)
 

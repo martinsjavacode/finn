@@ -1,8 +1,7 @@
 import { Pencil, Trash2, Check } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
-import { useAuth } from '../../hooks'
-import type { Category } from '../../types/database'
+import { useAuth, useAppData } from '../../hooks'
 import { showError, toast } from '../../lib/toast'
 import { useModal } from '../../hooks/useModal'
 import { confirm } from '../../lib/confirm'
@@ -13,10 +12,9 @@ import MobileCard from '../ui/MobileCard'
 
 interface Budget { id: string; category: string; monthly_limit: number }
 
-interface Props { categories: Category[] }
-
-export default function BudgetsPage({ categories }: Props) {
+export default function BudgetsPage() {
   const { can } = useAuth()
+  const { categories } = useAppData(true)
   const canCreate = can('budgets', 'create')
   const canUpdate = can('budgets', 'update')
   const canDelete = can('budgets', 'delete')
@@ -129,6 +127,21 @@ export default function BudgetsPage({ categories }: Props) {
             />
           )) : <p className="empty">Nenhum orçamento cadastrado</p>}
         </div>
+
+        {editing && (
+          <div className="modal-overlay" onClick={() => setEditing(null)} role="dialog" aria-modal="true">
+            <div className="modal" onClick={e => e.stopPropagation()}>
+              <h2>Editar Orçamento</h2>
+              <label className="form-label">Limite mensal (R$)
+                <input type="number" step="0.01" value={editLimit} onChange={e => setEditLimit(e.target.value)} autoFocus />
+              </label>
+              <div className="form-actions">
+                <Button variant="tab" onClick={() => setEditing(null)}>Cancelar</Button>
+                <Button onClick={() => saveEdit(editing)}>Salvar</Button>
+              </div>
+            </div>
+          </div>
+        )}
       </section>
     </div>
   )
