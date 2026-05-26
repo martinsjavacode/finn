@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.0.11](https://github.com/martinsjavacode/finn/compare/v0.0.10...v0.0.11) (2026-05-26)
+
+
+### Features
+
+* **cards:** add closing rule engine for invoice month resolution ([1fc1751](https://github.com/martinsjavacode/finn/commit/1fc17516d2dc6369c19ce7da5370fa52439778dd))
+* complete medium-priority - CSS split, useMemo, hooks ([46393bf](https://github.com/martinsjavacode/finn/commit/46393bf6ecafe9587c5261b9b06e06164dc03b46))
+* generate Supabase types, eliminate all as never casts ([362ea9f](https://github.com/martinsjavacode/finn/commit/362ea9fa118e0f7ffe4b5b27476917484a6b29b4))
+* implement high-priority UX/accessibility improvements ([8f988ca](https://github.com/martinsjavacode/finn/commit/8f988ca26bf8ec63a04e5ec5e90de3bf596b9368))
+* low-priority improvements - fonts, layout, dashboard, perf ([d0574be](https://github.com/martinsjavacode/finn/commit/d0574bef0159fbfd15310e88e462937e6a7169da))
+* medium-priority improvements - Modal, TanStack Query, Badge/Input ([3217813](https://github.com/martinsjavacode/finn/commit/3217813f4996d3149b62fe037470c4ed1a39efa0))
+
+
+### Bug Fixes
+
+* resolve 4 potential runtime bugs ([d414f2a](https://github.com/martinsjavacode/finn/commit/d414f2ac8c9cc4b09b3250473b0dab7a4afd7df2))
+
 ## [0.0.10](https://github.com/martinsjavacode/finn/compare/v0.0.9...v0.0.10) (2026-05-26)
 
 
