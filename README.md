@@ -16,9 +16,10 @@ Aplicação de controle financeiro pessoal com dashboard, lançamentos, cartões
 
 - React 19 + TypeScript 6 + Vite 8
 - React Router 7 (navegação por URL)
+- TanStack Query (cache, retry, loading automático)
 - Supabase (PostgreSQL + Auth + RLS + RPC)
 - RBAC (roles + permissions granulares por recurso/ação)
-- Vitest + Testing Library (32 testes)
+- Vitest + Testing Library (38 testes)
 - Deploy via GitHub Pages (PWA)
 - CI/CD com GitHub Actions (commitlint, ESLint, CodeQL, gitleaks)
 
@@ -64,9 +65,9 @@ VALUES ('seu@email.com', 'Seu Nome', (SELECT id FROM roles WHERE name = 'owner')
 ## CI/CD Pipeline
 
 ```
-feature push → commitlint + tsc + lint + build → abre PR para develop
-develop merge → lint + build + bundle size + gitleaks → abre PR para main
-main merge → lint + build + CodeQL + npm audit → tag automática → deploy
+feature push → commitlint + tsc + lint + test + build → abre PR para develop
+develop merge → lint + test + build + bundle size + gitleaks → abre PR para main
+main merge → lint + test + build + CodeQL + npm audit → tag automática → deploy
 ```
 
 Configure no repositório:
@@ -91,6 +92,7 @@ Configure no repositório:
 | `installment_purchases` | Compras parceladas (gera parcelas automaticamente) |
 | `recurring_templates` | Templates de lançamentos recorrentes |
 | `budgets` | Orçamento mensal por categoria |
+| `card_invoices` | Faturas de cartão (pagamento parcial) |
 
 ### Funções RPC
 
@@ -116,7 +118,11 @@ migrations/
 ├── 011-access-activated.sql   — campo activated
 ├── 012-access-owner-role.sql  — role owner no check constraint
 ├── 013-rbac.sql               — tabelas roles, permissions, role_permissions + rename para users
-└── 014-rbac-write-policies.sql — policies de escrita para tabelas RBAC
+├── 014-rbac-write-policies.sql — policies de escrita para tabelas RBAC
+├── 015-credit-cards-category.sql — categoria em cartões de crédito
+├── 016-installment-purchase-id.sql — FK para rastrear parcelas
+├── 017-installments-crud-policies.sql — policies de delete/update para parcelamentos
+└── 018-card-invoices.sql      — faturas de cartão com pagamento parcial
 ```
 
 ## Funcionalidades
@@ -151,6 +157,7 @@ migrations/
 - Filtros por mês, responsável, tipo, categoria, status (pago/pendente), busca
 - Paginação com seleção de itens por página (10/20/50)
 - Tabela de cartões de crédito com filtro por bandeira
+- Fatura de cartão com pagamento parcial (valor pago + restante)
 - Adicionar/editar/excluir (baseado em permissões)
 - Edição via modal
 - Marcar como pago
@@ -178,8 +185,11 @@ migrations/
 - Edição via modal
 
 ### Parcelamentos
+- Cadastro via modal (aba "Parcelado" no formulário de lançamentos)
 - Cartão parcelado ou boleto/pix parcelado
+- Preview do valor da parcela antes de salvar
 - Trigger automático distribui parcelas nos meses
+- Exclusão em cascata (remove todas as parcelas)
 
 ### Gerenciamento de Usuários (owner)
 - Cadastro de emails autorizados com display name

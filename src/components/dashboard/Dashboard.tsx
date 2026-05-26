@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react'
-import { supabase } from '../../lib/supabase'
+import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import type { Transaction, Category } from '../../types/database'
+import { fetchAllTransactions, fetchTransactions } from '../../services/transactions'
+import { fetchBudgets } from '../../services/categories'
 import { fmt } from '../../utils/format'
 import { ChartSkeleton, CardsSkeleton } from '../ui/Skeleton'
 import './Dashboard.css'
@@ -12,56 +14,42 @@ interface Props {
 }
 
 export default function Dashboard({ categories }: Props) {
-  const [monthsData, setMonthsData] = useState<MonthData[]>([])
-  const [currentTransactions, setCurrentTransactions] = useState<Transaction[]>([])
-  const [budgets, setBudgets] = useState<{ category: string; monthly_limit: number }[]>([])
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date()
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
   })
-  const [loading, setLoading] = useState(true)
   const [tooltip, setTooltip] = useState<{ i: number } | null>(null)
 
-  useEffect(() => {
-    ;(async () => {
-      const [{ data }, { data: budgetData }] = await Promise.all([
-        supabase.from('transactions').select('month, amount, type').order('month'),
-        supabase.from('budgets').select('category, monthly_limit') as never
-      ])
-      setBudgets((budgetData ?? []) as { category: string; monthly_limit: number }[])
-      if (!data) { setLoading(false); return }
-
-      const rows = data as { month: string; amount: number; type: string }[]
+  const { data: monthsData = [], isLoading } = useQuery<MonthData[]>({
+    queryKey: ['dashboard-evolution'],
+    queryFn: async () => {
+      const { data } = await fetchAllTransactions()
       const byMonth: Record<string, { income: number; expense: number }> = {}
-      for (const r of rows) {
+      for (const r of data) {
         const ym = r.month.substring(0, 7)
         if (!byMonth[ym]) byMonth[ym] = { income: 0, expense: 0 }
         if (r.type === 'income') byMonth[ym].income += +r.amount
         else byMonth[ym].expense += +r.amount
       }
-
-      const sorted = Object.entries(byMonth)
+      return Object.entries(byMonth)
         .map(([month, d]) => ({ month, ...d }))
         .sort((a, b) => a.month.localeCompare(b.month))
         .slice(-12)
+    },
+  })
 
-      setMonthsData(sorted)
-      setLoading(false)
-    })()
-  }, [])
+  const { data: budgets = [] } = useQuery({
+    queryKey: ['budgets'],
+    queryFn: async () => (await fetchBudgets()).data,
+  })
 
-  useEffect(() => {
-    if (!selectedMonth) return
-    ;(async () => {
-      const start = `${selectedMonth}-01`
-      const [y, m] = selectedMonth.split('-').map(Number)
-      const next = m === 12 ? `${y + 1}-01-01` : `${y}-${String(m + 1).padStart(2, '0')}-01`
-      const { data } = await supabase.from('transactions').select('*, categories(*)').gte('month', start).lt('month', next)
-      setCurrentTransactions((data as Transaction[]) ?? [])
-    })()
-  }, [selectedMonth])
+  const { data: currentTransactions = [] } = useQuery<Transaction[]>({
+    queryKey: ['dashboard-month', selectedMonth],
+    queryFn: async () => (await fetchTransactions(selectedMonth)).data,
+    enabled: !!selectedMonth,
+  })
 
-  if (loading) return <div><h2 className="dashboard-title">Dashboard</h2><ChartSkeleton /><CardsSkeleton /></div>
+  if (isLoading) return <div><h2 className="dashboard-title">Dashboard</h2><ChartSkeleton /><CardsSkeleton /></div>
 
   if (!monthsData.length) return (
     <div className="dashboard-fade">

@@ -43,7 +43,7 @@ export default function Sidebar({ session, isOwner, can }: Props) {
 
       {open && <div className="sidebar-overlay" onClick={() => setOpen(false)} />}
 
-      <aside className={`sidebar ${open ? 'sidebar-open' : ''}`}>
+      <aside className={`sidebar ${open ? 'sidebar-open' : ''}`} role="navigation" aria-label="Menu principal">
         <div className="sidebar-header">
           <h1>💰 Finn</h1>
           <button className="sidebar-close" onClick={() => setOpen(false)} aria-label="Fechar menu"><X size={18} /></button>

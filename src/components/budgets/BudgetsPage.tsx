@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks'
 import type { Category } from '../../types/database'
 import { showError, toast } from '../../lib/toast'
+import { useModal } from '../../hooks/useModal'
 import { confirm } from '../../lib/confirm'
 import { fmt } from '../../utils/format'
 import Select from '../ui/Select'
@@ -23,6 +24,7 @@ export default function BudgetsPage({ categories }: Props) {
   const [editing, setEditing] = useState<string | null>(null)
   const [editLimit, setEditLimit] = useState('')
   const [showForm, setShowForm] = useState(false)
+  const modalRef = useModal<HTMLFormElement>(() => setShowForm(false))
   const [newCat, setNewCat] = useState('')
   const [newLimit, setNewLimit] = useState('')
 
@@ -68,8 +70,8 @@ export default function BudgetsPage({ categories }: Props) {
       </div>
 
       {showForm && (
-        <div className="modal-overlay" onClick={() => setShowForm(false)}>
-          <form className="modal" onClick={e => e.stopPropagation()} onSubmit={handleAdd}>
+        <div className="modal-overlay" onClick={() => setShowForm(false)} role="dialog" aria-modal="true">
+          <form className="modal" ref={modalRef} onClick={e => e.stopPropagation()} onSubmit={handleAdd}>
             <h2>Novo Orçamento</h2>
             <label className="form-label">Categoria
               <Select value={newCat} onChange={setNewCat} options={availableCats.map(c => ({ value: c.id, label: c.label }))} />
@@ -104,8 +106,8 @@ export default function BudgetsPage({ categories }: Props) {
                       <Button onClick={() => saveEdit(b.id)}><Check size={14} /></Button>
                     ) : (
                       <>
-                        {canUpdate && <Button variant="icon" onClick={() => startEdit(b)}><Pencil size={14} /></Button>}
-                        {canDelete && <Button variant="icon" className="delete-btn" onClick={() => handleDelete(b.id)}><Trash2 size={14} /></Button>}
+                        {canUpdate && <Button variant="icon" aria-label="Editar" onClick={() => startEdit(b)}><Pencil size={14} /></Button>}
+                        {canDelete && <Button variant="icon" className="delete-btn" aria-label="Excluir" onClick={() => handleDelete(b.id)}><Trash2 size={14} /></Button>}
                       </>
                     )}
                   </td>

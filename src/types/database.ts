@@ -20,6 +20,7 @@ export interface Transaction {
   owner: Owner
   current_installment: number | null
   total_installments: number | null
+  installment_purchase_id: string | null
   paid: boolean
   created_at: string
   categories?: Category
@@ -33,7 +34,9 @@ export interface CreditCard {
   amount: number
   current_installment: number | null
   total_installments: number | null
+  installment_purchase_id: string | null
   owner: Owner
+  category: string | null
   created_at: string
 }
 

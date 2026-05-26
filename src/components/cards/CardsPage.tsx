@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks'
 import { showError, toast } from '../../lib/toast'
+import { useModal } from '../../hooks/useModal'
 import { confirm } from '../../lib/confirm'
 import { fmt } from '../../utils/format'
 import Button from '../ui/Button'
@@ -26,6 +27,7 @@ export default function CardsPage() {
   const canDelete = can('cards', 'delete')
   const [cards, setCards] = useState<CardInfo[]>([])
   const [showForm, setShowForm] = useState(false)
+  const modalRef = useModal<HTMLFormElement>(() => setShowForm(false))
   const [editingId, setEditingId] = useState<string | null>(null)
 
   // Form state
@@ -92,8 +94,8 @@ export default function CardsPage() {
       </div>
 
       {showForm && (
-        <div className="modal-overlay" onClick={() => setShowForm(false)}>
-          <form className="modal" onClick={e => e.stopPropagation()} onSubmit={handleSubmit}>
+        <div className="modal-overlay" onClick={() => setShowForm(false)} role="dialog" aria-modal="true">
+          <form className="modal" ref={modalRef} onClick={e => e.stopPropagation()} onSubmit={handleSubmit}>
             <h2>{editingId ? 'Editar Cartão' : 'Novo Cartão'}</h2>
             {!editingId && (
               <label className="form-label">Nome (identificador)
@@ -134,11 +136,11 @@ export default function CardsPage() {
                 <td>{fmt(c.credit_limit)}</td>
                 <td>Dia {c.closing_day}</td>
                 <td>Dia {c.due_day}</td>
-                <td>{canUpdate ? <button className={`paid-btn ${c.active ? 'paid' : ''}`} onClick={() => toggleActive(c.id, c.active)}>{c.active ? <Check size={14} /> : <Circle size={14} />}</button> : <span className={`badge ${c.active ? 'badge-success' : 'badge-danger'}`}>{c.active ? 'Ativo' : 'Inativo'}</span>}</td>
+                <td>{canUpdate ? <button className={`paid-btn ${c.active ? 'paid' : ''}`} aria-label={c.active ? 'Desativar' : 'Ativar'} onClick={() => toggleActive(c.id, c.active)}>{c.active ? <Check size={14} /> : <Circle size={14} />}</button> : <span className={`badge ${c.active ? 'badge-success' : 'badge-danger'}`}>{c.active ? 'Ativo' : 'Inativo'}</span>}</td>
                 {(canUpdate || canDelete) && (
                   <td>
-                    {canUpdate && <Button variant="icon" onClick={() => openEdit(c)}><Pencil size={14} /></Button>}
-                    {canDelete && <Button variant="icon" className="delete-btn" onClick={() => handleDelete(c.id)}><Trash2 size={14} /></Button>}
+                    {canUpdate && <Button variant="icon" aria-label="Editar" onClick={() => openEdit(c)}><Pencil size={14} /></Button>}
+                    {canDelete && <Button variant="icon" className="delete-btn" aria-label="Excluir" onClick={() => handleDelete(c.id)}><Trash2 size={14} /></Button>}
                   </td>
                 )}
               </tr>
@@ -152,7 +154,7 @@ export default function CardsPage() {
             <MobileCard
               key={c.id}
               className={!c.active ? 'row-paid' : ''}
-              status={canUpdate ? <button className={`paid-btn ${c.active ? 'paid' : ''}`} onClick={(e) => { e.stopPropagation(); toggleActive(c.id, c.active) }}>{c.active ? <Check size={14} /> : <Circle size={14} />}</button> : <span className={`badge ${c.active ? 'badge-success' : 'badge-danger'}`}>{c.active ? 'Ativo' : 'Inativo'}</span>}
+              status={canUpdate ? <button className={`paid-btn ${c.active ? 'paid' : ''}`} aria-label={c.active ? 'Desativar' : 'Ativar'} onClick={(e) => { e.stopPropagation(); toggleActive(c.id, c.active) }}>{c.active ? <Check size={14} /> : <Circle size={14} />}</button> : <span className={`badge ${c.active ? 'badge-success' : 'badge-danger'}`}>{c.active ? 'Ativo' : 'Inativo'}</span>}
               title={<><span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: c.color, marginRight: 6 }} />{c.label}</>}
               value={fmt(c.credit_limit)}
               subtitle={<>Fecha dia {c.closing_day} · Vence dia {c.due_day}</>}
