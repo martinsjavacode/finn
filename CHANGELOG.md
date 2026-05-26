@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.0.12](https://github.com/martinsjavacode/finn/compare/v0.0.11...v0.0.12) (2026-05-26)
+
+
+### Bug Fixes
+
+* padronizar payment_method enum e corrigir modais ([dcc3a20](https://github.com/martinsjavacode/finn/commit/dcc3a20dcbb8791ed156b820eac76be53827f8d3))
+* tipar target state como payment_method enum ([e06770a](https://github.com/martinsjavacode/finn/commit/e06770a196d547511b12601d5baf2d0877803329))
+* tipar Template.target como payment_method ([3c84d48](https://github.com/martinsjavacode/finn/commit/3c84d48f2c739fe09dbeb8b4619a661e949d5ace))
+
 ## [0.0.11](https://github.com/martinsjavacode/finn/compare/v0.0.10...v0.0.11) (2026-05-26)
 
 
