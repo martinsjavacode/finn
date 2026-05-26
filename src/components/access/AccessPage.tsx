@@ -37,10 +37,10 @@ export default function AccessPage() {
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (editingId) {
-        const { error } = await supabase.from('users').update({ display_name: displayName || null, role_id: roleId } as never).eq('id', editingId)
+        const { error } = await supabase.from('users').update({ display_name: displayName || null, role_id: roleId }).eq('id', editingId)
         if (error) throw error
       } else {
-        const { error } = await supabase.from('users').insert({ email, display_name: displayName || null, role_id: roleId, activated: false } as never)
+        const { error } = await supabase.from('users').insert({ email, display_name: displayName || null, role_id: roleId, activated: false })
         if (error) throw error
       }
     },

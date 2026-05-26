@@ -34,7 +34,7 @@ export default function CategoriesPage() {
 
   const addMutation = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from('categories').insert({ name: name.toLowerCase().replace(/\s+/g, '_'), label, parent_id: parentId || null } as never)
+      const { error } = await supabase.from('categories').insert({ name: name.toLowerCase().replace(/\s+/g, '_'), label, parent_id: parentId || null })
       if (error) throw error
     },
     onSuccess: () => { invalidate(); setShowForm(false); setName(''); setLabel(''); setParentId(''); toast('Categoria criada') },
@@ -42,7 +42,7 @@ export default function CategoriesPage() {
   })
 
   const updateMutation = useMutation({
-    mutationFn: async (id: string) => { const { error } = await supabase.from('categories').update({ label: editLabel } as never).eq('id', id); if (error) throw error },
+    mutationFn: async (id: string) => { const { error } = await supabase.from('categories').update({ label: editLabel }).eq('id', id); if (error) throw error },
     onSuccess: () => { invalidate(); setEditing(null); toast('Categoria atualizada') },
     onError: (e) => showError(e),
   })

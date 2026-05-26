@@ -40,8 +40,8 @@ export default function RolesPage() {
 
   const saveMutation = useMutation({
     mutationFn: async () => {
-      if (editingId) { const { error } = await supabase.from('roles').update({ name, description: description || null } as never).eq('id', editingId); if (error) throw error }
-      else { const { error } = await supabase.from('roles').insert({ name, description: description || null } as never); if (error) throw error }
+      if (editingId) { const { error } = await supabase.from('roles').update({ name, description: description || null }).eq('id', editingId); if (error) throw error }
+      else { const { error } = await supabase.from('roles').insert({ name, description: description || null }); if (error) throw error }
     },
     onSuccess: () => { invalidate(); setShowForm(false); toast(editingId ? 'Role atualizada' : 'Role criada') },
     onError: (e) => showError(e),
@@ -56,7 +56,7 @@ export default function RolesPage() {
   const togglePermMutation = useMutation({
     mutationFn: async ({ roleId, permId, exists }: { roleId: string; permId: string; exists: boolean }) => {
       if (exists) { const { error } = await supabase.from('role_permissions').delete().eq('role_id', roleId).eq('permission_id', permId); if (error) throw error }
-      else { const { error } = await supabase.from('role_permissions').insert({ role_id: roleId, permission_id: permId } as never); if (error) throw error }
+      else { const { error } = await supabase.from('role_permissions').insert({ role_id: roleId, permission_id: permId }); if (error) throw error }
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['role-permissions'] }),
     onError: (e) => showError(e),

@@ -81,8 +81,8 @@ Baseado na análise completa de UX, UI, Arquitetura, Performance e Acessibilidad
 ### Type safety ✅
 - [x] Mover `ClosingRule` e `CardWithRule` de utils/format.ts para types/database.ts
 - [x] Atualizar imports em utils/format.ts e CardsPage
-- [ ] Regenerar Database types com `supabase gen types` (requer SUPABASE_ACCESS_TOKEN)
-- [ ] Eliminar todos os `as never` casts (depende do item acima)
+- [x] Regenerar Database types com `supabase gen types`
+- [x] Eliminar todos os `as never` casts (0 em produção)
 
 ### CSS modularização ✅
 - [x] Criar `src/styles/variables.css` (extrair :root variables)
@@ -175,4 +175,4 @@ Baseado na análise completa de UX, UI, Arquitetura, Performance e Acessibilidad
 | Circular dependency (types↔utils) | 1 | 0 | 0 |
 | Dashboard sem useMemo | 5 cálculos | 0 | 0 |
 | Query keys duplicadas | 2 hooks | 1 shared constant | ✅ |
-| `as never` casts | 9 | 9 | 0 |
+| `as never` casts | 9 | 0 | 0 |

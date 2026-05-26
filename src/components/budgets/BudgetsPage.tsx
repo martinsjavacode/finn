@@ -35,13 +35,13 @@ export default function BudgetsPage() {
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ['budgets-page'] })
 
   const addMutation = useMutation({
-    mutationFn: async () => { const { error } = await supabase.from('budgets').insert({ category: newCat, monthly_limit: +newLimit } as never); if (error) throw error },
+    mutationFn: async () => { const { error } = await supabase.from('budgets').insert({ category: newCat, monthly_limit: +newLimit }); if (error) throw error },
     onSuccess: () => { invalidate(); setShowForm(false); setNewLimit(''); toast('Orçamento criado') },
     onError: (e) => showError(e),
   })
 
   const updateMutation = useMutation({
-    mutationFn: async (id: string) => { const { error } = await supabase.from('budgets').update({ monthly_limit: +editLimit } as never).eq('id', id); if (error) throw error },
+    mutationFn: async (id: string) => { const { error } = await supabase.from('budgets').update({ monthly_limit: +editLimit }).eq('id', id); if (error) throw error },
     onSuccess: () => { invalidate(); setEditing(null); toast('Orçamento atualizado') },
     onError: (e) => showError(e),
   })

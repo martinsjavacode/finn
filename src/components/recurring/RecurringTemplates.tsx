@@ -48,9 +48,9 @@ export default function RecurringPage() {
     mutationFn: async () => {
       const payload = { description, amount: +amount, type, target, category: target === 'transaction' ? category : null, card: target === 'credit_card' ? card : null, owner, day }
       if (editingId) {
-        const { error } = await supabase.from('recurring_templates').update(payload as never).eq('id', editingId); if (error) throw error
+        const { error } = await supabase.from('recurring_templates').update(payload).eq('id', editingId); if (error) throw error
       } else {
-        const { error } = await supabase.from('recurring_templates').insert({ ...payload, active: true } as never); if (error) throw error
+        const { error } = await supabase.from('recurring_templates').insert({ ...payload, active: true }); if (error) throw error
       }
     },
     onSuccess: () => { invalidate(); setShowForm(false); toast(editingId ? 'Template atualizado' : 'Template criado') },
@@ -58,7 +58,7 @@ export default function RecurringPage() {
   })
 
   const toggleMutation = useMutation({
-    mutationFn: async ({ id, active }: { id: string; active: boolean }) => { const { error } = await supabase.from('recurring_templates').update({ active: !active } as never).eq('id', id); if (error) throw error },
+    mutationFn: async ({ id, active }: { id: string; active: boolean }) => { const { error } = await supabase.from('recurring_templates').update({ active: !active }).eq('id', id); if (error) throw error },
     onSuccess: () => invalidate(),
     onError: (e) => showError(e),
   })
@@ -85,7 +85,7 @@ export default function RecurringPage() {
 
   const handleGenerate = async () => {
     setGenerating(true)
-    const { error } = await supabase.rpc('generate_recurring' as never, { target_month: `${genMonth}-01` } as never)
+    const { error } = await supabase.rpc('generate_recurring', { target_month: `${genMonth}-01` })
     setGenerating(false)
     if (error) return showError(error)
     toast(`Lançamentos de ${genMonth} gerados!`)

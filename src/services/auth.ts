@@ -30,5 +30,5 @@ export async function getUserRole(session: Session): Promise<{ name: Role; id: s
 }
 
 export async function activateUser(email: string) {
-  await supabase.from('users').update({ activated: true } as never).eq('email', email)
+  await supabase.from('users').update({ activated: true }).eq('email', email)
 }

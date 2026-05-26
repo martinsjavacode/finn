@@ -19,7 +19,7 @@ export default function Projection() {
   useEffect(() => {
     ;(async () => {
       // Tenta usar RPC agregada (migration 009)
-      const { data, error } = await supabase.rpc('get_projection', { months_ahead: 6 } as never)
+      const { data, error } = await supabase.rpc('get_projection', { months_ahead: 6 })
 
       if (!error && data) {
         setProjections((data as { month: string; recurring: number; installments: number }[]).map(r => ({
@@ -38,11 +38,11 @@ export default function Projection() {
           const start = `${ym}-01`
           const nextM = d.getMonth() === 11 ? `${d.getFullYear() + 1}-01-01` : `${d.getFullYear()}-${String(d.getMonth() + 2).padStart(2, '0')}-01`
 
-          const { data: cards } = await supabase.from('credit_cards').select('amount').gte('month', start).lt('month', nextM)
-          const { data: txInstall } = await supabase.from('transactions').select('amount').gte('month', start).lt('month', nextM).not('total_installments', 'is', null)
+          const { data: cards } = await supabase.from('entries').select('amount').eq('payment_method', 'credit_card').gte('month', start).lt('month', nextM)
+          const { data: txInstall } = await supabase.from('entries').select('amount').neq('payment_method', 'credit_card').gte('month', start).lt('month', nextM).not('total_installments', 'is', null)
 
-          const cardTotal = (cards ?? []).reduce((s, r) => s + +(r as { amount: number }).amount, 0)
-          const txTotal = (txInstall ?? []).reduce((s, r) => s + +(r as { amount: number }).amount, 0)
+          const cardTotal = (cards ?? []).reduce((s, r) => s + +r.amount, 0)
+          const txTotal = (txInstall ?? []).reduce((s, r) => s + +r.amount, 0)
 
           results.push({ month: ym, recurring: monthlyRecurring, installments: cardTotal + txTotal, total: monthlyRecurring + cardTotal + txTotal })
         }

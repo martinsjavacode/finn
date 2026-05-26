@@ -51,7 +51,7 @@ export default function AddTransaction({ categories, cardsList, month, onClose }
         target,
         card: target === 'credit_card' ? card : null,
         category,
-      } as never)
+      })
       if (error) return showError(error)
       queryClient.invalidateQueries({ queryKey: ['transactions'] })
       queryClient.invalidateQueries({ queryKey: ['creditCards'] })
