@@ -49,7 +49,8 @@ VALUES ('seu@email.com', 'Seu Nome', (SELECT id FROM roles WHERE name = 'owner')
 | Comando | Descrição |
 |---------|-----------|
 | `npm run dev` | Dev server |
-| `npm run build` | Build de produção |
+| `npm run build` | Build de produção (+ gera 404.html para SPA) |
+| `npm run preview` | Build + preview local (simula GitHub Pages) |
 | `npm run lint` | ESLint |
 | `npm test` | Testes (watch mode) |
 | `npm run test:run` | Testes (CI, execução única) |
@@ -125,7 +126,8 @@ migrations/
 ├── 019-unify-entries.sql      — tabela unificada entries + enums
 ├── 020-fk-card-and-target-enum.sql — FKs para cards(name)
 ├── 021-subcategories.sql      — subcategorias hierárquicas
-└── 022-card-closing-rule.sql  — motor de regras de fechamento de cartão
+├── 022-card-closing-rule.sql  — motor de regras de fechamento de cartão
+└── 023-standardize-target-enum.sql — padronizar target como enum payment_method (pix/credit_card)
 ```
 
 ## Funcionalidades
@@ -142,19 +144,20 @@ migrations/
 - 3 roles padrão: Owner, Editor, Viewer
 - Permissões granulares por recurso × ação (read/create/update/delete)
 - Botões de criar, editar e excluir condicionais por permissão
-- Badges de status (Pago/Pendente, Ativo/Inativo) para usuários read-only
+- Badge toggle clicável para status (Pago/Pendente, Ativo/Inativo)
 - Sidebar e ações condicionais baseadas em `can(resource, action)`
 - Tela de gerenciamento de roles com matriz de permissões (owner only)
+- Labels em português na matriz (Lançamentos, Cartões, etc.)
 - Roles customizáveis (criar novas roles com permissões específicas)
 
 ### Dashboard
 - Gráfico de evolução anual em linhas (receita vs despesa)
 - Linha de tendência (média móvel 3 meses)
-- Cards de resumo do mês (receita, despesa, saldo)
+- Cards de resumo do mês (receita, despesa, saldo) com hover
 - Gráfico de pizza por categoria
 - Orçamento por categoria (limite vs gasto)
 - Progresso de pagamento do mês
-- Alertas de contas pendentes
+- Alertas de contas pendentes / feedback positivo quando em dia
 
 ### Lançamentos
 - Filtros por mês, responsável, tipo, categoria, status (pago/pendente), busca
@@ -164,6 +167,7 @@ migrations/
 - Adicionar/editar/excluir (baseado em permissões)
 - Edição via modal
 - Marcar como pago
+- Badge toggle clicável (Pago/Pendente)
 
 ### Recorrentes
 - Cadastro de templates (aluguel, internet, etc.)
@@ -172,7 +176,9 @@ migrations/
 - Edição via modal
 
 ### Projeção
-- Visão dos próximos 6 meses com despesas comprometidas
+- Cards por mês com barra de progresso relativa
+- Card de resumo com total comprometido
+- Mês atual destacado visualmente
 - RPC agregada (1 query em vez de 12)
 
 ### Orçamentos
@@ -214,7 +220,7 @@ migrations/
 ```
 src/
 ├── components/
-│   ├── ui/            — Button, Select, Sidebar, Toast, Skeleton, MobileCard, Pagination, Modal, Badge, Input, ErrorBoundary, ConfirmDialog
+│   ├── ui/            — Button, Select, Sidebar, Toast, Skeleton, MobileCard, Pagination, Modal, Badge, Input, ErrorBoundary, ConfirmDialog, CardGrid
 │   ├── auth/          — Auth (login email+senha + GitHub)
 │   ├── dashboard/     — Dashboard, LineChart, PieChart, BudgetProgress, SummaryCards
 │   ├── transactions/  — TransactionsPage, TransactionsTable, CardsTable, AddTransaction
