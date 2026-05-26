@@ -135,6 +135,37 @@ export default function TransactionsTable({ transactions, categories, month, can
         )) : <p className="empty">Nenhum lançamento</p>}
       </div>
       <Pagination currentPage={safePage} totalPages={totalPages} totalItems={filtered.length} perPage={perPage} onPageChange={setPage} onPerPageChange={setPerPage} />
+
+      {editing && (
+        <div className="modal-overlay" onClick={() => setEditing(null)} role="dialog" aria-modal="true">
+          <form className="modal" onClick={e => e.stopPropagation()} onSubmit={e => { e.preventDefault(); saveEdit(editing) }}>
+            <h2>Editar Lançamento</h2>
+            <label className="form-label">Descrição
+              <input type="text" value={editData.description ?? ''} onChange={e => setEditData(d => ({ ...d, description: e.target.value }))} autoFocus required />
+            </label>
+            <div className="form-row">
+              <label className="form-label form-grow">Valor (R$)
+                <input type="number" step="0.01" value={editData.amount ?? ''} onChange={e => setEditData(d => ({ ...d, amount: +e.target.value }))} required />
+              </label>
+              <label className="form-label">Data
+                <input type="date" value={editData.month ?? ''} onChange={e => setEditData(d => ({ ...d, month: e.target.value }))} required />
+              </label>
+            </div>
+            <div className="form-row">
+              <label className="form-label form-grow">Categoria
+                <Select value={editData.category ?? ''} onChange={v => setEditData(d => ({ ...d, category: v }))} options={categoryOptions(categories)} />
+              </label>
+              <label className="form-label form-grow">Responsável
+                <Select value={editData.owner ?? ''} onChange={v => setEditData(d => ({ ...d, owner: v as Owner }))} options={[{ value: 'personal', label: 'Pessoal' }, { value: 'mother_in_law', label: 'Sogra' }]} />
+              </label>
+            </div>
+            <div className="form-actions">
+              <Button variant="tab" onClick={() => setEditing(null)}>Cancelar</Button>
+              <Button variant="primary" type="submit">Salvar</Button>
+            </div>
+          </form>
+        </div>
+      )}
     </section>
   )
 }

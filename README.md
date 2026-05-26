@@ -177,6 +177,7 @@ migrations/
 
 ### Categorias
 - CRUD completo de categorias
+- Subcategorias hierárquicas (ex: Educação > EAD, Escola)
 
 ### Cartões
 - CRUD de cartões (nome, limite, fechamento, vencimento, cor)

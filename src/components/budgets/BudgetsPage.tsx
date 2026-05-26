@@ -127,6 +127,21 @@ export default function BudgetsPage() {
             />
           )) : <p className="empty">Nenhum orçamento cadastrado</p>}
         </div>
+
+        {editing && (
+          <div className="modal-overlay" onClick={() => setEditing(null)} role="dialog" aria-modal="true">
+            <div className="modal" onClick={e => e.stopPropagation()}>
+              <h2>Editar Orçamento</h2>
+              <label className="form-label">Limite mensal (R$)
+                <input type="number" step="0.01" value={editLimit} onChange={e => setEditLimit(e.target.value)} autoFocus />
+              </label>
+              <div className="form-actions">
+                <Button variant="tab" onClick={() => setEditing(null)}>Cancelar</Button>
+                <Button onClick={() => saveEdit(editing)}>Salvar</Button>
+              </div>
+            </div>
+          </div>
+        )}
       </section>
     </div>
   )

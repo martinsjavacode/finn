@@ -133,10 +133,25 @@ export default function CategoriesPage() {
               title={p.label}
               value=""
               subtitle={getChildren(p.id).map(c => c.label).join(', ') || 'Sem subcategorias'}
-              onTap={canUpdate ? () => startEdit(p) : undefined}
+              onTap={canUpdate ? () => { setEditing(p.id); setEditLabel(p.label) } : undefined}
             />
           )) : <p className="empty">Nenhuma categoria</p>}
         </div>
+
+        {editing && (
+          <div className="modal-overlay" onClick={() => setEditing(null)} role="dialog" aria-modal="true">
+            <div className="modal" onClick={e => e.stopPropagation()}>
+              <h2>Editar Categoria</h2>
+              <label className="form-label">Label
+                <input type="text" value={editLabel} onChange={e => setEditLabel(e.target.value)} autoFocus />
+              </label>
+              <div className="form-actions">
+                <Button variant="tab" onClick={() => setEditing(null)}>Cancelar</Button>
+                <Button onClick={() => saveEdit(editing)}>Salvar</Button>
+              </div>
+            </div>
+          </div>
+        )}
       </section>
     </div>
   )
