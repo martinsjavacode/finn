@@ -2,6 +2,7 @@ import { Pencil, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { showError, toast } from '../../lib/toast'
+import { useModal } from '../../hooks/useModal'
 import { confirm } from '../../lib/confirm'
 import Button from '../ui/Button'
 import Select from '../ui/Select'
@@ -14,6 +15,7 @@ export default function AccessPage() {
   const [users, setUsers] = useState<User[]>([])
   const [roles, setRoles] = useState<RoleOption[]>([])
   const [showForm, setShowForm] = useState(false)
+  const modalRef = useModal<HTMLFormElement>(() => setShowForm(false))
   const [editingId, setEditingId] = useState<string | null>(null)
   const [email, setEmail] = useState('')
   const [displayName, setDisplayName] = useState('')
@@ -70,8 +72,8 @@ export default function AccessPage() {
       </div>
 
       {showForm && (
-        <div className="modal-overlay" onClick={() => setShowForm(false)}>
-          <form className="modal" onClick={e => e.stopPropagation()} onSubmit={handleSubmit}>
+        <div className="modal-overlay" onClick={() => setShowForm(false)} role="dialog" aria-modal="true">
+          <form className="modal" ref={modalRef} onClick={e => e.stopPropagation()} onSubmit={handleSubmit}>
             <h2>{editingId ? 'Editar Usuário' : 'Adicionar Usuário'}</h2>
             <label className="form-label">Nome
               <input type="text" placeholder="Ex: João" value={displayName} onChange={e => setDisplayName(e.target.value)} />
@@ -100,8 +102,8 @@ export default function AccessPage() {
                 <td><span className={`badge ${getRoleName(u) !== 'viewer' ? 'badge-success' : 'badge-danger'}`}>{roleLabel(getRoleName(u))}</span></td>
                 <td><span className={`badge ${u.activated ? 'badge-success' : 'badge-danger'}`}>{u.activated ? 'Ativo' : 'Pendente'}</span></td>
                 <td>
-                  <Button variant="icon" onClick={() => openEdit(u)}><Pencil size={14} /></Button>
-                  <Button variant="icon" className="delete-btn" onClick={() => handleDelete(u.id)}><Trash2 size={14} /></Button>
+                  <Button variant="icon" aria-label="Editar" onClick={() => openEdit(u)}><Pencil size={14} /></Button>
+                  <Button variant="icon" className="delete-btn" aria-label="Excluir" onClick={() => handleDelete(u.id)}><Trash2 size={14} /></Button>
                 </td>
               </tr>
             ))}

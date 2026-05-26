@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import type { Category, Owner, TransactionType, CardListItem } from '../../types/database'
 import { showError, toast } from '../../lib/toast'
+import { useModal } from '../../hooks/useModal'
 import Select from '../ui/Select'
 import Button from '../ui/Button'
 
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export default function AddTransaction({ categories, cardsList, onSaved, onClose }: Props) {
+  const modalRef = useModal<HTMLFormElement>(onClose)
   const [target, setTarget] = useState<'transaction' | 'credit_card'>('transaction')
   const [type, setType] = useState<TransactionType>('expense')
   const [description, setDescription] = useState('')
@@ -46,8 +48,8 @@ export default function AddTransaction({ categories, cardsList, onSaved, onClose
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <form className="modal" onClick={e => e.stopPropagation()} onSubmit={handleSubmit}>
+    <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-label="Novo Lançamento">
+      <form className="modal" ref={modalRef} onClick={e => e.stopPropagation()} onSubmit={handleSubmit}>
         <h2>Novo Lançamento</h2>
 
         <div className="form-tabs">

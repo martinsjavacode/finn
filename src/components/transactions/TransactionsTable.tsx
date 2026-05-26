@@ -122,11 +122,11 @@ export default function TransactionsTable({ transactions, categories, canUpdate,
                   <td>{r.current_installment && r.total_installments ? `${r.current_installment}/${r.total_installments}` : '-'}</td>
                   <td>{fmt(+r.amount)}</td>
                   <td><span className={`badge ${r.owner === 'personal' ? 'badge-success' : 'badge-danger'}`}>{ownerLabel(r.owner)}</span></td>
-                  <td>{canUpdate ? <button className={`paid-btn ${r.paid ? 'paid' : ''}`} onClick={() => togglePaid(r.id, r.paid)}>{r.paid ? <Check size={14} /> : <Circle size={14} />}</button> : <span className={`badge ${r.paid ? 'badge-success' : 'badge-danger'}`}>{r.paid ? 'Pago' : 'Pendente'}</span>}</td>
+                  <td>{canUpdate ? <button className={`paid-btn ${r.paid ? 'paid' : ''}`} aria-label={r.paid ? 'Marcar como pendente' : 'Marcar como pago'} onClick={() => togglePaid(r.id, r.paid)}>{r.paid ? <Check size={14} /> : <Circle size={14} />}</button> : <span className={`badge ${r.paid ? 'badge-success' : 'badge-danger'}`}>{r.paid ? 'Pago' : 'Pendente'}</span>}</td>
                   {canEdit && (
                     <td>
-                      {canUpdate && <Button variant="icon" onClick={() => startEdit(r)}><Pencil size={14} /></Button>}
-                      {canDelete && <Button variant="icon" className="delete-btn" onClick={() => handleDelete(r.id)}><Trash2 size={14} /></Button>}
+                      {canUpdate && <Button variant="icon" aria-label="Editar" onClick={() => startEdit(r)}><Pencil size={14} /></Button>}
+                      {canDelete && <Button variant="icon" className="delete-btn" aria-label="Excluir" onClick={() => handleDelete(r.id)}><Trash2 size={14} /></Button>}
                     </td>
                   )}
                 </>
@@ -142,7 +142,7 @@ export default function TransactionsTable({ transactions, categories, canUpdate,
           <MobileCard
             key={r.id}
             className={r.paid ? 'row-paid' : ''}
-            status={canUpdate ? <button className={`paid-btn ${r.paid ? 'paid' : ''}`} onClick={(e) => { e.stopPropagation(); togglePaid(r.id, r.paid) }}>{r.paid ? <Check size={14} /> : <Circle size={14} />}</button> : <span className={`badge ${r.paid ? 'badge-success' : 'badge-danger'}`}>{r.paid ? 'Pago' : 'Pendente'}</span>}
+            status={canUpdate ? <button className={`paid-btn ${r.paid ? 'paid' : ''}`} aria-label={r.paid ? 'Marcar como pendente' : 'Marcar como pago'} onClick={(e) => { e.stopPropagation(); togglePaid(r.id, r.paid) }}>{r.paid ? <Check size={14} /> : <Circle size={14} />}</button> : <span className={`badge ${r.paid ? 'badge-success' : 'badge-danger'}`}>{r.paid ? 'Pago' : 'Pendente'}</span>}
             title={r.description}
             value={fmt(+r.amount)}
             subtitle={<>{getCatLabel(r)} · {new Date(r.month + 'T12:00:00').toLocaleDateString('pt-BR')} · {ownerLabel(r.owner)}{r.current_installment ? ` · ${r.current_installment}/${r.total_installments}` : ''}</>}

@@ -66,8 +66,8 @@ export default function CardsTable({ cards, cardsList, canUpdate, canDelete, onD
               <td><span className={`badge ${r.owner === 'personal' ? 'badge-success' : 'badge-danger'}`}>{ownerLabel(r.owner)}</span></td>
               {canEdit && (
                 <td>
-                  {canUpdate && <Button variant="icon" onClick={() => setEditing(editing === r.id ? null : r.id)}><Pencil size={14} /></Button>}
-                  {editing === r.id && canDelete && <Button variant="icon" className="delete-btn" onClick={() => handleDelete(r.id)}><Trash2 size={14} /></Button>}
+                  {canUpdate && <Button variant="icon" aria-label="Editar" onClick={() => setEditing(editing === r.id ? null : r.id)}><Pencil size={14} /></Button>}
+                  {editing === r.id && canDelete && <Button variant="icon" className="delete-btn" aria-label="Excluir" onClick={() => handleDelete(r.id)}><Trash2 size={14} /></Button>}
                 </td>
               )}
             </tr>

@@ -117,8 +117,9 @@ function AppLayout() {
 
   return (
     <div className="layout">
+      <a href="#main-content" className="skip-link">Pular para conteúdo</a>
       <Sidebar session={session} isOwner={isOwner} can={can} />
-      <main className="main">
+      <main className="main" id="main-content">
         <Routes>
           <Route path="/" element={<Dashboard categories={categories} />} />
           <Route path="/transactions" element={<TransactionsPage />} />

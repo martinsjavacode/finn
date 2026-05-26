@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks'
 import type { Category, Owner, Card, CardListItem } from '../../types/database'
 import { showError, toast } from '../../lib/toast'
+import { useModal } from '../../hooks/useModal'
 import { confirm } from '../../lib/confirm'
 import Select from '../ui/Select'
 import Button from '../ui/Button'
@@ -35,6 +36,7 @@ export default function RecurringPage({ categories, cardsList }: Props) {
   const canDelete = can('recurring_templates', 'delete')
   const [templates, setTemplates] = useState<Template[]>([])
   const [showForm, setShowForm] = useState(false)
+  const modalRef = useModal<HTMLFormElement>(() => setShowForm(false))
   const [editingId, setEditingId] = useState<string | null>(null)
   const [generating, setGenerating] = useState(false)
   const [genMonth, setGenMonth] = useState(() => {
@@ -128,8 +130,8 @@ export default function RecurringPage({ categories, cardsList }: Props) {
       </div>
 
       {showForm && (
-        <div className="modal-overlay" onClick={() => setShowForm(false)}>
-          <form className="modal" onClick={e => e.stopPropagation()} onSubmit={handleSubmit}>
+        <div className="modal-overlay" onClick={() => setShowForm(false)} role="dialog" aria-modal="true">
+          <form className="modal" ref={modalRef} onClick={e => e.stopPropagation()} onSubmit={handleSubmit}>
             <h2>{editingId ? 'Editar Template' : 'Novo Template Recorrente'}</h2>
 
             <label className="form-label">Descrição
@@ -195,11 +197,11 @@ export default function RecurringPage({ categories, cardsList }: Props) {
                 <td>{t.target === 'credit_card' ? 'Cartão' : t.type === 'income' ? 'Receita' : 'Despesa'}</td>
                 <td>{t.target === 'credit_card' ? cardsList.find(c => c.name === t.card)?.label ?? t.card : catLabel(t.category)}</td>
                 <td><span className={`badge ${t.owner === 'personal' ? 'badge-success' : 'badge-danger'}`}>{t.owner === 'personal' ? 'Pessoal' : 'Sogra'}</span></td>
-                <td>{canUpdate ? <button className={`paid-btn ${t.active ? 'paid' : ''}`} onClick={() => toggleActive(t.id, t.active)}>{t.active ? <Check size={14} /> : <Circle size={14} />}</button> : <span className={`badge ${t.active ? 'badge-success' : 'badge-danger'}`}>{t.active ? 'Ativo' : 'Inativo'}</span>}</td>
+                <td>{canUpdate ? <button className={`paid-btn ${t.active ? 'paid' : ''}`} aria-label={t.active ? 'Desativar' : 'Ativar'} onClick={() => toggleActive(t.id, t.active)}>{t.active ? <Check size={14} /> : <Circle size={14} />}</button> : <span className={`badge ${t.active ? 'badge-success' : 'badge-danger'}`}>{t.active ? 'Ativo' : 'Inativo'}</span>}</td>
                 {(canUpdate || canDelete) && (
                   <td>
-                    {canUpdate && <Button variant="icon" onClick={() => openEdit(t)}><Pencil size={14} /></Button>}
-                    {canDelete && <Button variant="icon" className="delete-btn" onClick={() => handleDelete(t.id)}><Trash2 size={14} /></Button>}
+                    {canUpdate && <Button variant="icon" aria-label="Editar" onClick={() => openEdit(t)}><Pencil size={14} /></Button>}
+                    {canDelete && <Button variant="icon" className="delete-btn" aria-label="Excluir" onClick={() => handleDelete(t.id)}><Trash2 size={14} /></Button>}
                   </td>
                 )}
               </tr>
@@ -213,7 +215,7 @@ export default function RecurringPage({ categories, cardsList }: Props) {
             <MobileCard
               key={t.id}
               className={!t.active ? 'row-paid' : ''}
-              status={canUpdate ? <button className={`paid-btn ${t.active ? 'paid' : ''}`} onClick={(e) => { e.stopPropagation(); toggleActive(t.id, t.active) }}>{t.active ? <Check size={14} /> : <Circle size={14} />}</button> : <span className={`badge ${t.active ? 'badge-success' : 'badge-danger'}`}>{t.active ? 'Ativo' : 'Inativo'}</span>}
+              status={canUpdate ? <button className={`paid-btn ${t.active ? 'paid' : ''}`} aria-label={t.active ? 'Desativar' : 'Ativar'} onClick={(e) => { e.stopPropagation(); toggleActive(t.id, t.active) }}>{t.active ? <Check size={14} /> : <Circle size={14} />}</button> : <span className={`badge ${t.active ? 'badge-success' : 'badge-danger'}`}>{t.active ? 'Ativo' : 'Inativo'}</span>}
               title={t.description}
               value={fmt(+t.amount)}
               subtitle={<>Dia {t.day} · {t.target === 'credit_card' ? cardsList.find(c => c.name === t.card)?.label ?? t.card : catLabel(t.category)} · {t.owner === 'personal' ? 'Pessoal' : 'Sogra'}</>}
