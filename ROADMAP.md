@@ -40,26 +40,19 @@
 ## 🎯 Curto prazo (quick wins)
 
 - [ ] Exportar para CSV
-- [ ] Resumo anual (total receita/despesa/saldo do ano)
-- [ ] Comparativo mês anterior (% variação no dashboard)
-- [ ] Duplicar mês (copiar lançamentos como base para o próximo)
 
 ## 🔧 Técnico (qualidade)
 
 - [ ] React Query para cache, retry e loading automático
 - [ ] Accessibility audit (aria-labels, focus trap em modais, axe-core)
 - [ ] Aumentar cobertura de testes (componentes de página)
-- [ ] Dark/light mode toggle
 
 ## 🚀 Produto (evolução)
 
 - [ ] Importar extrato bancário (CSV/OFX)
 - [ ] Metas financeiras (ex: "economizar R$ 5k até dezembro")
-- [ ] Tags/labels nos lançamentos (além de categoria)
 - [ ] Multi-tenant (cada usuário vê só seus dados via RLS por user_id)
 
 ## 🌍 Longo prazo
 
-- [ ] i18n (internacionalização)
 - [ ] Notificação por email (Edge Functions + Resend)
-- [ ] App nativo (React Native ou Capacitor)
