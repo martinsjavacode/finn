@@ -43,7 +43,7 @@ Baseado na análise completa de UX, UI, Arquitetura, Performance e Acessibilidad
 
 ---
 
-## 🟡 Média Prioridade (em andamento)
+## 🟡 Média Prioridade ✅ CONCLUÍDA
 
 ### Componente Modal ✅
 - [x] Criar `src/components/ui/Modal.tsx` com focus trap, overlay, Escape, aria
