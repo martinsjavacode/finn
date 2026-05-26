@@ -28,31 +28,31 @@
 - [x] RPC agregada para Projection
 - [x] CI/CD pipeline progressivo (feature → develop → main → deploy)
 - [x] Display name no controle de acesso
+- [x] RBAC granular em todas as páginas (create/update/delete condicionais)
+- [x] Badges de status (Pago/Pendente, Ativo/Inativo) para read-only
+- [x] Redirect para dashboard após login
+- [x] Redirect para `/` ao sair
+- [x] Paginação client-side com seleção de itens por página
+- [x] Cor do cartão como indicador visual nos lançamentos
+- [x] Gráfico de tendência (média móvel de gastos)
+- [x] Cards de resumo no dashboard (receita/despesa/saldo do mês)
 
 ## 🎯 Curto prazo (quick wins)
 
 - [ ] Exportar para CSV
-- [ ] Resumo anual (total receita/despesa/saldo do ano)
-- [ ] Comparativo mês anterior (% variação no dashboard)
-- [ ] Duplicar mês (copiar lançamentos como base para o próximo)
-- [ ] Gráfico de tendência (média móvel de gastos)
 
 ## 🔧 Técnico (qualidade)
 
 - [ ] React Query para cache, retry e loading automático
 - [ ] Accessibility audit (aria-labels, focus trap em modais, axe-core)
 - [ ] Aumentar cobertura de testes (componentes de página)
-- [ ] Dark/light mode toggle
 
 ## 🚀 Produto (evolução)
 
 - [ ] Importar extrato bancário (CSV/OFX)
 - [ ] Metas financeiras (ex: "economizar R$ 5k até dezembro")
-- [ ] Tags/labels nos lançamentos (além de categoria)
 - [ ] Multi-tenant (cada usuário vê só seus dados via RLS por user_id)
 
 ## 🌍 Longo prazo
 
-- [ ] i18n (internacionalização)
 - [ ] Notificação por email (Edge Functions + Resend)
-- [ ] App nativo (React Native ou Capacitor)

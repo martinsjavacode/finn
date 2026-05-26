@@ -52,13 +52,13 @@ export default function Projection() {
     })()
   }, [])
 
-  if (loading) return <div><h2 className="dashboard-title">📈 Projeção Futura</h2><TableSkeleton rows={6} cols={4} /></div>
+  if (loading) return <div><h2 className="dashboard-title">Projeção Futura</h2><TableSkeleton rows={6} cols={4} /></div>
 
   const monthLabel = (ym: string) => new Date(ym + '-01T12:00:00').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
 
   return (
     <div>
-      <h2 className="dashboard-title">📈 Projeção Futura</h2>
+      <h2 className="dashboard-title">Projeção Futura</h2>
       <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
         Valores comprometidos nos próximos 6 meses (recorrentes + parcelamentos)
       </p>

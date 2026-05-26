@@ -1,3 +1,4 @@
+import { Pencil, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { showError, toast } from '../../lib/toast'
@@ -19,11 +20,7 @@ export default function AccessPage() {
   const [roleId, setRoleId] = useState('')
 
   useEffect(() => {
-    supabase.from('roles').select('id, name').order('name').then(({ data }) => {
-      const r = (data ?? []) as RoleOption[]
-      setRoles(r)
-      if (r.length && !roleId) setRoleId(r.find(x => x.name === 'viewer')?.id ?? r[0].id)
-    })
+    supabase.from('roles').select('id, name').order('name').then(({ data }) => setRoles((data ?? []) as RoleOption[]))
     supabase.from('users').select('*, roles(name)').order('created_at').then(({ data }) => setUsers((data ?? []) as User[]))
   }, [])
 
@@ -68,7 +65,7 @@ export default function AccessPage() {
   return (
     <div>
       <div className="page-header">
-        <h2>👥 Usuários</h2>
+        <h2>Usuários</h2>
         <Button onClick={openNew}>+ Novo</Button>
       </div>
 
@@ -100,11 +97,11 @@ export default function AccessPage() {
               <tr key={u.id}>
                 <td>{u.display_name || <span style={{ color: 'var(--text-muted)' }}>—</span>}</td>
                 <td>{u.email}</td>
-                <td><span className={`badge ${getRoleName(u) !== 'viewer' ? 'badge-personal' : 'badge-sogra'}`}>{roleLabel(getRoleName(u))}</span></td>
-                <td><span className={`badge ${u.activated ? 'badge-personal' : 'badge-sogra'}`}>{u.activated ? 'Ativo' : 'Pendente'}</span></td>
+                <td><span className={`badge ${getRoleName(u) !== 'viewer' ? 'badge-success' : 'badge-danger'}`}>{roleLabel(getRoleName(u))}</span></td>
+                <td><span className={`badge ${u.activated ? 'badge-success' : 'badge-danger'}`}>{u.activated ? 'Ativo' : 'Pendente'}</span></td>
                 <td>
-                  <Button variant="icon" onClick={() => openEdit(u)}>✏️</Button>
-                  <Button variant="icon" className="delete-btn" onClick={() => handleDelete(u.id)}>🗑️</Button>
+                  <Button variant="icon" onClick={() => openEdit(u)}><Pencil size={14} /></Button>
+                  <Button variant="icon" className="delete-btn" onClick={() => handleDelete(u.id)}><Trash2 size={14} /></Button>
                 </td>
               </tr>
             ))}
@@ -116,9 +113,9 @@ export default function AccessPage() {
           {users.length ? users.map(u => (
             <MobileCard
               key={u.id}
-              status={<span className={`badge ${u.activated ? 'badge-personal' : 'badge-sogra'}`} style={{ fontSize: '0.6rem' }}>{u.activated ? '●' : '○'}</span>}
+              status={<span className={`badge ${u.activated ? 'badge-success' : 'badge-danger'}`} style={{ fontSize: '0.6rem' }}>{u.activated ? '●' : '○'}</span>}
               title={u.display_name || u.email}
-              value={<span className={`badge ${getRoleName(u) !== 'viewer' ? 'badge-personal' : 'badge-sogra'}`}>{roleLabel(getRoleName(u))}</span>}
+              value={<span className={`badge ${getRoleName(u) !== 'viewer' ? 'badge-success' : 'badge-danger'}`}>{roleLabel(getRoleName(u))}</span>}
               subtitle={u.display_name ? u.email : (u.activated ? 'Ativo' : 'Pendente')}
               onTap={() => openEdit(u)}
             />

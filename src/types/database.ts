@@ -91,6 +91,8 @@ export interface CardInfo {
   created_at: string
 }
 
+export type CardListItem = Pick<CardInfo, 'name' | 'label' | 'color'>
+
 export interface Database {
   public: {
     Tables: {

@@ -1,3 +1,4 @@
+import { Pencil, Trash2, Check, Circle, TrendingUp, TrendingDown } from 'lucide-react'
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import type { Transaction, Category, Owner, TransactionType } from '../../types/database'
@@ -7,21 +8,26 @@ import { fmt, ownerLabel } from '../../utils/format'
 import Button from '../ui/Button'
 import Select from '../ui/Select'
 import MobileCard from '../ui/MobileCard'
+import Pagination from '../ui/Pagination'
 
 interface Props {
   transactions: Transaction[]
   categories: Category[]
-  canEdit: boolean
+  canUpdate: boolean
+  canDelete: boolean
   onUpdate: (id: string, data: Partial<Transaction>) => void
   onDelete: (id: string) => void
 }
 
-export default function TransactionsTable({ transactions, categories, canEdit, onUpdate, onDelete }: Props) {
+export default function TransactionsTable({ transactions, categories, canUpdate, canDelete, onUpdate, onDelete }: Props) {
+  const canEdit = canUpdate || canDelete
   const [typeFilter, setTypeFilter] = useState<'all' | TransactionType>('all')
   const [catFilter, setCatFilter] = useState('all')
   const [paidFilter, setPaidFilter] = useState<'all' | 'paid' | 'pending'>('all')
   const [editing, setEditing] = useState<string | null>(null)
   const [editData, setEditData] = useState<Partial<Transaction>>({})
+  const [page, setPage] = useState(1)
+  const [perPage, setPerPage] = useState(10)
 
   const catLabel = (id: string) => categories.find(c => c.id === id)?.label ?? id
   const getCatLabel = (t: Transaction) => t.categories?.label ?? ''
@@ -31,6 +37,10 @@ export default function TransactionsTable({ transactions, categories, canEdit, o
     (catFilter === 'all' || r.category === catFilter) &&
     (paidFilter === 'all' || (paidFilter === 'paid' ? r.paid : !r.paid))
   )
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / perPage))
+  const safePage = page > totalPages ? 1 : page
+  const paginated = filtered.slice((safePage - 1) * perPage, safePage * perPage)
 
   const usedCats = ['all', ...new Set(transactions.map(r => r.category))]
 
@@ -66,7 +76,7 @@ export default function TransactionsTable({ transactions, categories, canEdit, o
       <div className="tabs">
         {(['all', 'income', 'expense'] as const).map(t => (
           <Button key={t} variant="tab" active={t === typeFilter} onClick={() => setTypeFilter(t)}>
-            {t === 'all' ? 'Todos' : t === 'income' ? '📈 Receitas' : '📉 Despesas'}
+            {t === 'all' ? 'Todos' : t === 'income' ? <><TrendingUp size={14} /> Receitas</> : <><TrendingDown size={14} /> Despesas</>}
           </Button>
         ))}
       </div>
@@ -89,34 +99,34 @@ export default function TransactionsTable({ transactions, categories, canEdit, o
       <table className="desktop-table">
         <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Parcela</th><th>Valor</th><th>Resp.</th><th>Pago</th>{canEdit && <th></th>}</tr></thead>
         <tbody>
-          {filtered.length ? filtered.map(r => (
+          {filtered.length ? paginated.map(r => (
             <tr key={r.id} className={r.paid ? 'row-paid' : ''}>
               {editing === r.id ? (
                 <>
                   <td><input className="inline-input" type="date" value={editData.month ?? r.month} onChange={e => setEditData(d => ({ ...d, month: e.target.value }))} /></td>
                   <td><input className="inline-input" value={editData.description ?? ''} onChange={e => setEditData(d => ({ ...d, description: e.target.value }))} /></td>
                   <td><Select value={editData.category ?? ''} onChange={v => setEditData(d => ({ ...d, category: v }))} options={categories.map(c => ({ value: c.id, label: c.label }))} /></td>
-                  <td>{r.type === 'income' ? '📈' : '📉'}</td>
+                  <td>{r.type === 'income' ? <TrendingUp size={14} /> : <TrendingDown size={14} />}</td>
                   <td>{r.current_installment && r.total_installments ? `${r.current_installment}/${r.total_installments}` : '-'}</td>
                   <td><input className="inline-input" type="number" step="0.01" value={editData.amount ?? ''} onChange={e => setEditData(d => ({ ...d, amount: +e.target.value }))} style={{ width: '100px' }} /></td>
                   <td><Select value={editData.owner ?? ''} onChange={v => setEditData(d => ({ ...d, owner: v as Owner }))} options={[{ value: 'personal', label: 'Pessoal' }, { value: 'mother_in_law', label: 'Sogra' }]} /></td>
                   <td></td>
-                  <td><Button onClick={() => saveEdit(r.id)}>✓</Button></td>
+                  <td><Button onClick={() => saveEdit(r.id)}><Check size={14} /></Button></td>
                 </>
               ) : (
                 <>
                   <td>{new Date(r.month + 'T12:00:00').toLocaleDateString('pt-BR')}</td>
                   <td>{r.description}</td>
                   <td>{getCatLabel(r)}</td>
-                  <td>{r.type === 'income' ? '📈 Receita' : '📉 Despesa'}</td>
+                  <td>{r.type === 'income' ? 'Receita' : 'Despesa'}</td>
                   <td>{r.current_installment && r.total_installments ? `${r.current_installment}/${r.total_installments}` : '-'}</td>
                   <td>{fmt(+r.amount)}</td>
-                  <td><span className={`badge ${r.owner === 'personal' ? 'badge-personal' : 'badge-sogra'}`}>{ownerLabel(r.owner)}</span></td>
-                  <td>{canEdit && <button className={`paid-btn ${r.paid ? 'paid' : ''}`} onClick={() => togglePaid(r.id, r.paid)}>{r.paid ? '✓' : '○'}</button>}</td>
+                  <td><span className={`badge ${r.owner === 'personal' ? 'badge-success' : 'badge-danger'}`}>{ownerLabel(r.owner)}</span></td>
+                  <td>{canUpdate ? <button className={`paid-btn ${r.paid ? 'paid' : ''}`} onClick={() => togglePaid(r.id, r.paid)}>{r.paid ? <Check size={14} /> : <Circle size={14} />}</button> : <span className={`badge ${r.paid ? 'badge-success' : 'badge-danger'}`}>{r.paid ? 'Pago' : 'Pendente'}</span>}</td>
                   {canEdit && (
                     <td>
-                      <Button variant="icon" onClick={() => startEdit(r)}>✏️</Button>
-                      <Button variant="icon" className="delete-btn" onClick={() => handleDelete(r.id)}>🗑️</Button>
+                      {canUpdate && <Button variant="icon" onClick={() => startEdit(r)}><Pencil size={14} /></Button>}
+                      {canDelete && <Button variant="icon" className="delete-btn" onClick={() => handleDelete(r.id)}><Trash2 size={14} /></Button>}
                     </td>
                   )}
                 </>
@@ -128,18 +138,19 @@ export default function TransactionsTable({ transactions, categories, canEdit, o
 
       {/* Mobile */}
       <div className="mobile-cards">
-        {filtered.length ? filtered.map(r => (
+        {filtered.length ? paginated.map(r => (
           <MobileCard
             key={r.id}
             className={r.paid ? 'row-paid' : ''}
-            status={canEdit && <button className={`paid-btn ${r.paid ? 'paid' : ''}`} onClick={(e) => { e.stopPropagation(); togglePaid(r.id, r.paid) }}>{r.paid ? '✓' : '○'}</button>}
+            status={canUpdate ? <button className={`paid-btn ${r.paid ? 'paid' : ''}`} onClick={(e) => { e.stopPropagation(); togglePaid(r.id, r.paid) }}>{r.paid ? <Check size={14} /> : <Circle size={14} />}</button> : <span className={`badge ${r.paid ? 'badge-success' : 'badge-danger'}`}>{r.paid ? 'Pago' : 'Pendente'}</span>}
             title={r.description}
             value={fmt(+r.amount)}
             subtitle={<>{getCatLabel(r)} · {new Date(r.month + 'T12:00:00').toLocaleDateString('pt-BR')} · {ownerLabel(r.owner)}{r.current_installment ? ` · ${r.current_installment}/${r.total_installments}` : ''}</>}
-            onTap={canEdit ? () => startEdit(r) : undefined}
+            onTap={canUpdate ? () => startEdit(r) : undefined}
           />
         )) : <p className="empty">Nenhum lançamento</p>}
       </div>
+      <Pagination currentPage={safePage} totalPages={totalPages} totalItems={filtered.length} perPage={perPage} onPageChange={setPage} onPerPageChange={setPerPage} />
     </section>
   )
 }

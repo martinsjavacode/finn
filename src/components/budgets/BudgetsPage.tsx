@@ -1,5 +1,7 @@
+import { Pencil, Trash2, Check } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
+import { useAuth } from '../../hooks'
 import type { Category } from '../../types/database'
 import { showError, toast } from '../../lib/toast'
 import { confirm } from '../../lib/confirm'
@@ -13,6 +15,10 @@ interface Budget { id: string; category: string; monthly_limit: number }
 interface Props { categories: Category[] }
 
 export default function BudgetsPage({ categories }: Props) {
+  const { can } = useAuth()
+  const canCreate = can('budgets', 'create')
+  const canUpdate = can('budgets', 'update')
+  const canDelete = can('budgets', 'delete')
   const [budgets, setBudgets] = useState<Budget[]>([])
   const [editing, setEditing] = useState<string | null>(null)
   const [editLimit, setEditLimit] = useState('')
@@ -57,8 +63,8 @@ export default function BudgetsPage({ categories }: Props) {
   return (
     <div>
       <div className="page-header">
-        <h2>💰 Orçamentos</h2>
-        <Button onClick={() => { setShowForm(!showForm); if (!newCat && availableCats.length) setNewCat(availableCats[0].id) }}>+ Novo</Button>
+        <h2>Orçamentos</h2>
+        {canCreate && <Button onClick={() => { setShowForm(!showForm); if (!newCat && availableCats.length) setNewCat(availableCats[0].id) }}>+ Novo</Button>}
       </div>
 
       {showForm && (
@@ -81,7 +87,7 @@ export default function BudgetsPage({ categories }: Props) {
 
       <section>
         <table className="desktop-table">
-          <thead><tr><th>Categoria</th><th>Limite Mensal</th><th></th></tr></thead>
+          <thead><tr><th>Categoria</th><th>Limite Mensal</th>{(canUpdate || canDelete) && <th></th>}</tr></thead>
           <tbody>
             {budgets.map(b => (
               <tr key={b.id}>
@@ -92,19 +98,21 @@ export default function BudgetsPage({ categories }: Props) {
                     : fmt(b.monthly_limit)
                   }
                 </td>
-                <td>
-                  {editing === b.id ? (
-                    <Button onClick={() => saveEdit(b.id)}>✓</Button>
-                  ) : (
-                    <>
-                      <Button variant="icon" onClick={() => startEdit(b)}>✏️</Button>
-                      <Button variant="icon" className="delete-btn" onClick={() => handleDelete(b.id)}>🗑️</Button>
-                    </>
-                  )}
-                </td>
+                {(canUpdate || canDelete) && (
+                  <td>
+                    {editing === b.id ? (
+                      <Button onClick={() => saveEdit(b.id)}><Check size={14} /></Button>
+                    ) : (
+                      <>
+                        {canUpdate && <Button variant="icon" onClick={() => startEdit(b)}><Pencil size={14} /></Button>}
+                        {canDelete && <Button variant="icon" className="delete-btn" onClick={() => handleDelete(b.id)}><Trash2 size={14} /></Button>}
+                      </>
+                    )}
+                  </td>
+                )}
               </tr>
             ))}
-            {!budgets.length && <tr><td colSpan={3} className="empty">Nenhum orçamento cadastrado</td></tr>}
+            {!budgets.length && <tr><td colSpan={(canUpdate || canDelete) ? 3 : 2} className="empty">Nenhum orçamento cadastrado</td></tr>}
           </tbody>
         </table>
 
@@ -115,7 +123,7 @@ export default function BudgetsPage({ categories }: Props) {
               title={catLabel(b.category)}
               value={fmt(b.monthly_limit)}
               subtitle="Limite mensal"
-              onTap={() => startEdit(b)}
+              onTap={canUpdate ? () => startEdit(b) : undefined}
             />
           )) : <p className="empty">Nenhum orçamento cadastrado</p>}
         </div>

@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import './MobileCard.css'
 
 interface Props {
@@ -8,11 +8,12 @@ interface Props {
   subtitle: ReactNode
   onTap?: () => void
   className?: string
+  style?: CSSProperties
 }
 
-export default function MobileCard({ status, title, value, subtitle, onTap, className = '' }: Props) {
+export default function MobileCard({ status, title, value, subtitle, onTap, className = '', style }: Props) {
   return (
-    <div className={`mcard ${className}`} onClick={onTap}>
+    <div className={`mcard ${className}`} onClick={onTap} style={style}>
       {status && <div className="mcard-status">{status}</div>}
       <div className="mcard-body">
         <div className="mcard-row">
