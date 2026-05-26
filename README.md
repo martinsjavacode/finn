@@ -179,7 +179,9 @@ migrations/
 - Edição via modal
 
 ### Parcelamentos
+- Cadastro via modal (aba "Parcelado" no formulário de lançamentos)
 - Cartão parcelado ou boleto/pix parcelado
+- Preview do valor da parcela antes de salvar
 - Trigger automático distribui parcelas nos meses
 
 ### Gerenciamento de Usuários (owner)

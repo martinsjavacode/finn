@@ -1,7 +1,10 @@
 import { useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+import { supabase } from '../../lib/supabase'
 import type { Category, Owner, TransactionType, CardListItem } from '../../types/database'
 import { useTransactionMutations } from '../../hooks/useTransactionMutations'
 import { useModal } from '../../hooks/useModal'
+import { showError, toast } from '../../lib/toast'
 import Select from '../ui/Select'
 import Button from '../ui/Button'
 
@@ -14,6 +17,7 @@ interface Props {
 
 export default function AddTransaction({ categories, cardsList, month, onClose }: Props) {
   const modalRef = useModal<HTMLFormElement>(onClose)
+  const queryClient = useQueryClient()
   const { addTransaction, addCreditCard } = useTransactionMutations(month)
   const [target, setTarget] = useState<'transaction' | 'credit_card'>('transaction')
   const [type, setType] = useState<TransactionType>('expense')
@@ -23,10 +27,33 @@ export default function AddTransaction({ categories, cardsList, month, onClose }
   const [category, setCategory] = useState(categories[0]?.id ?? '')
   const [owner, setOwner] = useState<Owner>('personal')
   const [card, setCard] = useState(cardsList[0]?.name ?? '')
+  const [installment, setInstallment] = useState(false)
+  const [installments, setInstallments] = useState('2')
+
+  const toggleInstallment = () => {
+    setInstallment(!installment)
+    if (!installment) setType('expense')
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (target === 'transaction') {
+    if (installment) {
+      const { error } = await supabase.from('installment_purchases').insert({
+        start_month: txDate,
+        description,
+        total_amount: +amount,
+        installments: +installments,
+        owner,
+        target,
+        card: target === 'credit_card' ? card : null,
+        category: target === 'transaction' ? category : null,
+      } as never)
+      if (error) return showError(error)
+      queryClient.invalidateQueries({ queryKey: ['transactions'] })
+      queryClient.invalidateQueries({ queryKey: ['creditCards'] })
+      queryClient.invalidateQueries({ queryKey: ['months'] })
+      toast(`Parcelamento criado (${installments}x)`)
+    } else if (target === 'transaction') {
       addTransaction.mutate({ month: txDate, description, amount: +amount, type, category, owner, paid: false })
     } else {
       addCreditCard.mutate({ month: txDate, description, amount: +amount, card, owner })
@@ -39,29 +66,75 @@ export default function AddTransaction({ categories, cardsList, month, onClose }
       <form className="modal" ref={modalRef} onClick={e => e.stopPropagation()} onSubmit={handleSubmit}>
         <h2>Novo Lançamento</h2>
 
-        <div className="form-tabs">
-          <Button variant="tab" active={target === 'transaction'} onClick={() => setTarget('transaction')}>Receita/Despesa</Button>
-          <Button variant="tab" active={target === 'credit_card'} onClick={() => setTarget('credit_card')}>Cartão</Button>
+        <div className="form-row">
+          <div>
+            <label className="form-label">Forma de pagamento</label>
+            <div className="form-tabs">
+              <Button variant="tab" active={target === 'transaction'} onClick={() => setTarget('transaction')}>Boleto/Pix</Button>
+              <Button variant="tab" active={target === 'credit_card'} onClick={() => setTarget('credit_card')}>Cartão</Button>
+            </div>
+          </div>
+
+          {target === 'transaction' && (
+            <div>
+              <label className="form-label">Tipo</label>
+              <div className="form-tabs">
+                <Button variant="tab" active={type === 'expense'} onClick={() => setType('expense')} disabled={installment}>Despesa</Button>
+                <Button variant="tab" active={type === 'income'} onClick={() => setType('income')} disabled={installment}>Receita</Button>
+              </div>
+            </div>
+          )}
         </div>
 
-        {target === 'transaction' && (
-          <div className="form-tabs">
-            <Button variant="tab" active={type === 'income'} onClick={() => setType('income')}>Receita</Button>
-            <Button variant="tab" active={type === 'expense'} onClick={() => setType('expense')}>Despesa</Button>
+        <label className="form-label">Descrição
+          <input type="text" placeholder="Ex: Aluguel, Netflix..." value={description} onChange={e => setDescription(e.target.value)} required />
+        </label>
+
+        <div className="form-row">
+          <label className="form-label form-grow">{installment ? 'Valor total (R$)' : 'Valor (R$)'}
+            <input type="number" step="0.01" placeholder="0.00" value={amount} onChange={e => setAmount(e.target.value)} required />
+          </label>
+          <label className="form-label">Data
+            <input type="date" value={txDate} onChange={e => setTxDate(e.target.value)} required />
+          </label>
+        </div>
+
+        <div className="form-row" style={{ alignItems: 'flex-end' }}>
+          <div className="form-toggle-group">
+            <span className="form-label">Parcelado</span>
+            <button type="button" className={`form-toggle-circle ${installment ? 'active' : ''}`} onClick={toggleInstallment} aria-label={installment ? 'Desativar parcelamento' : 'Ativar parcelamento'}>
+              ÷
+            </button>
+          </div>
+          <label className={`form-label form-grow form-fade ${installment ? 'visible' : ''}`}>Nº de parcelas
+            <input type="number" min="2" max="48" value={installments} onChange={e => setInstallments(e.target.value)} disabled={!installment} required={installment} tabIndex={installment ? 0 : -1} />
+          </label>
+        </div>
+
+        {installment && +amount > 0 && +installments >= 2 && (
+          <div className="form-preview">
+            <span>{installments}× de</span>
+            <strong>R$ {(+amount / +installments).toFixed(2)}</strong>
           </div>
         )}
 
-        <input type="date" value={txDate} onChange={e => setTxDate(e.target.value)} required />
-        <input type="text" placeholder="Descrição" value={description} onChange={e => setDescription(e.target.value)} required />
-        <input type="number" step="0.01" placeholder="Valor" value={amount} onChange={e => setAmount(e.target.value)} required />
+        <div className="form-row">
+          {target === 'transaction' && (
+            <label className="form-label form-grow">Categoria
+              <Select value={category} onChange={setCategory} options={categories.map(c => ({ value: c.id, label: c.label }))} />
+            </label>
+          )}
 
-        {target === 'transaction' ? (
-          <Select value={category} onChange={setCategory} options={categories.map(c => ({ value: c.id, label: c.label }))} />
-        ) : (
-          <Select value={card} onChange={v => setCard(v)} options={cardsList.map(c => ({ value: c.name, label: c.label }))} />
-        )}
+          {target === 'credit_card' && (
+            <label className="form-label form-grow">Cartão
+              <Select value={card} onChange={v => setCard(v)} options={cardsList.map(c => ({ value: c.name, label: c.label }))} />
+            </label>
+          )}
 
-        <Select value={owner} onChange={v => setOwner(v as Owner)} options={[{ value: 'personal', label: 'Pessoal' }, { value: 'mother_in_law', label: 'Sogra' }]} />
+          <label className="form-label form-grow">Responsável
+            <Select value={owner} onChange={v => setOwner(v as Owner)} options={[{ value: 'personal', label: 'Pessoal' }, { value: 'mother_in_law', label: 'Sogra' }]} />
+          </label>
+        </div>
 
         <div className="form-actions">
           <Button variant="tab" onClick={onClose}>Cancelar</Button>
