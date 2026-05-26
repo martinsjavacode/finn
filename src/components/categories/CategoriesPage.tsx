@@ -1,4 +1,4 @@
-import { Pencil, Trash2 } from 'lucide-react'
+import { Pencil, Trash2, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
@@ -9,7 +9,7 @@ import { confirm } from '../../lib/confirm'
 import Button from '../ui/Button'
 import Select from '../ui/Select'
 import Modal from '../ui/Modal'
-import MobileCard from '../ui/MobileCard'
+import { CardGrid, CardItem, Chip } from '../ui/CardGrid'
 import { TableSkeleton } from '../ui/Skeleton'
 
 export default function CategoriesPage() {
@@ -59,6 +59,10 @@ export default function CategoriesPage() {
     if (await confirm(msg)) deleteMutation.mutate(id)
   }
 
+  const openAdd = (preselectedParent = '') => {
+    setName(''); setLabel(''); setParentId(preselectedParent); setShowForm(true)
+  }
+
   const parents = categories.filter(c => !c.parent_id)
   const getChildren = (id: string) => categories.filter(c => c.parent_id === id)
 
@@ -68,7 +72,7 @@ export default function CategoriesPage() {
     <div>
       <div className="page-header">
         <h2>Categorias</h2>
-        {canCreate && <Button onClick={() => setShowForm(true)}>+ Nova</Button>}
+        {canCreate && <Button onClick={() => openAdd()}>+ Nova</Button>}
       </div>
 
       {showForm && (
@@ -88,36 +92,43 @@ export default function CategoriesPage() {
       {editing && (
         <Modal title="Editar Categoria" onClose={() => setEditing(null)} onSubmit={e => { e.preventDefault(); updateMutation.mutate(editing.id) }}>
           <label className="form-label">Label
-            <input type="text" value={editLabel} onChange={e => setEditLabel(e.target.value)} autoFocus />
+            <input type="text" value={editLabel} onChange={e => setEditLabel(e.target.value)} autoFocus required />
           </label>
         </Modal>
       )}
 
-      <section>
-        <table className="desktop-table">
-          <thead><tr><th>Categoria</th><th>Subcategorias</th>{(canUpdate || canDelete) && <th></th>}</tr></thead>
-          <tbody>
-            {parents.map(p => (
-              <tr key={p.id}>
-                <td><strong>{p.label}</strong></td>
-                <td>{getChildren(p.id).map(c => c.label).join(', ') || '—'}</td>
-                {(canUpdate || canDelete) && (
-                  <td>
-                    {canUpdate && <Button variant="icon" aria-label="Editar" onClick={() => { setEditing(p); setEditLabel(p.label) }}><Pencil size={14} /></Button>}
-                    {canDelete && <Button variant="icon" className="delete-btn" aria-label="Excluir" onClick={() => handleDelete(p.id)}><Trash2 size={14} /></Button>}
-                  </td>
-                )}
-              </tr>
-            ))}
-            {!parents.length && <tr><td colSpan={(canUpdate || canDelete) ? 3 : 2} className="empty">Nenhuma categoria</td></tr>}
-          </tbody>
-        </table>
-        <div className="mobile-cards">
-          {parents.length ? parents.map(p => (
-            <MobileCard key={p.id} title={p.label} value="" subtitle={getChildren(p.id).map(c => c.label).join(', ') || 'Sem subcategorias'} onTap={canUpdate ? () => { setEditing(p); setEditLabel(p.label) } : undefined} />
-          )) : <p className="empty">Nenhuma categoria</p>}
-        </div>
-      </section>
+      <CardGrid>
+        {parents.map(p => {
+          const children = getChildren(p.id)
+          return (
+            <CardItem
+              key={p.id}
+              title={p.label}
+              actions={<>
+                {canUpdate && <Button variant="icon" aria-label="Editar categoria" onClick={() => { setEditing(p); setEditLabel(p.label) }}><Pencil size={14} /></Button>}
+                {canDelete && <Button variant="icon" className="delete-btn" aria-label="Excluir categoria" onClick={() => handleDelete(p.id)}><Trash2 size={14} /></Button>}
+              </>}
+            >
+              {canCreate && (
+                <Chip className="cat-chip-add" onClick={() => openAdd(p.id)} ariaLabel={`Adicionar subcategoria em ${p.label}`}>
+                  <Plus size={12} /> Adicionar
+                </Chip>
+              )}
+              {!children.length && <span className="cat-empty-hint">Sem subcategorias</span>}
+              {children.map(c => (
+                <Chip key={c.id}>
+                  <span>{c.label}</span>
+                  <div className="cat-chip-actions">
+                    {canUpdate && <button className="cat-chip-btn" aria-label={`Editar ${c.label}`} onClick={() => { setEditing(c); setEditLabel(c.label) }}><Pencil size={12} /></button>}
+                    {canDelete && <button className="cat-chip-btn cat-chip-btn-del" aria-label={`Excluir ${c.label}`} onClick={() => handleDelete(c.id)}><Trash2 size={12} /></button>}
+                  </div>
+                </Chip>
+              ))}
+            </CardItem>
+          )
+        })}
+        {!parents.length && <div className="empty-state"><p>Nenhuma categoria cadastrada</p>{canCreate && <Button onClick={() => openAdd()}>Cadastrar primeira categoria</Button>}</div>}
+      </CardGrid>
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import { Pencil, Trash2, Check, Circle } from 'lucide-react'
+import { Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
@@ -9,8 +9,8 @@ import { fmt, getEffectiveClosingDay } from '../../utils/format'
 import type { ClosingRule } from '../../types/database'
 import Button from '../ui/Button'
 import Modal from '../ui/Modal'
-import MobileCard from '../ui/MobileCard'
 import Badge from '../ui/Badge'
+import { CardGrid, CardItem, Chip } from '../ui/CardGrid'
 import { TableSkeleton } from '../ui/Skeleton'
 
 interface CardInfo { id: string; name: string; label: string; credit_limit: number; closing_day: number; due_day: number; closing_rule: ClosingRule; days_before_due: number; color: string; active: boolean }
@@ -92,39 +92,36 @@ export default function CardsPage() {
           }
           <label className="form-label">Dia de vencimento<input type="number" min={1} max={31} value={dueDay} onChange={e => setDueDay(+e.target.value)} required /></label>
           {ruleType === 'relative' && <div className="form-preview"><span>Fechamento efetivo:</span><strong>Dia {getEffectiveClosingDay({ closing_day: closingDay, due_day: dueDay, closing_rule: 'relative', days_before_due: daysBeforeDue })}</strong></div>}
-          <label className="form-label">Cor<input type="color" value={color} onChange={e => setColor(e.target.value)} /></label>
+          <label className="form-label">Cor
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+              <input type="color" value={color} onChange={e => setColor(e.target.value)} style={{ width: 44, height: 44, padding: 0, border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer' }} />
+              <span style={{ width: '100%', height: 6, borderRadius: 3, background: color }} />
+            </div>
+          </label>
         </Modal>
       )}
 
-      <section>
-        <table className="desktop-table">
-          <thead><tr><th></th><th>Cartão</th><th>Limite</th><th>Fechamento</th><th>Vencimento</th><th>Ativo</th>{(canUpdate || canDelete) && <th></th>}</tr></thead>
-          <tbody>
-            {cards.map(c => (
-              <tr key={c.id} className={!c.active ? 'row-paid' : ''}>
-                <td><span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: c.color }} /></td>
-                <td>{c.label}</td>
-                <td>{fmt(c.credit_limit)}</td>
-                <td>Dia {getEffectiveClosingDay(c)}</td>
-                <td>Dia {c.due_day}</td>
-                <td>{canUpdate ? <button className={`paid-btn ${c.active ? 'paid' : ''}`} aria-label={c.active ? 'Desativar' : 'Ativar'} onClick={() => toggleMutation.mutate({ id: c.id, active: c.active })}>{c.active ? <Check size={14} /> : <Circle size={14} />}</button> : <Badge variant={c.active ? 'success' : 'danger'}>{c.active ? 'Ativo' : 'Inativo'}</Badge>}</td>
-                {(canUpdate || canDelete) && (
-                  <td>
-                    {canUpdate && <Button variant="icon" aria-label="Editar" onClick={() => openEdit(c)}><Pencil size={14} /></Button>}
-                    {canDelete && <Button variant="icon" className="delete-btn" aria-label="Excluir" onClick={() => handleDelete(c.id)}><Trash2 size={14} /></Button>}
-                  </td>
-                )}
-              </tr>
-            ))}
-            {!cards.length && <tr><td colSpan={(canUpdate || canDelete) ? 7 : 6} className="empty">Nenhum cartão cadastrado</td></tr>}
-          </tbody>
-        </table>
-        <div className="mobile-cards">
-          {cards.length ? cards.map(c => (
-            <MobileCard key={c.id} className={!c.active ? 'row-paid' : ''} status={canUpdate ? <button className={`paid-btn ${c.active ? 'paid' : ''}`} aria-label={c.active ? 'Desativar' : 'Ativar'} onClick={e => { e.stopPropagation(); toggleMutation.mutate({ id: c.id, active: c.active }) }}>{c.active ? <Check size={14} /> : <Circle size={14} />}</button> : <Badge variant={c.active ? 'success' : 'danger'}>{c.active ? 'Ativo' : 'Inativo'}</Badge>} title={<><span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: c.color, marginRight: 6 }} />{c.label}</>} value={fmt(c.credit_limit)} subtitle={<>Fecha dia {getEffectiveClosingDay(c)} · Vence dia {c.due_day}</>} onTap={canUpdate ? () => openEdit(c) : undefined} />
-          )) : <p className="empty">Nenhum cartão cadastrado</p>}
-        </div>
-      </section>
+      <CardGrid>
+        {cards.map(c => (
+          <CardItem
+            key={c.id}
+            title={<>{c.label} {canUpdate
+              ? <button className="badge-toggle" role="switch" aria-checked={c.active} onClick={() => toggleMutation.mutate({ id: c.id, active: c.active })} aria-label={`Cartão ${c.active ? 'ativo' : 'inativo'}`}><Badge variant={c.active ? 'success' : 'danger'}>{c.active ? 'Ativo' : 'Inativo'}</Badge></button>
+              : <Badge variant={c.active ? 'success' : 'danger'}>{c.active ? 'Ativo' : 'Inativo'}</Badge>
+            }</>}
+            style={{ borderTop: `3px solid ${c.color}` }}
+            actions={<>
+              {canUpdate && <Button variant="icon" aria-label="Editar" onClick={() => openEdit(c)}><Pencil size={14} /></Button>}
+              {canDelete && <Button variant="icon" className="delete-btn" aria-label="Excluir" onClick={() => handleDelete(c.id)}><Trash2 size={14} /></Button>}
+            </>}
+          >
+            <Chip className="cat-chip-highlight">{fmt(c.credit_limit)}</Chip>
+            <Chip>Fecha dia {getEffectiveClosingDay(c)}</Chip>
+            <Chip>Vence dia {c.due_day}</Chip>
+          </CardItem>
+        ))}
+        {!cards.length && <div className="empty-state"><p>Nenhum cartão cadastrado</p>{canCreate && <Button onClick={openNew}>Cadastrar primeiro cartão</Button>}</div>}
+      </CardGrid>
     </div>
   )
 }
