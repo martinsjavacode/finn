@@ -14,7 +14,7 @@ import Badge from '../ui/Badge'
 import { TableSkeleton } from '../ui/Skeleton'
 import { fmt, categoryOptions } from '../../utils/format'
 
-interface Template { id: string; description: string; amount: number; type: string; target: string; category: string | null; card: string | null; owner: string; day: number; active: boolean }
+interface Template { id: string; description: string; amount: number; type: string; target: 'pix' | 'credit_card'; category: string | null; card: string | null; owner: string; day: number; active: boolean }
 
 export default function RecurringPage() {
   const { can } = useAuth()
