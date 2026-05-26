@@ -53,7 +53,7 @@ export async function deleteTransaction(id: string) {
 export async function insertTransaction(row: {
   month: string; description: string; amount: number; type: string; category: string; owner: string; paid: boolean
 }) {
-  const insert: EntryInsert = { ...row, payment_method: 'boleto', type: row.type as EntryInsert['type'] }
+  const insert: EntryInsert = { ...row, payment_method: 'pix', type: row.type as EntryInsert['type'] }
   const { error } = await supabase.from('entries').insert(insert)
   return { error }
 }

@@ -12,7 +12,7 @@ export type PaymentMethod = Enums['payment_method']
 export type ClosingRule = Enums['closing_rule_type']
 export type Card = string
 export type Role = 'viewer' | 'editor' | 'owner'
-export type InstallmentTarget = 'credit_card' | 'transaction'
+export type InstallmentTarget = 'credit_card' | 'pix'
 
 export interface CardWithRule {
   closing_day: number
