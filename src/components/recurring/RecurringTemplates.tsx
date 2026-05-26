@@ -1,46 +1,32 @@
 import { Pencil, Trash2, Check, Circle } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
 import { useAuth, useAppData } from '../../hooks'
 import type { Owner, Card } from '../../types/database'
 import { showError, toast } from '../../lib/toast'
-import { useModal } from '../../hooks/useModal'
 import { confirm } from '../../lib/confirm'
 import Select from '../ui/Select'
 import Button from '../ui/Button'
+import Modal from '../ui/Modal'
 import MobileCard from '../ui/MobileCard'
+import { TableSkeleton } from '../ui/Skeleton'
 import { fmt, categoryOptions } from '../../utils/format'
 
-interface Template {
-  id: string
-  description: string
-  amount: number
-  type: string
-  target: string
-  category: string | null
-  card: string | null
-  owner: string
-  day: number
-  active: boolean
-}
+interface Template { id: string; description: string; amount: number; type: string; target: string; category: string | null; card: string | null; owner: string; day: number; active: boolean }
 
 export default function RecurringPage() {
   const { can } = useAuth()
   const { categories, cardsList } = useAppData(true)
+  const queryClient = useQueryClient()
   const canCreate = can('recurring_templates', 'create')
   const canUpdate = can('recurring_templates', 'update')
   const canDelete = can('recurring_templates', 'delete')
-  const [templates, setTemplates] = useState<Template[]>([])
   const [showForm, setShowForm] = useState(false)
-  const modalRef = useModal<HTMLFormElement>(() => setShowForm(false))
   const [editingId, setEditingId] = useState<string | null>(null)
   const [generating, setGenerating] = useState(false)
-  const [genMonth, setGenMonth] = useState(() => {
-    const now = new Date()
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-  })
+  const [genMonth, setGenMonth] = useState(() => { const n = new Date(); return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}` })
 
-  // Form state
   const [description, setDescription] = useState('')
   const [amount, setAmount] = useState('')
   const [type, setType] = useState('expense')
@@ -50,9 +36,37 @@ export default function RecurringPage() {
   const [owner, setOwner] = useState<Owner>('personal')
   const [day, setDay] = useState(1)
 
-  useEffect(() => {
-    supabase.from('recurring_templates').select('*').order('day').order('description').then(({ data }) => setTemplates(data ?? []))
-  }, [])
+  const { data: templates = [], isLoading } = useQuery<Template[]>({
+    queryKey: ['recurring-templates'],
+    queryFn: async () => (await supabase.from('recurring_templates').select('*').order('day').order('description')).data ?? [],
+  })
+
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: ['recurring-templates'] })
+
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      const payload = { description, amount: +amount, type, target, category: target === 'transaction' ? category : null, card: target === 'credit_card' ? card : null, owner, day }
+      if (editingId) {
+        const { error } = await supabase.from('recurring_templates').update(payload as never).eq('id', editingId); if (error) throw error
+      } else {
+        const { error } = await supabase.from('recurring_templates').insert({ ...payload, active: true } as never); if (error) throw error
+      }
+    },
+    onSuccess: () => { invalidate(); setShowForm(false); toast(editingId ? 'Template atualizado' : 'Template criado') },
+    onError: (e) => showError(e),
+  })
+
+  const toggleMutation = useMutation({
+    mutationFn: async ({ id, active }: { id: string; active: boolean }) => { const { error } = await supabase.from('recurring_templates').update({ active: !active } as never).eq('id', id); if (error) throw error },
+    onSuccess: () => invalidate(),
+    onError: (e) => showError(e),
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => { const { error } = await supabase.from('recurring_templates').delete().eq('id', id); if (error) throw error },
+    onSuccess: () => { invalidate(); toast('Template excluído') },
+    onError: (e) => showError(e),
+  })
 
   const openNew = () => {
     setEditingId(null); setDescription(''); setAmount(''); setType('expense'); setTarget('transaction')
@@ -66,41 +80,7 @@ export default function RecurringPage() {
     setShowForm(true)
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const payload = {
-      description, amount: +amount, type, target,
-      category: target === 'transaction' ? category : null,
-      card: target === 'credit_card' ? card : null,
-      owner, day,
-    }
-
-    if (editingId) {
-      const { error } = await supabase.from('recurring_templates').update(payload as never).eq('id', editingId)
-      if (error) return showError(error)
-      setTemplates(prev => prev.map(t => t.id === editingId ? { ...t, ...payload } : t))
-      toast('Template atualizado')
-    } else {
-      const { data, error } = await supabase.from('recurring_templates').insert({ ...payload, active: true } as never).select().single()
-      if (error) return showError(error)
-      if (data) setTemplates(prev => [...prev, data as Template])
-      toast('Template criado')
-    }
-    setShowForm(false)
-  }
-
-  const toggleActive = async (id: string, active: boolean) => {
-    const { error } = await supabase.from('recurring_templates').update({ active: !active } as never).eq('id', id)
-    if (error) return showError(error)
-    setTemplates(prev => prev.map(t => t.id === id ? { ...t, active: !active } : t))
-  }
-
-  const handleDelete = async (id: string) => {
-    if (!await confirm('Tem certeza que deseja excluir este template?')) return
-    const { error } = await supabase.from('recurring_templates').delete().eq('id', id)
-    if (error) return showError(error)
-    setTemplates(prev => prev.filter(t => t.id !== id))
-  }
+  const handleDelete = async (id: string) => { if (await confirm('Tem certeza que deseja excluir este template?')) deleteMutation.mutate(id) }
 
   const handleGenerate = async () => {
     setGenerating(true)
@@ -112,78 +92,45 @@ export default function RecurringPage() {
 
   const catLabel = (id: string | null) => categories.find(c => c.id === id)?.label ?? '-'
 
+  if (isLoading) return <div><div className="page-header"><h2>Lançamentos Recorrentes</h2></div><TableSkeleton rows={5} cols={8} /></div>
+
   return (
     <div>
       <div className="page-header">
         <h2>Lançamentos Recorrentes</h2>
         <div className="page-actions">
           <input type="month" value={genMonth} onChange={e => setGenMonth(e.target.value)} className="input-month" />
-          <Button onClick={handleGenerate} disabled={generating}>
-            {generating ? 'Gerando...' : '⚡ Gerar'}
-          </Button>
+          <Button onClick={handleGenerate} disabled={generating}>{generating ? 'Gerando...' : '⚡ Gerar'}</Button>
           {canCreate && <Button onClick={openNew}>+ Novo</Button>}
         </div>
       </div>
 
       {showForm && (
-        <div className="modal-overlay" onClick={() => setShowForm(false)} role="dialog" aria-modal="true">
-          <form className="modal" ref={modalRef} onClick={e => e.stopPropagation()} onSubmit={handleSubmit}>
-            <h2>{editingId ? 'Editar Template' : 'Novo Template Recorrente'}</h2>
-
-            <label className="form-label">Descrição
-              <input type="text" placeholder="Ex: Aluguel" value={description} onChange={e => setDescription(e.target.value)} required />
-            </label>
-
-            <label className="form-label">Valor (R$)
-              <input type="number" step="0.01" placeholder="0.00" value={amount} onChange={e => setAmount(e.target.value)} required />
-            </label>
-
-            <label className="form-label">Dia do vencimento
-              <input type="number" min={1} max={31} value={day} onChange={e => setDay(+e.target.value)} required />
-            </label>
-
-            <label className="form-label">Forma de pagamento</label>
+        <Modal title={editingId ? 'Editar Template' : 'Novo Template Recorrente'} onClose={() => setShowForm(false)} onSubmit={e => { e.preventDefault(); saveMutation.mutate() }}>
+          <label className="form-label">Descrição<input type="text" placeholder="Ex: Aluguel" value={description} onChange={e => setDescription(e.target.value)} required /></label>
+          <label className="form-label">Valor (R$)<input type="number" step="0.01" placeholder="0.00" value={amount} onChange={e => setAmount(e.target.value)} required /></label>
+          <label className="form-label">Dia do vencimento<input type="number" min={1} max={31} value={day} onChange={e => setDay(+e.target.value)} required /></label>
+          <label className="form-label">Forma de pagamento</label>
+          <div className="form-tabs">
+            <Button variant="tab" active={target === 'transaction'} onClick={() => setTarget('transaction')}>Boleto/Pix</Button>
+            <Button variant="tab" active={target === 'credit_card'} onClick={() => setTarget('credit_card')}>Cartão</Button>
+          </div>
+          {target === 'transaction' && (<>
+            <label className="form-label">Tipo</label>
             <div className="form-tabs">
-              <Button variant="tab" active={target === 'transaction'} onClick={() => setTarget('transaction')}>Boleto/Pix</Button>
-              <Button variant="tab" active={target === 'credit_card'} onClick={() => setTarget('credit_card')}>Cartão</Button>
+              <Button variant="tab" active={type === 'expense'} onClick={() => setType('expense')}>Despesa</Button>
+              <Button variant="tab" active={type === 'income'} onClick={() => setType('income')}>Receita</Button>
             </div>
-
-            {target === 'transaction' && (
-              <>
-                <label className="form-label">Tipo</label>
-                <div className="form-tabs">
-                  <Button variant="tab" active={type === 'expense'} onClick={() => setType('expense')}>Despesa</Button>
-                  <Button variant="tab" active={type === 'income'} onClick={() => setType('income')}>Receita</Button>
-                </div>
-                <label className="form-label">Categoria
-                  <Select value={category} onChange={setCategory} options={categoryOptions(categories)} />
-                </label>
-              </>
-            )}
-
-            {target === 'credit_card' && (
-              <label className="form-label">Cartão
-                <Select value={card} onChange={v => setCard(v as Card)} options={cardsList.map(c => ({ value: c.name, label: c.label }))} />
-              </label>
-            )}
-
-            <label className="form-label">Responsável
-              <Select value={owner} onChange={v => setOwner(v as Owner)} options={[{ value: 'personal', label: 'Pessoal' }, { value: 'mother_in_law', label: 'Sogra' }]} />
-            </label>
-
-            <div className="form-actions">
-              <Button variant="tab" onClick={() => setShowForm(false)}>Cancelar</Button>
-              <Button type="submit">Salvar</Button>
-            </div>
-          </form>
-        </div>
+            <label className="form-label">Categoria<Select value={category} onChange={setCategory} options={categoryOptions(categories)} /></label>
+          </>)}
+          {target === 'credit_card' && <label className="form-label">Cartão<Select value={card} onChange={v => setCard(v as Card)} options={cardsList.map(c => ({ value: c.name, label: c.label }))} /></label>}
+          <label className="form-label">Responsável<Select value={owner} onChange={v => setOwner(v as Owner)} options={[{ value: 'personal', label: 'Pessoal' }, { value: 'mother_in_law', label: 'Sogra' }]} /></label>
+        </Modal>
       )}
 
       <section>
         <table className="desktop-table">
-          <thead>
-            <tr><th>Dia</th><th>Descrição</th><th>Valor</th><th>Destino</th><th>Categoria/Cartão</th><th>Resp.</th><th>Ativo</th>{(canUpdate || canDelete) && <th></th>}</tr>
-          </thead>
+          <thead><tr><th>Dia</th><th>Descrição</th><th>Valor</th><th>Destino</th><th>Categoria/Cartão</th><th>Resp.</th><th>Ativo</th>{(canUpdate || canDelete) && <th></th>}</tr></thead>
           <tbody>
             {templates.map(t => (
               <tr key={t.id} className={!t.active ? 'row-paid' : ''}>
@@ -193,7 +140,7 @@ export default function RecurringPage() {
                 <td>{t.target === 'credit_card' ? 'Cartão' : t.type === 'income' ? 'Receita' : 'Despesa'}</td>
                 <td>{t.target === 'credit_card' ? cardsList.find(c => c.name === t.card)?.label ?? t.card : catLabel(t.category)}</td>
                 <td><span className={`badge ${t.owner === 'personal' ? 'badge-success' : 'badge-danger'}`}>{t.owner === 'personal' ? 'Pessoal' : 'Sogra'}</span></td>
-                <td>{canUpdate ? <button className={`paid-btn ${t.active ? 'paid' : ''}`} aria-label={t.active ? 'Desativar' : 'Ativar'} onClick={() => toggleActive(t.id, t.active)}>{t.active ? <Check size={14} /> : <Circle size={14} />}</button> : <span className={`badge ${t.active ? 'badge-success' : 'badge-danger'}`}>{t.active ? 'Ativo' : 'Inativo'}</span>}</td>
+                <td>{canUpdate ? <button className={`paid-btn ${t.active ? 'paid' : ''}`} aria-label={t.active ? 'Desativar' : 'Ativar'} onClick={() => toggleMutation.mutate({ id: t.id, active: t.active })}>{t.active ? <Check size={14} /> : <Circle size={14} />}</button> : <span className={`badge ${t.active ? 'badge-success' : 'badge-danger'}`}>{t.active ? 'Ativo' : 'Inativo'}</span>}</td>
                 {(canUpdate || canDelete) && (
                   <td>
                     {canUpdate && <Button variant="icon" aria-label="Editar" onClick={() => openEdit(t)}><Pencil size={14} /></Button>}
@@ -205,18 +152,9 @@ export default function RecurringPage() {
             {!templates.length && <tr><td colSpan={(canUpdate || canDelete) ? 9 : 8} className="empty">Nenhum template cadastrado</td></tr>}
           </tbody>
         </table>
-
         <div className="mobile-cards">
           {templates.length ? templates.map(t => (
-            <MobileCard
-              key={t.id}
-              className={!t.active ? 'row-paid' : ''}
-              status={canUpdate ? <button className={`paid-btn ${t.active ? 'paid' : ''}`} aria-label={t.active ? 'Desativar' : 'Ativar'} onClick={(e) => { e.stopPropagation(); toggleActive(t.id, t.active) }}>{t.active ? <Check size={14} /> : <Circle size={14} />}</button> : <span className={`badge ${t.active ? 'badge-success' : 'badge-danger'}`}>{t.active ? 'Ativo' : 'Inativo'}</span>}
-              title={t.description}
-              value={fmt(+t.amount)}
-              subtitle={<>Dia {t.day} · {t.target === 'credit_card' ? cardsList.find(c => c.name === t.card)?.label ?? t.card : catLabel(t.category)} · {t.owner === 'personal' ? 'Pessoal' : 'Sogra'}</>}
-              onTap={canUpdate ? () => openEdit(t) : undefined}
-            />
+            <MobileCard key={t.id} className={!t.active ? 'row-paid' : ''} status={canUpdate ? <button className={`paid-btn ${t.active ? 'paid' : ''}`} aria-label={t.active ? 'Desativar' : 'Ativar'} onClick={e => { e.stopPropagation(); toggleMutation.mutate({ id: t.id, active: t.active }) }}>{t.active ? <Check size={14} /> : <Circle size={14} />}</button> : <span className={`badge ${t.active ? 'badge-success' : 'badge-danger'}`}>{t.active ? 'Ativo' : 'Inativo'}</span>} title={t.description} value={fmt(+t.amount)} subtitle={<>Dia {t.day} · {t.target === 'credit_card' ? cardsList.find(c => c.name === t.card)?.label ?? t.card : catLabel(t.category)} · {t.owner === 'personal' ? 'Pessoal' : 'Sogra'}</>} onTap={canUpdate ? () => openEdit(t) : undefined} />
           )) : <p className="empty">Nenhum template cadastrado</p>}
         </div>
       </section>

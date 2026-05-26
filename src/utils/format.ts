@@ -1,4 +1,5 @@
-import type { Owner } from '../types/database'
+import type { Owner, CardWithRule } from '../types/database'
+export type { ClosingRule, CardWithRule } from '../types/database'
 
 export const fmt = (v: number) =>
   v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -25,15 +26,6 @@ export const monthLabel = (ym: string) =>
 
 export const monthLabelShort = (ym: string) =>
   new Date(ym + '-01T12:00:00').toLocaleDateString('pt-BR', { month: 'short' })
-
-export type ClosingRule = 'fixed' | 'relative'
-
-export interface CardWithRule {
-  closing_day: number
-  due_day: number
-  closing_rule: ClosingRule
-  days_before_due: number
-}
 
 export function getEffectiveClosingDay(card: CardWithRule, year?: number, month?: number): number {
   if (card.closing_rule === 'relative') {

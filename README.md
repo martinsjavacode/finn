@@ -214,7 +214,7 @@ migrations/
 ```
 src/
 ├── components/
-│   ├── ui/            — Button, Select, Sidebar, Toast, Skeleton, MobileCard, Pagination, ErrorBoundary, ConfirmDialog
+│   ├── ui/            — Button, Select, Sidebar, Toast, Skeleton, MobileCard, Pagination, Modal, Badge, Input, ErrorBoundary, ConfirmDialog
 │   ├── auth/          — Auth (login email+senha + GitHub)
 │   ├── dashboard/     — Dashboard, SummaryCards
 │   ├── transactions/  — TransactionsPage, TransactionsTable, CardsTable, AddTransaction
@@ -229,7 +229,7 @@ src/
 ├── services/          — auth, transactions, categories, recurring
 ├── utils/             — format (fmt, ownerLabel, monthRange, resolveInvoiceMonth, etc.)
 ├── lib/               — Supabase client, toast, confirm
-├── types/             — TypeScript types (Database)
+├── types/             — TypeScript types (Database, ClosingRule, CardWithRule)
 ├── test/              — Vitest + Testing Library (38 testes)
 └── App.tsx            — Router + Layout + ProtectedRoute + Code Splitting
 ```
@@ -246,6 +246,7 @@ src/
 ### Performance & Acessibilidade
 
 - **Code Splitting** — Pages carregadas sob demanda via `React.lazy` + `Suspense`
+- **TanStack Query** — Cache, retry, loading automático em todas as pages CRUD
 - **Route Guards** — `ProtectedRoute` com verificação de permissão por rota
 - **Focus Trap** — Modais prendem foco via `useFocusTrap` hook
 - **WAI-ARIA** — Select com Listbox pattern (keyboard nav completa)

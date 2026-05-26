@@ -1,88 +1,91 @@
-import { Pencil, Trash2, Check } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { Pencil, Trash2 } from 'lucide-react'
+import { useState } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
 import { useAuth, useAppData } from '../../hooks'
 import { showError, toast } from '../../lib/toast'
-import { useModal } from '../../hooks/useModal'
 import { confirm } from '../../lib/confirm'
 import { fmt } from '../../utils/format'
 import Select from '../ui/Select'
 import Button from '../ui/Button'
+import Modal from '../ui/Modal'
 import MobileCard from '../ui/MobileCard'
+import { TableSkeleton } from '../ui/Skeleton'
 
 interface Budget { id: string; category: string; monthly_limit: number }
 
 export default function BudgetsPage() {
   const { can } = useAuth()
   const { categories } = useAppData(true)
+  const queryClient = useQueryClient()
   const canCreate = can('budgets', 'create')
   const canUpdate = can('budgets', 'update')
   const canDelete = can('budgets', 'delete')
-  const [budgets, setBudgets] = useState<Budget[]>([])
   const [editing, setEditing] = useState<string | null>(null)
   const [editLimit, setEditLimit] = useState('')
   const [showForm, setShowForm] = useState(false)
-  const modalRef = useModal<HTMLFormElement>(() => setShowForm(false))
   const [newCat, setNewCat] = useState('')
   const [newLimit, setNewLimit] = useState('')
 
-  useEffect(() => {
-    supabase.from('budgets').select('*').then(({ data }) => setBudgets((data ?? []) as Budget[]))
-  }, [])
+  const { data: budgets = [], isLoading } = useQuery<Budget[]>({
+    queryKey: ['budgets-page'],
+    queryFn: async () => (await supabase.from('budgets').select('*')).data as Budget[] ?? [],
+  })
 
-  const handleAdd = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const { data, error } = await supabase.from('budgets').insert({ category: newCat, monthly_limit: +newLimit } as never).select().single()
-    if (error) return showError(error)
-    if (data) setBudgets(prev => [...prev, data as Budget])
-    setShowForm(false)
-    setNewLimit('')
-    toast('Orçamento criado')
-  }
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: ['budgets-page'] })
 
-  const startEdit = (b: Budget) => { setEditing(b.id); setEditLimit(String(b.monthly_limit)) }
+  const addMutation = useMutation({
+    mutationFn: async () => { const { error } = await supabase.from('budgets').insert({ category: newCat, monthly_limit: +newLimit } as never); if (error) throw error },
+    onSuccess: () => { invalidate(); setShowForm(false); setNewLimit(''); toast('Orçamento criado') },
+    onError: (e) => showError(e),
+  })
 
-  const saveEdit = async (id: string) => {
-    const { error } = await supabase.from('budgets').update({ monthly_limit: +editLimit } as never).eq('id', id)
-    if (error) return showError(error)
-    setBudgets(prev => prev.map(b => b.id === id ? { ...b, monthly_limit: +editLimit } : b))
-    setEditing(null)
-  }
+  const updateMutation = useMutation({
+    mutationFn: async (id: string) => { const { error } = await supabase.from('budgets').update({ monthly_limit: +editLimit } as never).eq('id', id); if (error) throw error },
+    onSuccess: () => { invalidate(); setEditing(null); toast('Orçamento atualizado') },
+    onError: (e) => showError(e),
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => { const { error } = await supabase.from('budgets').delete().eq('id', id); if (error) throw error },
+    onSuccess: () => { invalidate(); toast('Orçamento excluído') },
+    onError: (e) => showError(e),
+  })
 
   const handleDelete = async (id: string) => {
-    if (!await confirm('Tem certeza que deseja excluir este orçamento?')) return
-    const { error } = await supabase.from('budgets').delete().eq('id', id)
-    if (error) return showError(error)
-    setBudgets(prev => prev.filter(b => b.id !== id))
+    if (await confirm('Tem certeza que deseja excluir este orçamento?')) deleteMutation.mutate(id)
   }
 
   const catLabel = (id: string) => categories.find(c => c.id === id)?.label ?? id
   const usedCats = budgets.map(b => b.category)
   const availableCats = categories.filter(c => !usedCats.includes(c.id))
 
+  if (isLoading) return <div><div className="page-header"><h2>Orçamentos</h2></div><TableSkeleton rows={4} cols={3} /></div>
+
   return (
     <div>
       <div className="page-header">
         <h2>Orçamentos</h2>
-        {canCreate && <Button onClick={() => { setShowForm(!showForm); if (!newCat && availableCats.length) setNewCat(availableCats[0].id) }}>+ Novo</Button>}
+        {canCreate && <Button onClick={() => { setShowForm(true); if (!newCat && availableCats.length) setNewCat(availableCats[0].id) }}>+ Novo</Button>}
       </div>
 
       {showForm && (
-        <div className="modal-overlay" onClick={() => setShowForm(false)} role="dialog" aria-modal="true">
-          <form className="modal" ref={modalRef} onClick={e => e.stopPropagation()} onSubmit={handleAdd}>
-            <h2>Novo Orçamento</h2>
-            <label className="form-label">Categoria
-              <Select value={newCat} onChange={setNewCat} options={availableCats.map(c => ({ value: c.id, label: c.label }))} />
-            </label>
-            <label className="form-label">Limite mensal (R$)
-              <input type="number" step="0.01" placeholder="0.00" value={newLimit} onChange={e => setNewLimit(e.target.value)} required />
-            </label>
-            <div className="form-actions">
-              <Button variant="tab" onClick={() => setShowForm(false)}>Cancelar</Button>
-              <Button type="submit" disabled={!availableCats.length}>Salvar</Button>
-            </div>
-          </form>
-        </div>
+        <Modal title="Novo Orçamento" onClose={() => setShowForm(false)} onSubmit={e => { e.preventDefault(); addMutation.mutate() }} submitDisabled={!availableCats.length}>
+          <label className="form-label">Categoria
+            <Select value={newCat} onChange={setNewCat} options={availableCats.map(c => ({ value: c.id, label: c.label }))} />
+          </label>
+          <label className="form-label">Limite mensal (R$)
+            <input type="number" step="0.01" placeholder="0.00" value={newLimit} onChange={e => setNewLimit(e.target.value)} required />
+          </label>
+        </Modal>
+      )}
+
+      {editing && (
+        <Modal title="Editar Orçamento" onClose={() => setEditing(null)} onSubmit={e => { e.preventDefault(); updateMutation.mutate(editing) }}>
+          <label className="form-label">Limite mensal (R$)
+            <input type="number" step="0.01" value={editLimit} onChange={e => setEditLimit(e.target.value)} autoFocus />
+          </label>
+        </Modal>
       )}
 
       <section>
@@ -92,22 +95,11 @@ export default function BudgetsPage() {
             {budgets.map(b => (
               <tr key={b.id}>
                 <td>{catLabel(b.category)}</td>
-                <td>
-                  {editing === b.id
-                    ? <input type="number" step="0.01" value={editLimit} onChange={e => setEditLimit(e.target.value)} className="inline-input" style={{ width: '120px' }} />
-                    : fmt(b.monthly_limit)
-                  }
-                </td>
+                <td>{fmt(b.monthly_limit)}</td>
                 {(canUpdate || canDelete) && (
                   <td>
-                    {editing === b.id ? (
-                      <Button onClick={() => saveEdit(b.id)}><Check size={14} /></Button>
-                    ) : (
-                      <>
-                        {canUpdate && <Button variant="icon" aria-label="Editar" onClick={() => startEdit(b)}><Pencil size={14} /></Button>}
-                        {canDelete && <Button variant="icon" className="delete-btn" aria-label="Excluir" onClick={() => handleDelete(b.id)}><Trash2 size={14} /></Button>}
-                      </>
-                    )}
+                    {canUpdate && <Button variant="icon" aria-label="Editar" onClick={() => { setEditing(b.id); setEditLimit(String(b.monthly_limit)) }}><Pencil size={14} /></Button>}
+                    {canDelete && <Button variant="icon" className="delete-btn" aria-label="Excluir" onClick={() => handleDelete(b.id)}><Trash2 size={14} /></Button>}
                   </td>
                 )}
               </tr>
@@ -115,33 +107,11 @@ export default function BudgetsPage() {
             {!budgets.length && <tr><td colSpan={(canUpdate || canDelete) ? 3 : 2} className="empty">Nenhum orçamento cadastrado</td></tr>}
           </tbody>
         </table>
-
         <div className="mobile-cards">
           {budgets.length ? budgets.map(b => (
-            <MobileCard
-              key={b.id}
-              title={catLabel(b.category)}
-              value={fmt(b.monthly_limit)}
-              subtitle="Limite mensal"
-              onTap={canUpdate ? () => startEdit(b) : undefined}
-            />
+            <MobileCard key={b.id} title={catLabel(b.category)} value={fmt(b.monthly_limit)} subtitle="Limite mensal" onTap={canUpdate ? () => { setEditing(b.id); setEditLimit(String(b.monthly_limit)) } : undefined} />
           )) : <p className="empty">Nenhum orçamento cadastrado</p>}
         </div>
-
-        {editing && (
-          <div className="modal-overlay" onClick={() => setEditing(null)} role="dialog" aria-modal="true">
-            <div className="modal" onClick={e => e.stopPropagation()}>
-              <h2>Editar Orçamento</h2>
-              <label className="form-label">Limite mensal (R$)
-                <input type="number" step="0.01" value={editLimit} onChange={e => setEditLimit(e.target.value)} autoFocus />
-              </label>
-              <div className="form-actions">
-                <Button variant="tab" onClick={() => setEditing(null)}>Cancelar</Button>
-                <Button onClick={() => saveEdit(editing)}>Salvar</Button>
-              </div>
-            </div>
-          </div>
-        )}
       </section>
     </div>
   )

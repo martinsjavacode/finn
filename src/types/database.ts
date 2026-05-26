@@ -1,11 +1,17 @@
-import type { ClosingRule } from '../utils/format'
-
 export type Owner = 'personal' | 'mother_in_law'
 export type TransactionType = 'expense' | 'income'
 export type PaymentMethod = 'pix' | 'boleto' | 'credit_card'
 export type Card = string
 export type Role = 'viewer' | 'editor' | 'owner'
 export type InstallmentTarget = 'credit_card' | 'transaction'
+export type ClosingRule = 'fixed' | 'relative'
+
+export interface CardWithRule {
+  closing_day: number
+  due_day: number
+  closing_rule: ClosingRule
+  days_before_due: number
+}
 
 export interface Category {
   id: string

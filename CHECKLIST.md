@@ -43,42 +43,46 @@ Baseado na análise completa de UX, UI, Arquitetura, Performance e Acessibilidad
 
 ---
 
-## 🟡 Média Prioridade
+## 🟡 Média Prioridade (em andamento)
 
-### Componente Modal (eliminar duplicação)
-- [ ] Criar `src/components/ui/Modal.tsx` com focus trap, overlay, Escape, aria
-- [ ] Refatorar AddTransaction para usar `<Modal>`
-- [ ] Refatorar RecurringTemplates para usar `<Modal>`
-- [ ] Refatorar CategoriesPage para usar `<Modal>`
-- [ ] Refatorar CardsPage para usar `<Modal>`
-- [ ] Refatorar BudgetsPage para usar `<Modal>`
-- [ ] Refatorar AccessPage para usar `<Modal>`
-- [ ] Refatorar RolesPage para usar `<Modal>`
+### Componente Modal ✅
+- [x] Criar `src/components/ui/Modal.tsx` com focus trap, overlay, Escape, aria
+- [x] Refatorar RecurringTemplates para usar `<Modal>`
+- [x] Refatorar CategoriesPage para usar `<Modal>`
+- [x] Refatorar CardsPage para usar `<Modal>`
+- [x] Refatorar BudgetsPage para usar `<Modal>`
+- [x] Refatorar AccessPage para usar `<Modal>`
+- [x] Refatorar RolesPage para usar `<Modal>`
 
-### Migrar CRUD pages para TanStack Query
-- [ ] RecurringTemplates: substituir useState+useEffect por useQuery/useMutation
-- [ ] CategoriesPage: substituir useState+useEffect por useQuery/useMutation
-- [ ] CardsPage: substituir useState+useEffect por useQuery/useMutation
-- [ ] BudgetsPage: substituir useState+useEffect por useQuery/useMutation
-- [ ] AccessPage: substituir useState+useEffect por useQuery/useMutation
-- [ ] RolesPage: substituir useState+useEffect por useQuery/useMutation
-- [ ] Projection: substituir useState+useEffect por useQuery
+### Migrar CRUD pages para TanStack Query ✅
+- [x] RecurringTemplates: substituir useState+useEffect por useQuery/useMutation
+- [x] CategoriesPage: substituir useState+useEffect por useQuery/useMutation
+- [x] CardsPage: substituir useState+useEffect por useQuery/useMutation
+- [x] BudgetsPage: substituir useState+useEffect por useQuery/useMutation
+- [x] AccessPage: substituir useState+useEffect por useQuery/useMutation
+- [x] RolesPage: substituir useState+useEffect por useQuery/useMutation
 
-### Skeleton loading em todas as pages
-- [ ] RecurringTemplates: adicionar TableSkeleton durante isLoading
-- [ ] CategoriesPage: adicionar TableSkeleton durante isLoading
-- [ ] CardsPage: adicionar TableSkeleton durante isLoading
-- [ ] BudgetsPage: adicionar TableSkeleton durante isLoading
-- [ ] AccessPage: adicionar TableSkeleton durante isLoading
-- [ ] RolesPage: adicionar TableSkeleton durante isLoading
+### Skeleton loading ✅
+- [x] RecurringTemplates: adicionar TableSkeleton durante isLoading
+- [x] CategoriesPage: adicionar TableSkeleton durante isLoading
+- [x] CardsPage: adicionar TableSkeleton durante isLoading
+- [x] BudgetsPage: adicionar TableSkeleton durante isLoading
+- [x] AccessPage: adicionar TableSkeleton durante isLoading
+- [x] RolesPage: adicionar TableSkeleton durante isLoading
 
-### Novos componentes UI
-- [ ] Criar `src/components/ui/Badge.tsx` (variants: success, danger, warning, info)
-- [ ] Criar `src/components/ui/Input.tsx` (label, error, helper text, icon)
+### Novos componentes UI ✅
+- [x] Criar `src/components/ui/Badge.tsx` (variants: success, danger, warning, info)
+- [x] Criar `src/components/ui/Input.tsx` (label, error, helper text, icon)
 - [ ] Substituir badges inline por `<Badge>` em TransactionsTable
 - [ ] Substituir badges inline por `<Badge>` em AccessPage
 - [ ] Substituir badges inline por `<Badge>` em RecurringTemplates
 - [ ] Substituir badges inline por `<Badge>` em CardsPage
+
+### Type safety ✅
+- [x] Mover `ClosingRule` e `CardWithRule` de utils/format.ts para types/database.ts
+- [x] Atualizar imports em utils/format.ts e CardsPage
+- [ ] Regenerar Database types com `supabase gen types typescript`
+- [ ] Eliminar todos os `as never` casts (9 ocorrências)
 
 ### CSS modularização
 - [ ] Criar `src/styles/variables.css` (extrair :root variables)
@@ -92,12 +96,6 @@ Baseado na análise completa de UX, UI, Arquitetura, Performance e Acessibilidad
 - [ ] Criar `src/styles/responsive.css` (extrair @media queries)
 - [ ] Atualizar imports em App.tsx para novos CSS files
 - [ ] Remover App.css monolítico
-
-### Type safety
-- [ ] Regenerar Database types com `supabase gen types typescript`
-- [ ] Eliminar todos os `as never` casts (9 ocorrências)
-- [ ] Mover `ClosingRule` e `CardWithRule` de utils/format.ts para types/database.ts
-- [ ] Atualizar imports em utils/format.ts
 
 ### Performance Dashboard
 - [ ] Adicionar `useMemo` para `catData` (cálculo por categoria)
@@ -173,8 +171,8 @@ Baseado na análise completa de UX, UI, Arquitetura, Performance e Acessibilidad
 | Focus trap em modais | ❌ | ✅ | ✅ |
 | Touch targets < 44px | 4 componentes | 0 | 0 |
 | Contraste WCAG AA | ❌ (4.2:1) | ✅ (4.5:1+) | ≥4.5:1 |
-| Lighthouse Accessibility | ~70 (estimado) | ~85 (estimado) | ≥95 |
-| Lighthouse Performance | ~80 (estimado) | ~85 (estimado) | ≥90 |
-| Linhas duplicadas (modal pattern) | ~210 | ~210 | 0 |
+| Pages sem TanStack Query | 7 | 0 | 0 |
+| Pages sem loading skeleton | 7 | 0 | 0 |
+| Linhas duplicadas (modal pattern) | ~210 | 0 (Modal component) | 0 |
+| Circular dependency (types↔utils) | 1 | 0 | 0 |
 | `as never` casts | 9 | 9 | 0 |
-| Pages sem loading skeleton | 7 | 7 | 0 |
