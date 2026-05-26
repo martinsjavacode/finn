@@ -1,6 +1,10 @@
 import { supabase } from '../lib/supabase'
 import type { Transaction, CreditCard } from '../types/database'
-import { monthRange, toYearMonth } from '../utils/format'
+import type { Database } from '../types/supabase-generated'
+import { monthRange } from '../utils/format'
+
+type EntryInsert = Database['public']['Tables']['entries']['Insert']
+type EntryUpdate = Database['public']['Tables']['entries']['Update']
 
 export async function fetchTransactions(ym: string) {
   const { start, end } = monthRange(ym)
@@ -31,14 +35,13 @@ export async function fetchCreditCards(ym: string) {
 
 export async function fetchAvailableMonths() {
   const { data } = await supabase.from('entries').select('month').order('month', { ascending: false })
-  const months = (data as { month: string }[] | null) ?? []
-  return [...new Set(months.map(r => toYearMonth(r.month)))].sort()
+  return [...new Set((data ?? []).map(r => r.month.substring(0, 7)))].sort()
 }
 
 export async function updateTransaction(id: string, data: Partial<Transaction>) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { categories, id: _id, created_at, ...clean } = data as Record<string, unknown>
-  const { error } = await supabase.from('entries').update(clean as never).eq('id', id)
+  const { categories: _c, id: _id, created_at: _ca, ...clean } = data
+  const { error } = await supabase.from('entries').update(clean as EntryUpdate).eq('id', id)
   return { error }
 }
 
@@ -47,27 +50,24 @@ export async function deleteTransaction(id: string) {
   return { error }
 }
 
-export async function deleteCreditCard(id: string) {
-  const { error } = await supabase.from('entries').delete().eq('id', id)
-  return { error }
-}
-
 export async function insertTransaction(row: {
   month: string; description: string; amount: number; type: string; category: string; owner: string; paid: boolean
 }) {
-  const { error } = await supabase.from('entries').insert({ ...row, payment_method: 'boleto' } as never)
+  const insert: EntryInsert = { ...row, payment_method: 'boleto', type: row.type as EntryInsert['type'] }
+  const { error } = await supabase.from('entries').insert(insert)
   return { error }
 }
 
 export async function insertCreditCard(row: {
   month: string; description: string; amount: number; card: string; owner: string; category?: string
 }) {
-  const { error } = await supabase.from('entries').insert({ ...row, payment_method: 'credit_card', type: 'expense', paid: false } as never)
+  const insert: EntryInsert = { ...row, payment_method: 'credit_card', type: 'expense', paid: false }
+  const { error } = await supabase.from('entries').insert(insert)
   return { error }
 }
 
 export async function toggleTransactionPaid(id: string, currentPaid: boolean) {
-  const { error } = await supabase.from('entries').update({ paid: !currentPaid } as never).eq('id', id)
+  const { error } = await supabase.from('entries').update({ paid: !currentPaid }).eq('id', id)
   return { error }
 }
 
@@ -78,10 +78,10 @@ export async function fetchAllTransactions() {
 
 export async function fetchCardInvoice(card: string, month: string) {
   const { data } = await supabase.from('card_invoices').select('paid_amount').eq('card', card).eq('month', `${month}-01`).single()
-  return (data as { paid_amount: number } | null)?.paid_amount ?? 0
+  return data?.paid_amount ?? 0
 }
 
 export async function upsertCardInvoice(card: string, month: string, paidAmount: number) {
-  const { error } = await supabase.from('card_invoices').upsert({ card, month: `${month}-01`, paid_amount: paidAmount } as never, { onConflict: 'card,month' })
+  const { error } = await supabase.from('card_invoices').upsert({ card, month: `${month}-01`, paid_amount: paidAmount }, { onConflict: 'card,month' })
   return { error }
 }

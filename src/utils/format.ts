@@ -1,4 +1,5 @@
-import type { Owner } from '../types/database'
+import type { Owner, CardWithRule } from '../types/database'
+export type { ClosingRule, CardWithRule } from '../types/database'
 
 export const fmt = (v: number) =>
   v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -25,6 +26,39 @@ export const monthLabel = (ym: string) =>
 
 export const monthLabelShort = (ym: string) =>
   new Date(ym + '-01T12:00:00').toLocaleDateString('pt-BR', { month: 'short' })
+
+export function getEffectiveClosingDay(card: CardWithRule, year?: number, month?: number): number {
+  if (card.closing_rule === 'relative') {
+    const day = card.due_day - card.days_before_due
+    if (day <= 0 && year != null && month != null) {
+      // Vai para o mês anterior — pega os dias reais desse mês
+      const daysInPrevMonth = new Date(year, month - 1, 0).getDate()
+      return daysInPrevMonth + day
+    }
+    return day <= 0 ? day + 30 : day
+  }
+  return card.closing_day
+}
+
+function clampToMonth(closingDay: number, year: number, month: number): number {
+  const daysInMonth = new Date(year, month, 0).getDate()
+  return Math.min(closingDay, daysInMonth)
+}
+
+export function resolveInvoiceMonth(purchaseDate: string, card: CardWithRule): string {
+  const date = new Date(purchaseDate + 'T12:00:00')
+  const day = date.getDate()
+  const year = date.getFullYear()
+  const month = date.getMonth() + 1 // 1-based
+  const closingDay = clampToMonth(getEffectiveClosingDay(card, year, month), year, month)
+
+  if (day > closingDay) {
+    const y = month === 12 ? year + 1 : year
+    const m = month === 12 ? 1 : month + 1
+    return `${y}-${String(m).padStart(2, '0')}`
+  }
+  return `${year}-${String(month).padStart(2, '0')}`
+}
 
 export const categoryOptions = (categories: { id: string; label: string; parent_id: string | null }[]) => {
   const parents = categories.filter(c => !c.parent_id)

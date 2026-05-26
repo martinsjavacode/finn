@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.0.10](https://github.com/martinsjavacode/finn/compare/v0.0.9...v0.0.10) (2026-05-26)
+
+
+### Features
+
+* **categories:** add subcategories with parent_id and grouped selects ([1baf863](https://github.com/martinsjavacode/finn/commit/1baf86391ce6a9790223b22fc3614bb6067fa052))
+
+
+### Bug Fixes
+
+* prevent input focus loss by removing useAppData from AppLayout ([0806fc2](https://github.com/martinsjavacode/finn/commit/0806fc283fb378638b97c298777f7eb4f31c5bb0))
+* **ui:** mobile edit modals, hamburger layout, and docs update ([8030edc](https://github.com/martinsjavacode/finn/commit/8030edcd2f0157e7cfb080269f09750e2fb8e020))
+
 ## [0.0.9](https://github.com/martinsjavacode/finn/compare/v0.0.8...v0.0.9) (2026-05-26)
 
 

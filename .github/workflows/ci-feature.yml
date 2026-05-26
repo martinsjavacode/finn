@@ -2,7 +2,7 @@ name: CI Feature
 
 on:
   push:
-    branches: ['feature/**']
+    branches: ['feature/**', 'feat/**']
 
 jobs:
   ci:

@@ -121,7 +121,11 @@ migrations/
 ├── 015-credit-cards-category.sql — categoria em cartões de crédito
 ├── 016-installment-purchase-id.sql — FK para rastrear parcelas
 ├── 017-installments-crud-policies.sql — policies de delete/update para parcelamentos
-└── 018-card-invoices.sql      — faturas de cartão com pagamento parcial
+├── 018-card-invoices.sql      — faturas de cartão com pagamento parcial
+├── 019-unify-entries.sql      — tabela unificada entries + enums
+├── 020-fk-card-and-target-enum.sql — FKs para cards(name)
+├── 021-subcategories.sql      — subcategorias hierárquicas
+└── 022-card-closing-rule.sql  — motor de regras de fechamento de cartão
 ```
 
 ## Funcionalidades
@@ -181,6 +185,9 @@ migrations/
 
 ### Cartões
 - CRUD de cartões (nome, limite, fechamento, vencimento, cor)
+- Motor de regras de fechamento (data fixa ou relativo ao vencimento)
+- Resolução automática do mês da fatura ao lançar compra no cartão
+- Tratamento de meses com dias variáveis (28/29/30/31)
 - Cor do cartão como indicador visual nos lançamentos (dot, tab, borda mobile)
 - Edição via modal
 
@@ -207,10 +214,10 @@ migrations/
 ```
 src/
 ├── components/
-│   ├── ui/            — Button, Select, Sidebar, Toast, Skeleton, MobileCard, ErrorBoundary
+│   ├── ui/            — Button, Select, Sidebar, Toast, Skeleton, MobileCard, Pagination, Modal, Badge, Input, ErrorBoundary, ConfirmDialog
 │   ├── auth/          — Auth (login email+senha + GitHub)
-│   ├── dashboard/     — Dashboard, SummaryCards
-│   ├── transactions/  — TransactionsTable, CardsTable, AddTransaction
+│   ├── dashboard/     — Dashboard, LineChart, PieChart, BudgetProgress, SummaryCards
+│   ├── transactions/  — TransactionsPage, TransactionsTable, CardsTable, AddTransaction
 │   ├── recurring/     — RecurringTemplates
 │   ├── budgets/       — BudgetsPage
 │   ├── categories/    — CategoriesPage
@@ -218,23 +225,39 @@ src/
 │   ├── projection/    — Projection
 │   ├── access/        — AccessPage (gerenciamento de usuários)
 │   └── roles/         — RolesPage (gerenciamento de permissões)
-├── hooks/             — useAuth, usePermissions, useTransactions, useAppData
+├── hooks/             — useAuth, usePermissions, useTransactions, useTransactionMutations, useAppData, useModal, useFocusTrap
 ├── services/          — auth, transactions, categories, recurring
-├── utils/             — format (fmt, ownerLabel, monthRange, etc.)
+├── utils/             — format (fmt, ownerLabel, monthRange, resolveInvoiceMonth, etc.)
 ├── lib/               — Supabase client, toast, confirm
-├── types/             — TypeScript types (Database)
-├── test/              — Vitest + Testing Library (32 testes)
-└── App.tsx            — Router + Layout + ErrorBoundary
+├── types/             — supabase-generated.ts (auto), database.ts (domain types)
+├── styles/            — variables, reset, layout, components, modals, forms, responsive
+├── assets/fonts/      — Inter (400/500/600 woff2, self-hosted)
+├── test/              — Vitest + Testing Library (38 testes)
+└── App.tsx            — Router + Layout + ProtectedRoute + Code Splitting
 ```
 
 ### Princípios aplicados
 
-- **DRY** — Utilitários centralizados em `utils/format.ts`
+- **DRY** — Modal reutilizável, Badge component, TRANSACTION_KEYS compartilhadas
 - **SRP** — Camada de serviço separa acesso a dados dos componentes
 - **OCP** — RBAC extensível via banco (novas roles/permissões sem alterar código)
-- **KISS** — CSS global único, sem over-engineering
+- **KISS** — CSS modular com custom properties, sem over-engineering
 - **YAGNI** — Permissões granulares no banco, consumo simples no frontend (`can()`)
 - **Clean Architecture** — hooks → services → supabase (camadas bem definidas)
+
+### Performance & Acessibilidade
+
+- **Code Splitting** — Pages carregadas sob demanda via `React.lazy` + `Suspense`
+- **TanStack Query** — Cache, retry, loading automático em todas as pages CRUD
+- **Route Guards** — `ProtectedRoute` com verificação de permissão por rota
+- **Error Boundaries** — Por rota (falhas parciais não derrubam o app)
+- **Focus Trap** — Modais prendem foco via `useFocusTrap` hook
+- **WAI-ARIA** — Select com Listbox pattern (keyboard nav completa)
+- **WCAG AA** — Contraste ≥4.5:1, touch targets ≥44px, focus-visible global
+- **Skeleton Loading** — Estados de carregamento com shimmer animation
+- **Self-hosted Fonts** — Inter (woff2), sem requests externos
+- **useMemo** — Cálculos derivados no Dashboard memoizados
+- **Preconnect** — Supabase preconnect no HTML para reduzir latência
 
 ## Testes
 

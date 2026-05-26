@@ -1,7 +1,7 @@
 {
   "name": "finn",
   "private": true,
-  "version": "0.0.9",
+  "version": "0.0.10",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -43,6 +43,7 @@
     "husky": "9.1.7",
     "jsdom": "^26.1.0",
     "lint-staged": "17.0.5",
+    "supabase": "^2.101.0",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.59.2",
     "vite": "^8.0.12",

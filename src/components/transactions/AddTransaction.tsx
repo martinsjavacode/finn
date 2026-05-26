@@ -5,7 +5,7 @@ import type { Category, Owner, TransactionType, CardListItem } from '../../types
 import { useTransactionMutations } from '../../hooks/useTransactionMutations'
 import { useModal } from '../../hooks/useModal'
 import { showError, toast } from '../../lib/toast'
-import { categoryOptions } from '../../utils/format'
+import { categoryOptions, resolveInvoiceMonth, monthLabel } from '../../utils/format'
 import Select from '../ui/Select'
 import Button from '../ui/Button'
 
@@ -38,9 +38,12 @@ export default function AddTransaction({ categories, cardsList, month, onClose }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    const resolvedMonth = target === 'credit_card'
+      ? resolveInvoiceMonth(txDate, cardsList.find(c => c.name === card)!) + '-01'
+      : txDate
     if (installment) {
       const { error } = await supabase.from('installment_purchases').insert({
-        start_month: txDate,
+        start_month: resolvedMonth,
         description,
         total_amount: +amount,
         installments: +installments,
@@ -48,7 +51,7 @@ export default function AddTransaction({ categories, cardsList, month, onClose }
         target,
         card: target === 'credit_card' ? card : null,
         category,
-      } as never)
+      })
       if (error) return showError(error)
       queryClient.invalidateQueries({ queryKey: ['transactions'] })
       queryClient.invalidateQueries({ queryKey: ['creditCards'] })
@@ -57,7 +60,7 @@ export default function AddTransaction({ categories, cardsList, month, onClose }
     } else if (target === 'transaction') {
       addTransaction.mutate({ month: txDate, description, amount: +amount, type, category, owner, paid: false })
     } else {
-      addCreditCard.mutate({ month: txDate, description, amount: +amount, card, owner, category })
+      addCreditCard.mutate({ month: resolvedMonth, description, amount: +amount, card, owner, category })
     }
     onClose()
   }
@@ -109,6 +112,13 @@ export default function AddTransaction({ categories, cardsList, month, onClose }
             </label>
           )}
         </div>
+
+        {target === 'credit_card' && txDate && card && (
+          <div className="form-preview">
+            <span>Fatura de</span>
+            <strong>{monthLabel(resolveInvoiceMonth(txDate, cardsList.find(c => c.name === card)!))}</strong>
+          </div>
+        )}
 
         <div className="form-row" style={{ alignItems: 'flex-end' }}>
           <div className="form-toggle-group">

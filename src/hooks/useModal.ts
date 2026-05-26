@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { useFocusTrap } from './useFocusTrap'
 
 export function useModal<T extends HTMLElement = HTMLElement>(onClose: () => void) {
   const ref = useRef<T>(null)
@@ -6,10 +7,11 @@ export function useModal<T extends HTMLElement = HTMLElement>(onClose: () => voi
 
   useEffect(() => { onCloseRef.current = onClose })
 
+  useFocusTrap(ref)
+
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onCloseRef.current() }
     document.addEventListener('keydown', handleKey)
-    ref.current?.querySelector<HTMLElement>('input, select, button')?.focus()
     return () => document.removeEventListener('keydown', handleKey)
   }, [])
 

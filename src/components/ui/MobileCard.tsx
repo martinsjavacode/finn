@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from 'react'
+import type { CSSProperties, ReactNode, KeyboardEvent } from 'react'
 import './MobileCard.css'
 
 interface Props {
@@ -12,8 +12,18 @@ interface Props {
 }
 
 export default function MobileCard({ status, title, value, subtitle, onTap, className = '', style }: Props) {
+  const interactive = !!onTap
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if ((e.key === 'Enter' || e.key === ' ') && onTap) { e.preventDefault(); onTap() }
+  }
+
   return (
-    <div className={`mcard ${className}`} onClick={onTap} style={style}>
+    <div
+      className={`mcard ${className}`}
+      onClick={onTap}
+      style={style}
+      {...(interactive && { role: 'button', tabIndex: 0, onKeyDown: handleKeyDown })}
+    >
       {status && <div className="mcard-status">{status}</div>}
       <div className="mcard-body">
         <div className="mcard-row">

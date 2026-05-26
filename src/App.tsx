@@ -1,124 +1,39 @@
-import { useState } from 'react'
+import { lazy, Suspense, type ReactNode } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
-import { useAuth, useAppData, useTransactions } from './hooks'
-import type { Owner } from './types/database'
-import { categoryOptions } from './utils/format'
+import { useAuth } from './hooks'
 import Auth from './components/auth/Auth'
 import Sidebar from './components/ui/Sidebar'
-import Select from './components/ui/Select'
-import SummaryCards from './components/dashboard/SummaryCards'
-import TransactionsTable from './components/transactions/TransactionsTable'
-import CardsTable from './components/transactions/CardsTable'
-import AddTransaction from './components/transactions/AddTransaction'
-import RecurringPage from './components/recurring/RecurringTemplates'
-import Dashboard from './components/dashboard/Dashboard'
-import Projection from './components/projection/Projection'
-import BudgetsPage from './components/budgets/BudgetsPage'
-import AccessPage from './components/access/AccessPage'
-import CategoriesPage from './components/categories/CategoriesPage'
-import CardsPage from './components/cards/CardsPage'
-import RolesPage from './components/roles/RolesPage'
-import Button from './components/ui/Button'
 import ToastContainer from './components/ui/Toast'
 import ConfirmDialog from './components/ui/ConfirmDialog'
+import { TableSkeleton } from './components/ui/Skeleton'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import ErrorBoundary from './components/ui/ErrorBoundary'
 import './App.css'
+
+const Dashboard = lazy(() => import('./components/dashboard/Dashboard'))
+const TransactionsPage = lazy(() => import('./components/transactions/TransactionsPage'))
+const RecurringPage = lazy(() => import('./components/recurring/RecurringTemplates'))
+const Projection = lazy(() => import('./components/projection/Projection'))
+const BudgetsPage = lazy(() => import('./components/budgets/BudgetsPage'))
+const AccessPage = lazy(() => import('./components/access/AccessPage'))
+const CategoriesPage = lazy(() => import('./components/categories/CategoriesPage'))
+const CardsPage = lazy(() => import('./components/cards/CardsPage'))
+const RolesPage = lazy(() => import('./components/roles/RolesPage'))
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 1000 * 60 * 5, retry: 1, refetchOnWindowFocus: false } },
 })
 
-function TransactionsPage() {
-  const { session, can } = useAuth()
-  const { categories, cardsList } = useAppData(!!session)
-  const { month, setMonth, months, transactions, cards } = useTransactions(!!session)
-  const [owner, setOwner] = useState<'all' | Owner>('all')
-  const [search, setSearch] = useState('')
-  const [showAdd, setShowAdd] = useState(false)
-  const [catFilter, setCatFilter] = useState('all')
-
-  const ft = transactions.filter(r =>
-    (owner === 'all' || r.owner === owner) &&
-    (!search || r.description.toLowerCase().includes(search.toLowerCase())) &&
-    (catFilter === 'all' || r.category === catFilter)
-  )
-  const fc = cards.filter(r =>
-    (owner === 'all' || r.owner === owner) &&
-    (!search || r.description.toLowerCase().includes(search.toLowerCase())) &&
-    (catFilter === 'all' || r.category === catFilter)
-  )
-
-  const income = ft.filter(r => r.type === 'income').reduce((s, r) => s + +r.amount, 0)
-  const expense = ft.filter(r => r.type === 'expense').reduce((s, r) => s + +r.amount, 0)
-  const cardTotal = fc.reduce((s, r) => s + +r.amount, 0)
-
-  const canCreate = can('transactions', 'create')
-  const canUpdate = can('transactions', 'update')
-  const canDelete = can('transactions', 'delete')
-
-  return (
-    <>
-      <div className="page-header">
-        <h2>Lançamentos</h2>
-        {canCreate && <Button onClick={() => setShowAdd(true)}>+ Novo</Button>}
-      </div>
-
-      <div className="controls">
-        <Select
-          value={month}
-          onChange={setMonth}
-          options={months.length ? months.map(m => ({ value: m, label: new Date(m + '-01T12:00:00').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }) })) : [{ value: '', label: 'Sem dados' }]}
-        />
-        <Select
-          value={catFilter}
-          onChange={setCatFilter}
-          options={[{ value: 'all', label: 'Todas categorias' }, ...categoryOptions(categories)]}
-        />
-        <Select
-          value={owner}
-          onChange={v => setOwner(v as 'all' | Owner)}
-          options={[{ value: 'all', label: 'Todos' }, { value: 'personal', label: 'Pessoal' }, { value: 'mother_in_law', label: 'Sogra' }]}
-        />
-        <input type="text" className="search-input" placeholder="🔍 Buscar..." value={search} onChange={e => setSearch(e.target.value)} />
-      </div>
-
-      <SummaryCards income={income} expense={expense} cardTotal={cardTotal} />
-
-      <TransactionsTable
-        transactions={ft}
-        categories={categories}
-        month={month}
-        canUpdate={canUpdate}
-        canDelete={canDelete}
-      />
-
-      <CardsTable
-        cards={fc}
-        cardsList={cardsList}
-        categories={categories}
-        month={month}
-        canUpdate={can('credit_cards', 'update')}
-        canDelete={can('credit_cards', 'delete')}
-      />
-
-      {showAdd && (
-        <AddTransaction
-          categories={categories}
-          cardsList={cardsList}
-          month={month}
-          onClose={() => setShowAdd(false)}
-        />
-      )}
-    </>
-  )
+function ProtectedRoute({ children, allowed }: { children: ReactNode; allowed: boolean }) {
+  if (!allowed) return <Navigate to="/" replace />
+  return <>{children}</>
 }
 
 function AppLayout() {
   const { session, loading, isOwner, unauthorized, can, signOut: logout } = useAuth()
   const navigate = useNavigate()
 
-  if (loading) return <div className="auth"><div className="skeleton" style={{ width: '120px', height: '2rem', margin: '0 auto' }} /><div className="skeleton" style={{ width: '200px', height: '1rem', margin: '1rem auto' }} /></div>
+  if (loading) return <div className="auth"><div className="skeleton" style={{ width: '120px', height: '2rem', margin: '0 auto' }} aria-hidden="true" /><div className="skeleton" style={{ width: '200px', height: '1rem', margin: '1rem auto' }} aria-hidden="true" /></div>
   if (!session) return <Auth />
   if (unauthorized) return (
     <div className="auth">
@@ -136,18 +51,22 @@ function AppLayout() {
       <a href="#main-content" className="skip-link">Pular para conteúdo</a>
       <Sidebar session={session} isOwner={isOwner} can={can} />
       <main className="main" id="main-content">
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/transactions" element={<TransactionsPage />} />
-          <Route path="/recurring" element={<RecurringPage />} />
-          <Route path="/projection" element={<Projection />} />
-          <Route path="/budgets" element={<BudgetsPage />} />
-          <Route path="/access" element={<AccessPage />} />
-          <Route path="/roles" element={<RolesPage />} />
-          <Route path="/categories" element={<CategoriesPage />} />
-          <Route path="/cards" element={<CardsPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+        <ErrorBoundary>
+          <Suspense fallback={<TableSkeleton />}>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/transactions" element={<ProtectedRoute allowed={can('transactions', 'read')}><TransactionsPage /></ProtectedRoute>} />
+              <Route path="/recurring" element={<ProtectedRoute allowed={can('recurring_templates', 'read')}><RecurringPage /></ProtectedRoute>} />
+              <Route path="/projection" element={<Projection />} />
+              <Route path="/budgets" element={<ProtectedRoute allowed={can('budgets', 'read')}><BudgetsPage /></ProtectedRoute>} />
+              <Route path="/categories" element={<ProtectedRoute allowed={can('categories', 'read')}><CategoriesPage /></ProtectedRoute>} />
+              <Route path="/cards" element={<ProtectedRoute allowed={can('cards', 'read')}><CardsPage /></ProtectedRoute>} />
+              <Route path="/access" element={<ProtectedRoute allowed={isOwner}><AccessPage /></ProtectedRoute>} />
+              <Route path="/roles" element={<ProtectedRoute allowed={isOwner}><RolesPage /></ProtectedRoute>} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
+        </ErrorBoundary>
       </main>
       <ToastContainer />
       <ConfirmDialog />

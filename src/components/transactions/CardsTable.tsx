@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useQueryClient, useQuery } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
+import Badge from '../ui/Badge'
 import type { CreditCard, CardListItem, Category, Owner } from '../../types/database'
 import { confirm } from '../../lib/confirm'
 import { showError, toast } from '../../lib/toast'
@@ -93,7 +94,7 @@ export default function CardsTable({ cards, cardsList, categories, month, canUpd
               <td>{categories.find(c => c.id === r.category)?.label ?? '-'}</td>
               <td>{r.current_installment && r.total_installments ? `${r.current_installment}/${r.total_installments}` : '-'}</td>
               <td>{fmt(+r.amount)}</td>
-              <td><span className={`badge ${r.owner === 'personal' ? 'badge-success' : 'badge-danger'}`}>{ownerLabel(r.owner)}</span></td>
+              <td><Badge variant={r.owner === 'personal' ? 'success' : 'danger'}>{ownerLabel(r.owner as Owner)}</Badge></td>
               {canEdit && (
                 <td>
                   {canUpdate && !r.installment_purchase_id && <Button variant="icon" aria-label="Editar" onClick={() => setEditing(r)}><Pencil size={14} /></Button>}
@@ -111,7 +112,7 @@ export default function CardsTable({ cards, cardsList, categories, month, canUpd
             key={r.id}
             title={r.description}
             value={fmt(+r.amount)}
-            subtitle={<>{new Date(r.month + 'T12:00:00').toLocaleDateString('pt-BR')} · {getLabel(r.card!)} · {categories.find(c => c.id === r.category)?.label ?? ''} · {ownerLabel(r.owner)}{r.current_installment ? ` · ${r.current_installment}/${r.total_installments}` : ''}</>}
+            subtitle={<>{new Date(r.month + 'T12:00:00').toLocaleDateString('pt-BR')} · {getLabel(r.card!)} · {categories.find(c => c.id === r.category)?.label ?? ''} · {ownerLabel(r.owner as Owner)}{r.current_installment ? ` · ${r.current_installment}/${r.total_installments}` : ''}</>}
             onTap={canUpdate && !r.installment_purchase_id ? () => setEditing(r) : canDelete ? () => handleDelete(r) : undefined}
             style={{ borderLeft: `3px solid ${getColor(r.card!)}` }}
           />
@@ -139,7 +140,7 @@ function EditCardModal({ card, cardsList, categories, onClose }: { card: CreditC
   const [amount, setAmount] = useState(String(card.amount))
   const [cardName, setCardName] = useState(card.card ?? '')
   const [category, setCategory] = useState(card.category ?? categories[0]?.id ?? '')
-  const [owner, setOwner] = useState<Owner>(card.owner)
+  const [owner, setOwner] = useState<Owner>(card.owner as Owner)
 
   const isInstallment = !!card.installment_purchase_id
 
@@ -149,14 +150,14 @@ function EditCardModal({ card, cardsList, categories, onClose }: { card: CreditC
 
     if (isInstallment) {
       const { error } = await supabase
-        .from('credit_cards')
-        .update(update as never)
+        .from('entries')
+        .update(update)
         .eq('installment_purchase_id', card.installment_purchase_id!)
         .gte('current_installment', card.current_installment!)
       if (error) return showError(error)
       toast(`${card.total_installments! - card.current_installment! + 1} parcelas atualizadas`)
     } else {
-      const { error } = await supabase.from('credit_cards').update(update as never).eq('id', card.id)
+      const { error } = await supabase.from('entries').update(update).eq('id', card.id)
       if (error) return showError(error)
       toast('Lançamento atualizado')
     }
