@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { fmt } from '../../utils/format'
 import { TableSkeleton } from '../ui/Skeleton'
-import MobileCard from '../ui/MobileCard'
+import '../categories/CategoriesPage.css'
 import '../dashboard/Dashboard.css'
 
 interface MonthProjection {
@@ -57,6 +57,8 @@ export default function Projection() {
   if (loading) return <div><h2 className="dashboard-title">Projeção Futura</h2><TableSkeleton rows={6} cols={4} /></div>
 
   const monthLabel = (ym: string) => new Date(ym + '-01T12:00:00').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+  const maxTotal = Math.max(...projections.map(p => p.total), 1)
+  const grandTotal = projections.reduce((s, p) => s + p.total, 0)
 
   return (
     <div>
@@ -65,34 +67,28 @@ export default function Projection() {
         Valores comprometidos nos próximos 6 meses (recorrentes + parcelamentos)
       </p>
 
-      <section>
-        <table className="desktop-table">
-          <thead>
-            <tr><th>Mês</th><th>Recorrentes</th><th>Parcelamentos</th><th>Total Comprometido</th></tr>
-          </thead>
-          <tbody>
-            {projections.map(p => (
-              <tr key={p.month}>
-                <td style={{ textTransform: 'capitalize' }}>{monthLabel(p.month)}</td>
-                <td>{fmt(p.recurring)}</td>
-                <td>{fmt(p.installments)}</td>
-                <td style={{ fontWeight: 700 }}>{fmt(p.total)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="card" style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
+        <h2>Total Comprometido</h2>
+        <p className="card-value">{fmt(grandTotal)}</p>
+      </div>
 
-        <div className="mobile-cards">
-          {projections.map(p => (
-            <MobileCard
-              key={p.month}
-              title={<span style={{ textTransform: 'capitalize' }}>{monthLabel(p.month)}</span>}
-              value={fmt(p.total)}
-              subtitle={<>Recorrentes {fmt(p.recurring)} · Parcelas {fmt(p.installments)}</>}
-            />
-          ))}
-        </div>
-      </section>
+      <div className="cat-grid">
+        {projections.map((p, i) => (
+          <div key={p.month} className="cat-card">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem' }}>
+              <h3 style={{ textTransform: 'capitalize', fontSize: '0.95rem', fontWeight: i === 0 ? 700 : 500 }}>{monthLabel(p.month)}</h3>
+              <span style={{ fontWeight: 700, fontSize: '1rem' }}>{fmt(p.total)}</span>
+            </div>
+            <div style={{ width: '100%', height: 6, borderRadius: 3, background: 'rgba(255,255,255,0.05)', overflow: 'hidden', marginBottom: '0.6rem' }}>
+              <div style={{ height: '100%', borderRadius: 3, width: `${(p.total / maxTotal) * 100}%`, background: i === 0 ? 'var(--purple)' : 'var(--gradient-1)' }} />
+            </div>
+            <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+              <span>Recorrentes: {fmt(p.recurring)}</span>
+              <span>Parcelas: {fmt(p.installments)}</span>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
