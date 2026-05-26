@@ -26,26 +26,25 @@ export default function Projection() {
           ...r, total: +r.recurring + +r.installments
         })))
       } else {
-        // Fallback: método antigo (N+1)
+        // Fallback: parallelized
         const { data: templates } = await supabase.from('recurring_templates').select('amount').eq('active', true).eq('type', 'expense') as { data: { amount: number }[] | null }
         const monthlyRecurring = (templates ?? []).reduce((s, t) => s + +t.amount, 0)
         const today = new Date()
-        const results: MonthProjection[] = []
 
-        for (let i = 0; i < 6; i++) {
+        const results = await Promise.all(Array.from({ length: 6 }, async (_, i) => {
           const d = new Date(today.getFullYear(), today.getMonth() + i, 1)
           const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
           const start = `${ym}-01`
           const nextM = d.getMonth() === 11 ? `${d.getFullYear() + 1}-01-01` : `${d.getFullYear()}-${String(d.getMonth() + 2).padStart(2, '0')}-01`
 
-          const { data: cards } = await supabase.from('entries').select('amount').eq('payment_method', 'credit_card').gte('month', start).lt('month', nextM)
-          const { data: txInstall } = await supabase.from('entries').select('amount').neq('payment_method', 'credit_card').gte('month', start).lt('month', nextM).not('total_installments', 'is', null)
+          const [{ data: cards }, { data: txInstall }] = await Promise.all([
+            supabase.from('entries').select('amount').eq('payment_method', 'credit_card').gte('month', start).lt('month', nextM),
+            supabase.from('entries').select('amount').neq('payment_method', 'credit_card').gte('month', start).lt('month', nextM).not('total_installments', 'is', null),
+          ])
 
-          const cardTotal = (cards ?? []).reduce((s, r) => s + +r.amount, 0)
-          const txTotal = (txInstall ?? []).reduce((s, r) => s + +r.amount, 0)
-
-          results.push({ month: ym, recurring: monthlyRecurring, installments: cardTotal + txTotal, total: monthlyRecurring + cardTotal + txTotal })
-        }
+          const installments = (cards ?? []).reduce((s, r) => s + +r.amount, 0) + (txInstall ?? []).reduce((s, r) => s + +r.amount, 0)
+          return { month: ym, recurring: monthlyRecurring, installments, total: monthlyRecurring + installments }
+        }))
         setProjections(results)
       }
       setLoading(false)

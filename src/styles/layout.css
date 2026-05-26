@@ -45,7 +45,8 @@
 .sidebar-group { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); padding: 0.8rem 0.8rem 0.3rem; font-weight: 600; }
 .sidebar-user { font-size: 0.75rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-.main { flex: 1; margin-left: 240px; padding: 2rem 3rem; max-width: calc(100vw - 240px); animation: fadeIn 0.2s ease; }
+.main { flex: 1; margin-left: 240px; padding: 2rem 3rem; max-width: calc(100vw - 240px); }
+.main > * { max-width: var(--content-max); margin-left: auto; margin-right: auto; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
 @media (min-width: 1600px) { .main { padding: 2rem 6rem; } }

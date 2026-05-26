@@ -1,7 +1,7 @@
 import { supabase } from '../lib/supabase'
 import type { Transaction, CreditCard } from '../types/database'
 import type { Database } from '../types/supabase-generated'
-import { monthRange, toYearMonth } from '../utils/format'
+import { monthRange } from '../utils/format'
 
 type EntryInsert = Database['public']['Tables']['entries']['Insert']
 type EntryUpdate = Database['public']['Tables']['entries']['Update']
@@ -35,7 +35,7 @@ export async function fetchCreditCards(ym: string) {
 
 export async function fetchAvailableMonths() {
   const { data } = await supabase.from('entries').select('month').order('month', { ascending: false })
-  return [...new Set((data ?? []).map(r => toYearMonth(r.month)))].sort()
+  return [...new Set((data ?? []).map(r => r.month.substring(0, 7)))].sort()
 }
 
 export async function updateTransaction(id: string, data: Partial<Transaction>) {

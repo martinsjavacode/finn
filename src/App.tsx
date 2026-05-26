@@ -51,20 +51,22 @@ function AppLayout() {
       <a href="#main-content" className="skip-link">Pular para conteúdo</a>
       <Sidebar session={session} isOwner={isOwner} can={can} />
       <main className="main" id="main-content">
-        <Suspense fallback={<TableSkeleton />}>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/transactions" element={<ProtectedRoute allowed={can('transactions', 'read')}><TransactionsPage /></ProtectedRoute>} />
-            <Route path="/recurring" element={<ProtectedRoute allowed={can('recurring_templates', 'read')}><RecurringPage /></ProtectedRoute>} />
-            <Route path="/projection" element={<Projection />} />
-            <Route path="/budgets" element={<ProtectedRoute allowed={can('budgets', 'read')}><BudgetsPage /></ProtectedRoute>} />
-            <Route path="/categories" element={<ProtectedRoute allowed={can('categories', 'read')}><CategoriesPage /></ProtectedRoute>} />
-            <Route path="/cards" element={<ProtectedRoute allowed={can('cards', 'read')}><CardsPage /></ProtectedRoute>} />
-            <Route path="/access" element={<ProtectedRoute allowed={isOwner}><AccessPage /></ProtectedRoute>} />
-            <Route path="/roles" element={<ProtectedRoute allowed={isOwner}><RolesPage /></ProtectedRoute>} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Suspense>
+        <ErrorBoundary>
+          <Suspense fallback={<TableSkeleton />}>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/transactions" element={<ProtectedRoute allowed={can('transactions', 'read')}><TransactionsPage /></ProtectedRoute>} />
+              <Route path="/recurring" element={<ProtectedRoute allowed={can('recurring_templates', 'read')}><RecurringPage /></ProtectedRoute>} />
+              <Route path="/projection" element={<Projection />} />
+              <Route path="/budgets" element={<ProtectedRoute allowed={can('budgets', 'read')}><BudgetsPage /></ProtectedRoute>} />
+              <Route path="/categories" element={<ProtectedRoute allowed={can('categories', 'read')}><CategoriesPage /></ProtectedRoute>} />
+              <Route path="/cards" element={<ProtectedRoute allowed={can('cards', 'read')}><CardsPage /></ProtectedRoute>} />
+              <Route path="/access" element={<ProtectedRoute allowed={isOwner}><AccessPage /></ProtectedRoute>} />
+              <Route path="/roles" element={<ProtectedRoute allowed={isOwner}><RolesPage /></ProtectedRoute>} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
+        </ErrorBoundary>
       </main>
       <ToastContainer />
       <ConfirmDialog />
