@@ -1,9 +1,15 @@
 /* Chart Legend */
+.chart-hint { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.8rem; }
 .chart-legend { display: flex; gap: 1.2rem; margin-bottom: 1rem; }
+
+/* Fade-in */
+.dashboard-fade { animation: fadeIn 0.3s ease-in; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 .legend-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: var(--text-muted); }
 .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
 .legend-dot.green { background: var(--green); }
 .legend-dot.red { background: var(--red); }
+.legend-dot.purple { background: var(--purple); }
 
 /* Line Chart */
 .line-chart-container { width: 100%; }
@@ -12,6 +18,12 @@
 .chart-line { stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; fill: none; }
 .chart-line.income { stroke: var(--green); }
 .chart-line.expense { stroke: var(--red); }
+.chart-line.trend { stroke: var(--purple); stroke-dasharray: 6 4; stroke-width: 2; opacity: 0.7; }
+.chart-area-balance { fill: rgba(102, 126, 234, 0.06); stroke: none; }
+.chart-tooltip rect { fill: var(--card); stroke: var(--border); stroke-width: 1; }
+.chart-tooltip text { font-size: 9px; font-weight: 600; }
+.tooltip-income { fill: var(--green); }
+.tooltip-expense { fill: var(--red); }
 .chart-dot { transition: r 0.2s; cursor: pointer; }
 .chart-dot.income { fill: var(--green); }
 .chart-dot.expense { fill: var(--red); }
@@ -65,3 +77,12 @@
 .alert-desc { flex: 1; font-size: 0.85rem; }
 .alert-amount { font-size: 0.85rem; font-weight: 600; }
 .alert-badge { font-size: 0.68rem; background: rgba(255, 107, 107, 0.15); color: var(--red); padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+
+/* Summary Cards */
+.dashboard-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+.summary-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; display: flex; flex-direction: column; gap: 0.3rem; }
+.summary-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em; }
+.summary-value { font-size: 1.2rem; font-weight: 700; }
+.summary-value.green { color: var(--green); }
+.summary-value.red { color: var(--red); }
+@media (max-width: 600px) { .dashboard-summary { grid-template-columns: 1fr; } }

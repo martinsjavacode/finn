@@ -140,6 +140,8 @@ migrations/
 
 ### Dashboard
 - Gráfico de evolução anual em linhas (receita vs despesa)
+- Linha de tendência (média móvel 3 meses)
+- Cards de resumo do mês (receita, despesa, saldo)
 - Gráfico de pizza por categoria
 - Orçamento por categoria (limite vs gasto)
 - Progresso de pagamento do mês

@@ -20,6 +20,7 @@ export default function Dashboard({ categories }: Props) {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
   })
   const [loading, setLoading] = useState(true)
+  const [tooltip, setTooltip] = useState<{ i: number } | null>(null)
 
   useEffect(() => {
     ;(async () => {
@@ -62,12 +63,27 @@ export default function Dashboard({ categories }: Props) {
 
   if (loading) return <div><h2 className="dashboard-title">Dashboard</h2><ChartSkeleton /><CardsSkeleton /></div>
 
+  if (!monthsData.length) return (
+    <div className="dashboard-fade">
+      <h2 className="dashboard-title">Dashboard</h2>
+      <section><p className="empty">Nenhum dado encontrado. Adicione lançamentos para visualizar o dashboard.</p></section>
+    </div>
+  )
+
   // Evolução anual
   const maxValue = Math.max(...monthsData.flatMap(d => [d.income, d.expense]), 1)
 
+  // Média móvel 3 meses (tendência de despesas)
+  const trend = monthsData.map((_, i) => {
+    const slice = monthsData.slice(Math.max(0, i - 2), i + 1)
+    return slice.reduce((s, d) => s + d.expense, 0) / slice.length
+  })
+
   // Percentual por categoria (despesas do mês selecionado)
   const expenses = currentTransactions.filter(r => r.type === 'expense')
+  const totalIncome = currentTransactions.filter(r => r.type === 'income').reduce((s, r) => s + +r.amount, 0)
   const totalExpense = expenses.reduce((s, r) => s + +r.amount, 0)
+  const balance = totalIncome - totalExpense
   const byCat: Record<string, number> = {}
   for (const r of expenses) {
     const label = r.categories?.label ?? 'Outros'
@@ -95,15 +111,17 @@ export default function Dashboard({ categories }: Props) {
   }
 
   return (
-    <div>
+    <div className="dashboard-fade">
       <h2 className="dashboard-title">Dashboard</h2>
 
       {/* Evolução Anual */}
       <section>
         <h2>Evolução Anual</h2>
+        <p className="chart-hint">Clique em um mês para ver detalhes. A linha tracejada indica a tendência: se está subindo, seus gastos estão crescendo; se está descendo, estão diminuindo.</p>
         <div className="chart-legend">
           <span className="legend-item"><span className="legend-dot green"></span>Receita</span>
           <span className="legend-item"><span className="legend-dot red"></span>Despesa</span>
+          <span className="legend-item"><span className="legend-dot purple"></span>Tendência</span>
         </div>
         <div className="line-chart-container">
           <svg className="line-chart" viewBox="0 0 840 220">
@@ -112,24 +130,44 @@ export default function Dashboard({ categories }: Props) {
               const pad = 35
               const usable = w - pad * 2
               const getX = (i: number) => monthsData.length === 1 ? w / 2 : (i / (monthsData.length - 1)) * usable + pad
+              const getY = (v: number) => 170 - (v / maxValue) * 150
               return (
                 <>
                   {/* Grid lines */}
                   {[0.25, 0.5, 0.75].map(p => (
                     <line key={p} x1={pad} y1={p * 160 + 10} x2={w - pad} y2={p * 160 + 10} className="grid-line" />
                   ))}
+                  {/* Balance area (income - expense) */}
+                  <polygon className="chart-area-balance"
+                    points={[
+                      ...monthsData.map((d, i) => `${getX(i)},${getY(d.income)}`),
+                      ...monthsData.map((_, i) => `${getX(monthsData.length - 1 - i)},${getY(monthsData[monthsData.length - 1 - i].expense)}`)
+                    ].join(' ')} />
                   {/* Income line */}
                   <polyline fill="none" className="chart-line income"
-                    points={monthsData.map((d, i) => `${getX(i)},${170 - (d.income / maxValue) * 150}`).join(' ')} />
+                    points={monthsData.map((d, i) => `${getX(i)},${getY(d.income)}`).join(' ')} />
                   {/* Expense line */}
                   <polyline fill="none" className="chart-line expense"
-                    points={monthsData.map((d, i) => `${getX(i)},${170 - (d.expense / maxValue) * 150}`).join(' ')} />
-                  {/* Dots + Labels */}
+                    points={monthsData.map((d, i) => `${getX(i)},${getY(d.expense)}`).join(' ')} />
+                  {/* Trend line */}
+                  <polyline fill="none" className="chart-line trend"
+                    points={monthsData.map((_, i) => `${getX(i)},${getY(trend[i])}`).join(' ')} />
+                  {/* Dots + Labels + Tooltip */}
                   {monthsData.map((d, i) => (
-                    <g key={d.month} onClick={() => setSelectedMonth(d.month)} style={{ cursor: 'pointer' }}>
-                      <circle cx={getX(i)} cy={170 - (d.income / maxValue) * 150} r="4" className="chart-dot income"><title>{fmt(d.income)}</title></circle>
-                      <circle cx={getX(i)} cy={170 - (d.expense / maxValue) * 150} r="4" className="chart-dot expense"><title>{fmt(d.expense)}</title></circle>
+                    <g key={d.month} onClick={() => { setSelectedMonth(d.month); setTooltip(tooltip?.i === i ? null : { i }) }} style={{ cursor: 'pointer' }}>
+                      <circle cx={getX(i)} cy={getY(d.income)} r="4" className="chart-dot income" />
+                      <circle cx={getX(i)} cy={getY(d.expense)} r="4" className="chart-dot expense" />
                       <text x={getX(i)} y="200" textAnchor="middle" className={`chart-label ${d.month === selectedMonth ? 'active' : ''}`}>{monthLabel(d.month)}</text>
+                      {tooltip?.i === i && (() => {
+                        const ty = getY(d.income) < 45 ? getY(d.income) + 10 : getY(d.income) - 38
+                        return (
+                          <g className="chart-tooltip">
+                            <rect x={getX(i) - 55} y={ty} width="110" height="32" rx="6" />
+                            <text x={getX(i)} y={ty + 14} textAnchor="middle" className="tooltip-income">{fmt(d.income)}</text>
+                            <text x={getX(i)} y={ty + 26} textAnchor="middle" className="tooltip-expense">{fmt(d.expense)}</text>
+                          </g>
+                        )
+                      })()}
                     </g>
                   ))}
                 </>
@@ -143,6 +181,22 @@ export default function Dashboard({ categories }: Props) {
       <div className="dashboard-month-filter">
         <span>Detalhes de:</span>
         <input type="month" className="input-month" value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)} />
+      </div>
+
+      {/* Resumo do mês */}
+      <div className="dashboard-summary">
+        <div className="summary-card">
+          <span className="summary-label">Receita</span>
+          <span className="summary-value green">{fmt(totalIncome)}</span>
+        </div>
+        <div className="summary-card">
+          <span className="summary-label">Despesa</span>
+          <span className="summary-value red">{fmt(totalExpense)}</span>
+        </div>
+        <div className="summary-card">
+          <span className="summary-label">Saldo</span>
+          <span className={`summary-value ${balance >= 0 ? 'green' : 'red'}`}>{fmt(balance)}</span>
+        </div>
       </div>
 
       {/* Duas colunas */}

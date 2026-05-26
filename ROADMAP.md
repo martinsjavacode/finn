@@ -34,6 +34,8 @@
 - [x] Redirect para `/` ao sair
 - [x] Paginação client-side com seleção de itens por página
 - [x] Cor do cartão como indicador visual nos lançamentos
+- [x] Gráfico de tendência (média móvel de gastos)
+- [x] Cards de resumo no dashboard (receita/despesa/saldo do mês)
 
 ## 🎯 Curto prazo (quick wins)
 
@@ -41,7 +43,6 @@
 - [ ] Resumo anual (total receita/despesa/saldo do ano)
 - [ ] Comparativo mês anterior (% variação no dashboard)
 - [ ] Duplicar mês (copiar lançamentos como base para o próximo)
-- [ ] Gráfico de tendência (média móvel de gastos)
 
 ## 🔧 Técnico (qualidade)
 
