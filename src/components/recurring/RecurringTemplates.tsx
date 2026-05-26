@@ -31,7 +31,7 @@ export default function RecurringPage() {
   const [description, setDescription] = useState('')
   const [amount, setAmount] = useState('')
   const [type, setType] = useState('expense')
-  const [target, setTarget] = useState('transaction')
+  const [target, setTarget] = useState('pix')
   const [category, setCategory] = useState(categories[0]?.id ?? '')
   const [card, setCard] = useState<Card>(cardsList[0]?.name ?? '')
   const [owner, setOwner] = useState<Owner>('personal')
@@ -46,7 +46,7 @@ export default function RecurringPage() {
 
   const saveMutation = useMutation({
     mutationFn: async () => {
-      const payload = { description, amount: +amount, type, target, category: target === 'transaction' ? category : null, card: target === 'credit_card' ? card : null, owner, day }
+      const payload = { description, amount: +amount, type, target, category: target === 'pix' ? category : null, card: target === 'credit_card' ? card : null, owner, day }
       if (editingId) {
         const { error } = await supabase.from('recurring_templates').update(payload).eq('id', editingId); if (error) throw error
       } else {
@@ -70,7 +70,7 @@ export default function RecurringPage() {
   })
 
   const openNew = () => {
-    setEditingId(null); setDescription(''); setAmount(''); setType('expense'); setTarget('transaction')
+    setEditingId(null); setDescription(''); setAmount(''); setType('expense'); setTarget('pix')
     setCategory(categories[0]?.id ?? ''); setCard(cardsList[0]?.name ?? ''); setOwner('personal'); setDay(1)
     setShowForm(true)
   }
@@ -113,10 +113,10 @@ export default function RecurringPage() {
           <label className="form-label">Dia do vencimento<input type="number" min={1} max={31} value={day} onChange={e => setDay(+e.target.value)} required /></label>
           <label className="form-label">Forma de pagamento</label>
           <div className="form-tabs">
-            <Button variant="tab" active={target === 'transaction'} onClick={() => setTarget('transaction')}>Boleto/Pix</Button>
+            <Button variant="tab" active={target === 'pix'} onClick={() => setTarget('pix')}>Pix</Button>
             <Button variant="tab" active={target === 'credit_card'} onClick={() => setTarget('credit_card')}>Cartão</Button>
           </div>
-          {target === 'transaction' && (<>
+          {target === 'pix' && (<>
             <label className="form-label">Tipo</label>
             <div className="form-tabs">
               <Button variant="tab" active={type === 'expense'} onClick={() => setType('expense')}>Despesa</Button>

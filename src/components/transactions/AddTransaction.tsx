@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
 import type { Category, Owner, TransactionType, CardListItem } from '../../types/database'
@@ -20,7 +21,7 @@ export default function AddTransaction({ categories, cardsList, month, onClose }
   const modalRef = useModal<HTMLFormElement>(onClose)
   const queryClient = useQueryClient()
   const { addTransaction, addCreditCard } = useTransactionMutations(month)
-  const [target, setTarget] = useState<'transaction' | 'credit_card'>('transaction')
+  const [target, setTarget] = useState<'pix' | 'credit_card'>('pix')
   const [type, setType] = useState<TransactionType>('expense')
   const [description, setDescription] = useState('')
   const [amount, setAmount] = useState('')
@@ -57,7 +58,7 @@ export default function AddTransaction({ categories, cardsList, month, onClose }
       queryClient.invalidateQueries({ queryKey: ['creditCards'] })
       queryClient.invalidateQueries({ queryKey: ['months'] })
       toast(`Parcelamento criado (${installments}x)`)
-    } else if (target === 'transaction') {
+    } else if (target === 'pix') {
       addTransaction.mutate({ month: txDate, description, amount: +amount, type, category, owner, paid: false })
     } else {
       addCreditCard.mutate({ month: resolvedMonth, description, amount: +amount, card, owner, category })
@@ -65,7 +66,7 @@ export default function AddTransaction({ categories, cardsList, month, onClose }
     onClose()
   }
 
-  return (
+  return createPortal(
     <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-label="Novo Lançamento">
       <form className="modal" ref={modalRef} onClick={e => e.stopPropagation()} onSubmit={handleSubmit}>
         <h2>Novo Lançamento</h2>
@@ -91,12 +92,12 @@ export default function AddTransaction({ categories, cardsList, month, onClose }
           <div className="form-grow">
             <label className="form-label">Pagamento</label>
             <div className="form-tabs">
-              <Button variant="tab" active={target === 'transaction'} onClick={() => setTarget('transaction')}>Boleto/Pix</Button>
+              <Button variant="tab" active={target === 'pix'} onClick={() => setTarget('pix')}>Pix</Button>
               <Button variant="tab" active={target === 'credit_card'} onClick={() => setTarget('credit_card')}>Cartão</Button>
             </div>
           </div>
 
-          {target === 'transaction' && (
+          {target === 'pix' && (
             <div className="form-grow">
               <label className="form-label">Tipo</label>
               <div className="form-tabs">
@@ -156,6 +157,7 @@ export default function AddTransaction({ categories, cardsList, month, onClose }
           <Button variant="primary" type="submit">Salvar</Button>
         </div>
       </form>
-    </div>
+    </div>,
+    document.body
   )
 }
