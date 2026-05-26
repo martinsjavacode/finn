@@ -7,7 +7,7 @@ export async function fetchCategories() {
 }
 
 export async function fetchActiveCards() {
-  const { data, error } = await supabase.from('cards').select('name, label, color').eq('active', true).order('label')
+  const { data, error } = await supabase.from('cards').select('name, label, color, closing_day, due_day, closing_rule, days_before_due').eq('active', true).order('label')
   return { data: (data ?? []) as CardListItem[], error }
 }
 

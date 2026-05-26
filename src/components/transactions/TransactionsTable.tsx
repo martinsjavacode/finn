@@ -3,6 +3,7 @@ import { useState } from 'react'
 import type { Transaction, Category, Owner, TransactionType } from '../../types/database'
 import { confirm } from '../../lib/confirm'
 import { fmt, ownerLabel, categoryOptions } from '../../utils/format'
+import Badge from '../ui/Badge'
 import { useTransactionMutations } from '../../hooks/useTransactionMutations'
 import Button from '../ui/Button'
 import Select from '../ui/Select'
@@ -105,8 +106,8 @@ export default function TransactionsTable({ transactions, categories, month, can
                   <td>{r.type === 'income' ? 'Receita' : 'Despesa'}</td>
                   <td>{r.current_installment && r.total_installments ? `${r.current_installment}/${r.total_installments}` : '-'}</td>
                   <td>{fmt(+r.amount)}</td>
-                  <td><span className={`badge ${r.owner === 'personal' ? 'badge-success' : 'badge-danger'}`}>{ownerLabel(r.owner)}</span></td>
-                  <td>{canUpdate ? <button className={`paid-btn ${r.paid ? 'paid' : ''}`} aria-label={r.paid ? 'Marcar como pendente' : 'Marcar como pago'} onClick={() => togglePaid(r.id, r.paid)}>{r.paid ? <Check size={14} /> : <Circle size={14} />}</button> : <span className={`badge ${r.paid ? 'badge-success' : 'badge-danger'}`}>{r.paid ? 'Pago' : 'Pendente'}</span>}</td>
+                  <td><Badge variant={r.owner === 'personal' ? 'success' : 'danger'}>{ownerLabel(r.owner as Owner)}</Badge></td>
+                  <td>{canUpdate ? <button className={`paid-btn ${r.paid ? 'paid' : ''}`} aria-label={r.paid ? 'Marcar como pendente' : 'Marcar como pago'} onClick={() => togglePaid(r.id, r.paid)}>{r.paid ? <Check size={14} /> : <Circle size={14} />}</button> : <Badge variant={r.paid ? 'success' : 'danger'}>{r.paid ? 'Pago' : 'Pendente'}</Badge>}</td>
                   {canEdit && (
                     <td>
                       {canUpdate && !r.installment_purchase_id && <Button variant="icon" aria-label="Editar" onClick={() => startEdit(r)}><Pencil size={14} /></Button>}
@@ -126,10 +127,10 @@ export default function TransactionsTable({ transactions, categories, month, can
           <MobileCard
             key={r.id}
             className={r.paid ? 'row-paid' : ''}
-            status={canUpdate ? <button className={`paid-btn ${r.paid ? 'paid' : ''}`} aria-label={r.paid ? 'Marcar como pendente' : 'Marcar como pago'} onClick={(e) => { e.stopPropagation(); togglePaid(r.id, r.paid) }}>{r.paid ? <Check size={14} /> : <Circle size={14} />}</button> : <span className={`badge ${r.paid ? 'badge-success' : 'badge-danger'}`}>{r.paid ? 'Pago' : 'Pendente'}</span>}
+            status={canUpdate ? <button className={`paid-btn ${r.paid ? 'paid' : ''}`} aria-label={r.paid ? 'Marcar como pendente' : 'Marcar como pago'} onClick={(e) => { e.stopPropagation(); togglePaid(r.id, r.paid) }}>{r.paid ? <Check size={14} /> : <Circle size={14} />}</button> : <Badge variant={r.paid ? 'success' : 'danger'}>{r.paid ? 'Pago' : 'Pendente'}</Badge>}
             title={r.description}
             value={fmt(+r.amount)}
-            subtitle={<>{getCatLabel(r)} · {new Date(r.month + 'T12:00:00').toLocaleDateString('pt-BR')} · {ownerLabel(r.owner)}{r.current_installment ? ` · ${r.current_installment}/${r.total_installments}` : ''}</>}
+            subtitle={<>{getCatLabel(r)} · {new Date(r.month + 'T12:00:00').toLocaleDateString('pt-BR')} · {ownerLabel(r.owner as Owner)}{r.current_installment ? ` · ${r.current_installment}/${r.total_installments}` : ''}</>}
             onTap={canUpdate && !r.installment_purchase_id ? () => startEdit(r) : undefined}
           />
         )) : <p className="empty">Nenhum lançamento</p>}
