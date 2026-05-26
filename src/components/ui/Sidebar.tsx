@@ -34,12 +34,11 @@ export default function Sidebar({ session, isOwner, can }: Props) {
   return (
     <>
       <div className="mobile-header">
+        <button className="hamburger" onClick={() => setOpen(true)} aria-label="Abrir menu">
+          <Menu size={18} />
+        </button>
         <span className="mobile-header-title">{pageTitles[location.pathname] ?? 'Finn'}</span>
       </div>
-
-      <button className="hamburger" onClick={() => setOpen(true)} aria-label="Abrir menu">
-        <Menu size={18} />
-      </button>
 
       {open && <div className="sidebar-overlay" onClick={() => setOpen(false)} />}
 

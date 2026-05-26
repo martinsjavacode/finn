@@ -6,7 +6,7 @@ import { supabase } from '../../lib/supabase'
 import type { CreditCard, CardListItem, Category, Owner } from '../../types/database'
 import { confirm } from '../../lib/confirm'
 import { showError, toast } from '../../lib/toast'
-import { fmt, ownerLabel } from '../../utils/format'
+import { fmt, ownerLabel, categoryOptions } from '../../utils/format'
 import { fetchCardInvoice, upsertCardInvoice } from '../../services/transactions'
 import { useTransactionMutations } from '../../hooks/useTransactionMutations'
 import { useModal } from '../../hooks/useModal'
@@ -35,7 +35,7 @@ export default function CardsTable({ cards, cardsList, categories, month, canUpd
 
   const getLabel = (name: string) => cardsList.find(c => c.name === name)?.label ?? name
   const getColor = (name: string) => cardsList.find(c => c.name === name)?.color ?? '#888'
-  const cardNames = ['all', ...new Set(cards.map(r => r.card))]
+  const cardNames = ['all', ...new Set(cards.map(r => r.card!).filter(Boolean))]
   const sorted = [...cards].sort((a, b) => a.month.localeCompare(b.month))
   const filtered = cardFilter === 'all' ? sorted : sorted.filter(r => r.card === cardFilter)
 
@@ -89,7 +89,7 @@ export default function CardsTable({ cards, cardsList, categories, month, canUpd
             <tr key={r.id}>
               <td>{new Date(r.month + 'T12:00:00').toLocaleDateString('pt-BR')}</td>
               <td>{r.description}</td>
-              <td><span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: getColor(r.card), marginRight: 6 }} />{getLabel(r.card)}</td>
+              <td><span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: getColor(r.card!), marginRight: 6 }} />{getLabel(r.card!)}</td>
               <td>{categories.find(c => c.id === r.category)?.label ?? '-'}</td>
               <td>{r.current_installment && r.total_installments ? `${r.current_installment}/${r.total_installments}` : '-'}</td>
               <td>{fmt(+r.amount)}</td>
@@ -111,9 +111,9 @@ export default function CardsTable({ cards, cardsList, categories, month, canUpd
             key={r.id}
             title={r.description}
             value={fmt(+r.amount)}
-            subtitle={<>{new Date(r.month + 'T12:00:00').toLocaleDateString('pt-BR')} · {getLabel(r.card)} · {categories.find(c => c.id === r.category)?.label ?? ''} · {ownerLabel(r.owner)}{r.current_installment ? ` · ${r.current_installment}/${r.total_installments}` : ''}</>}
+            subtitle={<>{new Date(r.month + 'T12:00:00').toLocaleDateString('pt-BR')} · {getLabel(r.card!)} · {categories.find(c => c.id === r.category)?.label ?? ''} · {ownerLabel(r.owner)}{r.current_installment ? ` · ${r.current_installment}/${r.total_installments}` : ''}</>}
             onTap={canUpdate && !r.installment_purchase_id ? () => setEditing(r) : canDelete ? () => handleDelete(r) : undefined}
-            style={{ borderLeft: `3px solid ${getColor(r.card)}` }}
+            style={{ borderLeft: `3px solid ${getColor(r.card!)}` }}
           />
         )) : <p className="empty">Nenhum lançamento</p>}
       </div>
@@ -137,7 +137,7 @@ function EditCardModal({ card, cardsList, categories, onClose }: { card: CreditC
   const queryClient = useQueryClient()
   const [description, setDescription] = useState(card.description)
   const [amount, setAmount] = useState(String(card.amount))
-  const [cardName, setCardName] = useState(card.card)
+  const [cardName, setCardName] = useState(card.card ?? '')
   const [category, setCategory] = useState(card.category ?? categories[0]?.id ?? '')
   const [owner, setOwner] = useState<Owner>(card.owner)
 
@@ -193,7 +193,7 @@ function EditCardModal({ card, cardsList, categories, onClose }: { card: CreditC
         {/* Seção: Classificação */}
         <div className="form-row">
           <label className="form-label form-grow">Categoria
-            <Select value={category} onChange={setCategory} options={categories.map(c => ({ value: c.id, label: c.label }))} />
+            <Select value={category} onChange={setCategory} options={categoryOptions(categories)} />
           </label>
           <label className="form-label form-grow">Responsável
             <Select value={owner} onChange={v => setOwner(v as Owner)} options={[{ value: 'personal', label: 'Pessoal' }, { value: 'mother_in_law', label: 'Sogra' }]} />

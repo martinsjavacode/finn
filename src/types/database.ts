@@ -1,5 +1,6 @@
 export type Owner = 'personal' | 'mother_in_law'
 export type TransactionType = 'expense' | 'income'
+export type PaymentMethod = 'pix' | 'boleto' | 'credit_card'
 export type Card = string
 export type Role = 'viewer' | 'editor' | 'owner'
 export type InstallmentTarget = 'credit_card' | 'transaction'
@@ -8,37 +9,30 @@ export interface Category {
   id: string
   name: string
   label: string
+  parent_id: string | null
 }
 
-export interface Transaction {
+export interface Entry {
   id: string
   month: string
-  category: string
   description: string
   amount: number
+  payment_method: PaymentMethod
   type: TransactionType
+  category: string | null
+  card: Card | null
   owner: Owner
+  paid: boolean
   current_installment: number | null
   total_installments: number | null
   installment_purchase_id: string | null
-  paid: boolean
   created_at: string
   categories?: Category
 }
 
-export interface CreditCard {
-  id: string
-  month: string
-  card: Card
-  description: string
-  amount: number
-  current_installment: number | null
-  total_installments: number | null
-  installment_purchase_id: string | null
-  owner: Owner
-  category: string | null
-  created_at: string
-}
+// Aliases for backward compatibility in UI
+export type Transaction = Entry
+export type CreditCard = Entry
 
 export interface InstallmentPurchase {
   id: string

@@ -25,3 +25,15 @@ export const monthLabel = (ym: string) =>
 
 export const monthLabelShort = (ym: string) =>
   new Date(ym + '-01T12:00:00').toLocaleDateString('pt-BR', { month: 'short' })
+
+export const categoryOptions = (categories: { id: string; label: string; parent_id: string | null }[]) => {
+  const parents = categories.filter(c => !c.parent_id)
+  const result: { value: string; label: string }[] = []
+  for (const p of parents) {
+    result.push({ value: p.id, label: p.label })
+    for (const c of categories.filter(c => c.parent_id === p.id)) {
+      result.push({ value: c.id, label: `  ${p.label} > ${c.label}` })
+    }
+  }
+  return result
+}
