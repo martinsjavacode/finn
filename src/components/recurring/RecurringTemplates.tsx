@@ -31,7 +31,7 @@ export default function RecurringPage() {
   const [description, setDescription] = useState('')
   const [amount, setAmount] = useState('')
   const [type, setType] = useState('expense')
-  const [target, setTarget] = useState('pix')
+  const [target, setTarget] = useState<'pix' | 'credit_card'>('pix')
   const [category, setCategory] = useState(categories[0]?.id ?? '')
   const [card, setCard] = useState<Card>(cardsList[0]?.name ?? '')
   const [owner, setOwner] = useState<Owner>('personal')
