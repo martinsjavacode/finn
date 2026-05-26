@@ -1,4 +1,4 @@
-import { Pencil, Trash2, Check, Circle } from 'lucide-react'
+import { Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
@@ -6,7 +6,7 @@ import { showError, toast } from '../../lib/toast'
 import { confirm } from '../../lib/confirm'
 import Button from '../ui/Button'
 import Modal from '../ui/Modal'
-import MobileCard from '../ui/MobileCard'
+import Badge from '../ui/Badge'
 import { TableSkeleton } from '../ui/Skeleton'
 
 interface Role { id: string; name: string; description: string | null }
@@ -68,15 +68,17 @@ export default function RolesPage() {
 
   const resources = [...new Set(permissions.map(p => p.resource))].sort()
   const actions = ['read', 'create', 'update', 'delete']
+  const resourceLabel: Record<string, string> = { transactions: 'Lançamentos', credit_cards: 'Cartões de Crédito', recurring_templates: 'Recorrentes', budgets: 'Orçamentos', categories: 'Categorias', cards: 'Cartões', users: 'Usuários' }
   const hasPerm = (roleId: string, permId: string) => rolePermissions.some(rp => rp.role_id === roleId && rp.permission_id === permId)
   const getPermId = (resource: string, action: string) => permissions.find(p => p.resource === resource && p.action === action)?.id
+  const selectedRoleObj = roles.find(r => r.id === selectedRole)
 
   if (isLoading) return <div><div className="page-header"><h2>Roles e Permissões</h2></div><TableSkeleton rows={4} cols={3} /></div>
 
   return (
     <div>
       <div className="page-header">
-        <h2>Roles e Permissões</h2>
+        <h2>Roles e Permissões <span style={{ fontSize: '0.85rem', fontWeight: 400, color: 'var(--text-muted)' }}>({roles.length})</span></h2>
         <Button onClick={openNew}>+ Nova Role</Button>
       </div>
 
@@ -88,47 +90,33 @@ export default function RolesPage() {
       )}
 
       <section>
-        <h2>Roles</h2>
-        <table className="desktop-table">
-          <thead><tr><th>Nome</th><th>Descrição</th><th></th></tr></thead>
-          <tbody>
-            {roles.map(r => (
-              <tr key={r.id} style={{ background: selectedRole === r.id ? 'rgba(167,139,250,0.08)' : undefined }}>
-                <td><button className="auth-btn-link" style={{ fontWeight: 600, fontSize: '0.85rem' }} onClick={() => setSelectedRole(selectedRole === r.id ? null : r.id)}>{r.name}</button></td>
-                <td style={{ color: 'var(--text-muted)' }}>{r.description || '—'}</td>
-                <td>
-                  <Button variant="icon" aria-label="Editar" onClick={() => openEdit(r)}><Pencil size={14} /></Button>
-                  <Button variant="icon" className="delete-btn" aria-label="Excluir" onClick={() => handleDelete(r.id)}><Trash2 size={14} /></Button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <div className="mobile-cards">
-          {roles.map(r => <MobileCard key={r.id} title={r.name} value="" subtitle={r.description || 'Sem descrição'} onTap={() => setSelectedRole(selectedRole === r.id ? null : r.id)} />)}
-        </div>
-      </section>
-
-      <section>
-        <h2>Permissões por Role</h2>
         <div className="tabs" style={{ marginBottom: '1rem' }}>
           {roles.map(r => <Button key={r.id} variant="tab" active={selectedRole === r.id} onClick={() => setSelectedRole(r.id)}>{r.name}</Button>)}
         </div>
+
+        {selectedRoleObj && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '1.2rem' }}>
+            <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{selectedRoleObj.description || 'Sem descrição'}</span>
+            <Button variant="icon" aria-label="Editar role" onClick={() => openEdit(selectedRoleObj)}><Pencil size={14} /></Button>
+            <Button variant="icon" className="delete-btn" aria-label="Excluir role" onClick={() => handleDelete(selectedRoleObj.id)}><Trash2 size={14} /></Button>
+          </div>
+        )}
+
         {selectedRole && (
           <table>
-            <thead><tr><th>Recurso</th>{actions.map(a => <th key={a}>{a}</th>)}</tr></thead>
+            <thead><tr><th>Recurso</th>{actions.map(a => <th key={a} style={{ textAlign: 'center' }}>{a}</th>)}</tr></thead>
             <tbody>
               {resources.map(res => (
                 <tr key={res}>
-                  <td style={{ fontWeight: 500 }}>{res}</td>
+                  <td style={{ fontWeight: 500 }}>{resourceLabel[res] ?? res}</td>
                   {actions.map(act => {
                     const permId = getPermId(res, act)
-                    if (!permId) return <td key={act}>—</td>
+                    if (!permId) return <td key={act} style={{ textAlign: 'center' }}>—</td>
                     const active = hasPerm(selectedRole, permId)
                     return (
-                      <td key={act}>
-                        <button className={`paid-btn ${active ? 'paid' : ''}`} aria-label={active ? 'Remover permissão' : 'Adicionar permissão'} onClick={() => togglePermMutation.mutate({ roleId: selectedRole, permId, exists: active })}>
-                          {active ? <Check size={14} /> : <Circle size={14} />}
+                      <td key={act} style={{ textAlign: 'center' }}>
+                        <button className="badge-toggle" role="switch" aria-checked={active} onClick={() => togglePermMutation.mutate({ roleId: selectedRole, permId, exists: active })}>
+                          <Badge variant={active ? 'success' : 'danger'}>{active ? '✓' : '✗'}</Badge>
                         </button>
                       </td>
                     )

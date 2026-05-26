@@ -9,7 +9,7 @@ import { fmt } from '../../utils/format'
 import Select from '../ui/Select'
 import Button from '../ui/Button'
 import Modal from '../ui/Modal'
-import MobileCard from '../ui/MobileCard'
+import { CardGrid, CardItem, Chip } from '../ui/CardGrid'
 import { TableSkeleton } from '../ui/Skeleton'
 
 interface Budget { id: string; category: string; monthly_limit: number }
@@ -65,7 +65,7 @@ export default function BudgetsPage() {
   return (
     <div>
       <div className="page-header">
-        <h2>Orçamentos</h2>
+        <h2>Orçamentos <span style={{ fontSize: '0.85rem', fontWeight: 400, color: 'var(--text-muted)' }}>({budgets.length})</span></h2>
         {canCreate && <Button onClick={() => { setShowForm(true); if (!newCat && availableCats.length) setNewCat(availableCats[0].id) }}>+ Novo</Button>}
       </div>
 
@@ -88,31 +88,21 @@ export default function BudgetsPage() {
         </Modal>
       )}
 
-      <section>
-        <table className="desktop-table">
-          <thead><tr><th>Categoria</th><th>Limite Mensal</th>{(canUpdate || canDelete) && <th></th>}</tr></thead>
-          <tbody>
-            {budgets.map(b => (
-              <tr key={b.id}>
-                <td>{catLabel(b.category)}</td>
-                <td>{fmt(b.monthly_limit)}</td>
-                {(canUpdate || canDelete) && (
-                  <td>
-                    {canUpdate && <Button variant="icon" aria-label="Editar" onClick={() => { setEditing(b.id); setEditLimit(String(b.monthly_limit)) }}><Pencil size={14} /></Button>}
-                    {canDelete && <Button variant="icon" className="delete-btn" aria-label="Excluir" onClick={() => handleDelete(b.id)}><Trash2 size={14} /></Button>}
-                  </td>
-                )}
-              </tr>
-            ))}
-            {!budgets.length && <tr><td colSpan={(canUpdate || canDelete) ? 3 : 2} className="empty">Nenhum orçamento cadastrado</td></tr>}
-          </tbody>
-        </table>
-        <div className="mobile-cards">
-          {budgets.length ? budgets.map(b => (
-            <MobileCard key={b.id} title={catLabel(b.category)} value={fmt(b.monthly_limit)} subtitle="Limite mensal" onTap={canUpdate ? () => { setEditing(b.id); setEditLimit(String(b.monthly_limit)) } : undefined} />
-          )) : <p className="empty">Nenhum orçamento cadastrado</p>}
-        </div>
-      </section>
+      <CardGrid>
+        {budgets.map(b => (
+          <CardItem
+            key={b.id}
+            title={catLabel(b.category)}
+            actions={<>
+              {canUpdate && <Button variant="icon" aria-label="Editar" onClick={() => { setEditing(b.id); setEditLimit(String(b.monthly_limit)) }}><Pencil size={14} /></Button>}
+              {canDelete && <Button variant="icon" className="delete-btn" aria-label="Excluir" onClick={() => handleDelete(b.id)}><Trash2 size={14} /></Button>}
+            </>}
+          >
+            <Chip className="cat-chip-highlight">{fmt(b.monthly_limit)}/mês</Chip>
+          </CardItem>
+        ))}
+        {!budgets.length && <div className="empty-state"><p>Nenhum orçamento cadastrado</p>{canCreate && <Button onClick={() => { setShowForm(true); if (!newCat && availableCats.length) setNewCat(availableCats[0].id) }}>Cadastrar primeiro orçamento</Button>}</div>}
+      </CardGrid>
     </div>
   )
 }

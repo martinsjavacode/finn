@@ -28,10 +28,10 @@ export function useAuth() {
     return () => { cancelled = true }
   }, [session])
 
-  const { can } = usePermissions(roleId)
+  const { can, loaded: permissionsLoaded } = usePermissions(roleId)
 
   const isOwner = role === 'owner'
   const isEditor = role === 'editor' || isOwner
 
-  return { session, loading, role, roleId, isEditor, isOwner, unauthorized, can, signOut }
+  return { session, loading, role, roleId, isEditor, isOwner, unauthorized, can, permissionsLoaded, signOut }
 }
