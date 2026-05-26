@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, useId } from 'react'
 
 interface Option { value: string; label: string }
 
@@ -10,6 +10,7 @@ interface Props {
 }
 
 export default function Select({ options, value, onChange, 'aria-label': ariaLabel }: Props) {
+  const id = useId()
   const [open, setOpen] = useState(false)
   const [activeIndex, setActiveIndex] = useState(-1)
   const ref = useRef<HTMLDivElement>(null)
@@ -67,7 +68,7 @@ export default function Select({ options, value, onChange, 'aria-label': ariaLab
   }
 
   const selected = options.find(o => o.value === value)
-  const activeId = activeIndex >= 0 ? `select-opt-${activeIndex}` : undefined
+  const activeId = activeIndex >= 0 ? `${id}-opt-${activeIndex}` : undefined
 
   return (
     <div className="custom-select" ref={ref}>
@@ -89,7 +90,7 @@ export default function Select({ options, value, onChange, 'aria-label': ariaLab
           {options.map((o, i) => (
             <li
               key={o.value}
-              id={`select-opt-${i}`}
+              id={`${id}-opt-${i}`}
               role="option"
               aria-selected={o.value === value}
               className={`${o.value === value ? 'active' : ''} ${i === activeIndex ? 'focused' : ''}`}

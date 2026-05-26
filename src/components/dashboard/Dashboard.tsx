@@ -100,6 +100,8 @@ export default function Dashboard() {
         <div className="summary-card"><span className="summary-label">Saldo</span><span className={`summary-value ${balance >= 0 ? 'green' : 'red'}`}>{fmt(balance)}</span></div>
       </div>
 
+      {!currentTransactions.length && <p className="empty" style={{ margin: '-1rem 0 1.5rem' }}>Nenhum lançamento neste mês.</p>}
+
       <div className="dashboard-grid">
         <PieChart data={catData} total={totalExpense} />
         <BudgetProgress budgets={budgets} expenses={expenses} categories={categories} />

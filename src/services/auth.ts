@@ -30,5 +30,7 @@ export async function getUserRole(session: Session): Promise<{ name: Role; id: s
 }
 
 export async function activateUser(email: string) {
-  await supabase.from('users').update({ activated: true }).eq('email', email)
+  try {
+    await supabase.from('users').update({ activated: true }).eq('email', email)
+  } catch { /* non-critical — retries on next login */ }
 }
