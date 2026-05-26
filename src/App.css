@@ -315,6 +315,16 @@ tbody tr { cursor: pointer; transition: background 0.15s; }
 .form-preview { display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.6rem; background: rgba(102, 126, 234, 0.08); border-radius: 8px; font-size: 0.85rem; color: var(--text-muted); }
 .form-preview strong { color: var(--text); font-size: 1rem; }
 .form-divider { height: 1px; background: var(--border); margin: 0.2rem 0; }
+
+/* Invoice bar */
+.invoice-bar { display: flex; align-items: center; justify-content: space-between; padding: 0.8rem 1rem; border-radius: 8px; background: rgba(255, 107, 107, 0.06); border: 1px solid rgba(255, 107, 107, 0.15); margin-bottom: 1rem; font-size: 0.85rem; color: var(--text); gap: 1rem; flex-wrap: wrap; }
+.invoice-bar.invoice-paid { background: rgba(0, 214, 143, 0.06); border-color: rgba(0, 214, 143, 0.15); }
+.invoice-info { display: flex; flex-direction: column; gap: 0.2rem; }
+.invoice-detail { font-size: 0.75rem; color: var(--text-muted); }
+.invoice-action { display: flex; gap: 0.4rem; align-items: center; }
+.invoice-input { width: 120px; padding: 0.35rem 0.6rem; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 0.8rem; }
+.btn-invoice { padding: 0.4rem 0.8rem; border-radius: 6px; border: none; font-size: 0.78rem; font-weight: 600; cursor: pointer; background: var(--accent); color: #fff; transition: all 0.2s; }
+.btn-invoice:hover { opacity: 0.9; }
 .form-label { display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.8rem; color: var(--text-muted); font-weight: 500; margin-bottom: 0; }
 .form-label + .form-tabs { margin-top: 0.4rem; }
 

@@ -36,10 +36,13 @@
 - [x] Cor do cartão como indicador visual nos lançamentos
 - [x] Gráfico de tendência (média móvel de gastos)
 - [x] Cards de resumo no dashboard (receita/despesa/saldo do mês)
+- [x] Parcelamentos com cadastro, preview e exclusão em cascata
+- [x] Fatura de cartão com pagamento parcial
+- [x] Categoria em lançamentos de cartão de crédito
 
-## 🎯 Curto prazo (quick wins)
+## 🎯 Quick Wins
 
-- [ ] Exportar para CSV
+- [ ] Criar sub-categorias
 
 ## 🔧 Técnico (qualidade)
 

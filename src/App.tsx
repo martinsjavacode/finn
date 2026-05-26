@@ -35,9 +35,18 @@ function TransactionsPage() {
   const [owner, setOwner] = useState<'all' | Owner>('all')
   const [search, setSearch] = useState('')
   const [showAdd, setShowAdd] = useState(false)
+  const [catFilter, setCatFilter] = useState('all')
 
-  const ft = transactions.filter(r => (owner === 'all' || r.owner === owner) && (!search || r.description.toLowerCase().includes(search.toLowerCase())))
-  const fc = cards.filter(r => (owner === 'all' || r.owner === owner) && (!search || r.description.toLowerCase().includes(search.toLowerCase())))
+  const ft = transactions.filter(r =>
+    (owner === 'all' || r.owner === owner) &&
+    (!search || r.description.toLowerCase().includes(search.toLowerCase())) &&
+    (catFilter === 'all' || r.category === catFilter)
+  )
+  const fc = cards.filter(r =>
+    (owner === 'all' || r.owner === owner) &&
+    (!search || r.description.toLowerCase().includes(search.toLowerCase())) &&
+    (catFilter === 'all' || r.category === catFilter)
+  )
 
   const income = ft.filter(r => r.type === 'income').reduce((s, r) => s + +r.amount, 0)
   const expense = ft.filter(r => r.type === 'expense').reduce((s, r) => s + +r.amount, 0)
@@ -49,7 +58,11 @@ function TransactionsPage() {
 
   return (
     <>
-      <h2 className="dashboard-title">Lançamentos</h2>
+      <div className="page-header">
+        <h2>Lançamentos</h2>
+        {canCreate && <Button onClick={() => setShowAdd(true)}>+ Novo</Button>}
+      </div>
+
       <div className="controls">
         <Select
           value={month}
@@ -57,12 +70,16 @@ function TransactionsPage() {
           options={months.length ? months.map(m => ({ value: m, label: new Date(m + '-01T12:00:00').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }) })) : [{ value: '', label: 'Sem dados' }]}
         />
         <Select
+          value={catFilter}
+          onChange={setCatFilter}
+          options={[{ value: 'all', label: 'Todas categorias' }, ...categories.map(c => ({ value: c.id, label: c.label }))]}
+        />
+        <Select
           value={owner}
           onChange={v => setOwner(v as 'all' | Owner)}
           options={[{ value: 'all', label: 'Todos' }, { value: 'personal', label: 'Pessoal' }, { value: 'mother_in_law', label: 'Sogra' }]}
         />
         <input type="text" className="search-input" placeholder="🔍 Buscar..." value={search} onChange={e => setSearch(e.target.value)} />
-        {canCreate && <Button onClick={() => setShowAdd(true)}>+ Novo</Button>}
       </div>
 
       <SummaryCards income={income} expense={expense} cardTotal={cardTotal} />

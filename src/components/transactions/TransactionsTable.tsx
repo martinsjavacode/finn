@@ -21,27 +21,22 @@ export default function TransactionsTable({ transactions, categories, month, can
   const canEdit = canUpdate || canDelete
   const { togglePaid: togglePaidMutation, editTransaction, removeTransaction, removeInstallment } = useTransactionMutations(month)
   const [typeFilter, setTypeFilter] = useState<'all' | TransactionType>('all')
-  const [catFilter, setCatFilter] = useState('all')
   const [paidFilter, setPaidFilter] = useState<'all' | 'paid' | 'pending'>('all')
   const [editing, setEditing] = useState<string | null>(null)
   const [editData, setEditData] = useState<Partial<Transaction>>({})
   const [page, setPage] = useState(1)
   const [perPage, setPerPage] = useState(10)
 
-  const catLabel = (id: string) => categories.find(c => c.id === id)?.label ?? id
   const getCatLabel = (t: Transaction) => t.categories?.label ?? ''
 
   const filtered = transactions.filter(r =>
     (typeFilter === 'all' || r.type === typeFilter) &&
-    (catFilter === 'all' || r.category === catFilter) &&
     (paidFilter === 'all' || (paidFilter === 'paid' ? r.paid : !r.paid))
   )
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / perPage))
   const safePage = page > totalPages ? 1 : page
   const paginated = filtered.slice((safePage - 1) * perPage, safePage * perPage)
-
-  const usedCats = ['all', ...new Set(transactions.map(r => r.category))]
 
   const togglePaid = (id: string, paid: boolean) => togglePaidMutation.mutate({ id, paid })
 
@@ -73,13 +68,6 @@ export default function TransactionsTable({ transactions, categories, month, can
         {(['all', 'income', 'expense'] as const).map(t => (
           <Button key={t} variant="tab" active={t === typeFilter} onClick={() => setTypeFilter(t)}>
             {t === 'all' ? 'Todos' : t === 'income' ? <><TrendingUp size={14} /> Receitas</> : <><TrendingDown size={14} /> Despesas</>}
-          </Button>
-        ))}
-      </div>
-      <div className="tabs">
-        {usedCats.map(c => (
-          <Button key={c} variant="tab" active={c === catFilter} onClick={() => setCatFilter(c)}>
-            {c === 'all' ? 'Todas categorias' : catLabel(c)}
           </Button>
         ))}
       </div>

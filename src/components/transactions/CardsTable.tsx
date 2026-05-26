@@ -1,12 +1,13 @@
 import { Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useQueryClient } from '@tanstack/react-query'
+import { useQueryClient, useQuery } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
 import type { CreditCard, CardListItem, Category, Owner } from '../../types/database'
 import { confirm } from '../../lib/confirm'
 import { showError, toast } from '../../lib/toast'
 import { fmt, ownerLabel } from '../../utils/format'
+import { fetchCardInvoice, upsertCardInvoice } from '../../services/transactions'
 import { useTransactionMutations } from '../../hooks/useTransactionMutations'
 import { useModal } from '../../hooks/useModal'
 import Button from '../ui/Button'
@@ -25,6 +26,7 @@ interface Props {
 
 export default function CardsTable({ cards, cardsList, categories, month, canUpdate, canDelete }: Props) {
   const canEdit = canUpdate || canDelete
+  const queryClient = useQueryClient()
   const { removeCreditCard, removeInstallment } = useTransactionMutations(month)
   const [cardFilter, setCardFilter] = useState('all')
   const [editing, setEditing] = useState<CreditCard | null>(null)
@@ -34,7 +36,8 @@ export default function CardsTable({ cards, cardsList, categories, month, canUpd
   const getLabel = (name: string) => cardsList.find(c => c.name === name)?.label ?? name
   const getColor = (name: string) => cardsList.find(c => c.name === name)?.color ?? '#888'
   const cardNames = ['all', ...new Set(cards.map(r => r.card))]
-  const filtered = cardFilter === 'all' ? cards : cards.filter(r => r.card === cardFilter)
+  const sorted = [...cards].sort((a, b) => a.month.localeCompare(b.month))
+  const filtered = cardFilter === 'all' ? sorted : sorted.filter(r => r.card === cardFilter)
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / perPage))
   const safePage = page > totalPages ? 1 : page
@@ -50,6 +53,12 @@ export default function CardsTable({ cards, cardsList, categories, month, canUpd
     }
   }
 
+  const updatePaidAmount = async (cardName: string, amount: number) => {
+    const { error } = await upsertCardInvoice(cardName, month, amount)
+    if (error) return showError(error)
+    queryClient.invalidateQueries({ queryKey: ['cardInvoices', month] })
+  }
+
   return (
     <section>
       <h2>Cartões de Crédito</h2>
@@ -62,13 +71,26 @@ export default function CardsTable({ cards, cardsList, categories, month, canUpd
         ))}
       </div>
 
+      {cardFilter !== 'all' && (
+        <InvoiceBar
+          cardName={cardFilter}
+          cardLabel={getLabel(cardFilter)}
+          total={filtered.reduce((s, r) => s + +r.amount, 0)}
+          month={month}
+          canUpdate={canUpdate}
+          onUpdate={updatePaidAmount}
+        />
+      )}
+
       <table className="desktop-table">
-        <thead><tr><th>Descrição</th><th>Cartão</th><th>Parcela</th><th>Valor</th><th>Resp.</th>{canEdit && <th></th>}</tr></thead>
+        <thead><tr><th>Data</th><th>Descrição</th><th>Cartão</th><th>Categoria</th><th>Parcela</th><th>Valor</th><th>Resp.</th>{canEdit && <th></th>}</tr></thead>
         <tbody>
           {filtered.length ? paginated.map(r => (
             <tr key={r.id}>
+              <td>{new Date(r.month + 'T12:00:00').toLocaleDateString('pt-BR')}</td>
               <td>{r.description}</td>
               <td><span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: getColor(r.card), marginRight: 6 }} />{getLabel(r.card)}</td>
+              <td>{categories.find(c => c.id === r.category)?.label ?? '-'}</td>
               <td>{r.current_installment && r.total_installments ? `${r.current_installment}/${r.total_installments}` : '-'}</td>
               <td>{fmt(+r.amount)}</td>
               <td><span className={`badge ${r.owner === 'personal' ? 'badge-success' : 'badge-danger'}`}>{ownerLabel(r.owner)}</span></td>
@@ -79,7 +101,7 @@ export default function CardsTable({ cards, cardsList, categories, month, canUpd
                 </td>
               )}
             </tr>
-          )) : <tr><td colSpan={canEdit ? 6 : 5} className="empty">Nenhum lançamento</td></tr>}
+          )) : <tr><td colSpan={canEdit ? 8 : 7} className="empty">Nenhum lançamento</td></tr>}
         </tbody>
       </table>
 
@@ -89,7 +111,7 @@ export default function CardsTable({ cards, cardsList, categories, month, canUpd
             key={r.id}
             title={r.description}
             value={fmt(+r.amount)}
-            subtitle={<>{getLabel(r.card)} · {ownerLabel(r.owner)}{r.current_installment ? ` · ${r.current_installment}/${r.total_installments}` : ''}</>}
+            subtitle={<>{new Date(r.month + 'T12:00:00').toLocaleDateString('pt-BR')} · {getLabel(r.card)} · {categories.find(c => c.id === r.category)?.label ?? ''} · {ownerLabel(r.owner)}{r.current_installment ? ` · ${r.current_installment}/${r.total_installments}` : ''}</>}
             onTap={canUpdate && !r.installment_purchase_id ? () => setEditing(r) : canDelete ? () => handleDelete(r) : undefined}
             style={{ borderLeft: `3px solid ${getColor(r.card)}` }}
           />
@@ -183,6 +205,42 @@ function EditCardModal({ card, cardsList, categories, onClose }: { card: CreditC
           <Button variant="primary" type="submit">{isInstallment ? 'Atualizar parcelas' : 'Salvar'}</Button>
         </div>
       </form>
+    </div>
+  )
+}
+
+function InvoiceBar({ cardName, cardLabel, total, month, canUpdate, onUpdate }: { cardName: string; cardLabel: string; total: number; month: string; canUpdate: boolean; onUpdate: (card: string, amount: number) => void }) {
+  const { data: paidAmount = 0 } = useQuery({
+    queryKey: ['cardInvoices', month, cardName],
+    queryFn: () => fetchCardInvoice(cardName, month),
+  })
+
+  const [inputValue, setInputValue] = useState('')
+  const remaining = total - paidAmount
+  const pct = total > 0 ? Math.min(Math.round((paidAmount / total) * 100), 100) : 0
+  const isPaid = paidAmount >= total
+
+  const handlePay = () => {
+    onUpdate(cardName, paidAmount + (+inputValue || remaining))
+    setInputValue('')
+  }
+
+  return (
+    <div className={`invoice-bar ${isPaid ? 'invoice-paid' : ''}`}>
+      <div className="invoice-info">
+        <span>Fatura {cardLabel}: <strong>{fmt(total)}</strong></span>
+        <span className="invoice-detail">
+          Pago: {fmt(paidAmount)} ({pct}%){remaining > 0 && <> · Restante: <strong>{fmt(remaining)}</strong></>}
+        </span>
+      </div>
+      {canUpdate && !isPaid && (
+        <div className="invoice-action">
+          <input type="number" step="0.01" placeholder={fmt(remaining)} value={inputValue} onChange={e => setInputValue(e.target.value)} className="invoice-input" />
+          <button className="btn-invoice" onClick={handlePay}>Pagar</button>
+          <button className="btn-invoice" onClick={() => { onUpdate(cardName, total); setInputValue('') }}>Pagar tudo</button>
+        </div>
+      )}
+      {isPaid && <span className="badge badge-success">✓ Paga</span>}
     </div>
   )
 }

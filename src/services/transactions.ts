@@ -77,3 +77,13 @@ export async function fetchAllTransactions() {
   const { data, error } = await supabase.from('transactions').select('month, amount, type').order('month')
   return { data: (data ?? []) as { month: string; amount: number; type: string }[], error }
 }
+
+export async function fetchCardInvoice(card: string, month: string) {
+  const { data } = await supabase.from('card_invoices').select('paid_amount').eq('card', card).eq('month', `${month}-01`).single()
+  return (data as { paid_amount: number } | null)?.paid_amount ?? 0
+}
+
+export async function upsertCardInvoice(card: string, month: string, paidAmount: number) {
+  const { error } = await supabase.from('card_invoices').upsert({ card, month: `${month}-01`, paid_amount: paidAmount } as never, { onConflict: 'card,month' })
+  return { error }
+}
