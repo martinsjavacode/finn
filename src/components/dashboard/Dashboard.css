@@ -80,7 +80,8 @@
 
 /* Summary Cards */
 .dashboard-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
-.summary-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; display: flex; flex-direction: column; gap: 0.3rem; }
+.summary-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; display: flex; flex-direction: column; gap: 0.3rem; transition: transform 0.2s, border-color 0.2s; }
+.summary-card:hover { transform: translateY(-2px); border-color: rgba(255, 255, 255, 0.15); }
 .summary-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em; }
 .summary-value { font-size: 1.2rem; font-weight: 700; }
 .summary-value.green { color: var(--green); }

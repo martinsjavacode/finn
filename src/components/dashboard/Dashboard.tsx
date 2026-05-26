@@ -118,7 +118,9 @@ export default function Dashboard() {
       {(() => {
         const today = new Date()
         const unpaid = currentTransactions.filter(r => r.type === 'expense' && !r.paid).sort((a, b) => a.month.localeCompare(b.month))
-        if (!unpaid.length) return null
+        if (!unpaid.length) return currentTransactions.length ? (
+          <section><p className="empty" style={{ color: 'var(--green)' }}>✅ Todas as contas estão em dia!</p></section>
+        ) : null
         return (
           <section className="alerts-section">
             <h2>⚠️ Contas Pendentes</h2>
