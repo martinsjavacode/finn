@@ -43,6 +43,7 @@
 ## 🎯 Quick Wins
 
 - [ ] Criar sub-categorias
+- [ ] Ajustar Ediçao de Categorias - no mobile
 
 ## 🔧 Técnico (qualidade)
 
