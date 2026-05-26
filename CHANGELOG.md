@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.0.7](https://github.com/martinsjavacode/finn/compare/v0.0.5...v0.0.7) (2026-05-25)
+
+
+### Features
+
+* add payment filter, projection RPC and fix deploy pipeline ([ce954b5](https://github.com/martinsjavacode/finn/commit/ce954b567256490da4e28dfa955aec1458526076))
+* apply RBAC permissions in frontend ([e86704b](https://github.com/martinsjavacode/finn/commit/e86704ba9c979f3de68d12b29e216fb0c8ad7791))
+* RBAC system with roles, permissions and user management ([0f6135e](https://github.com/martinsjavacode/finn/commit/0f6135e1e626d17641b65c3ae47a0914a36bdf30))
+* responsive mobile layout, PWA and UX improvements ([1ff3341](https://github.com/martinsjavacode/finn/commit/1ff33414c9139577668f051632cca156121a50fe))
+
+
+### Bug Fixes
+
+* auto-activate user on first login, remove redundant signup update ([9cc36ea](https://github.com/martinsjavacode/finn/commit/9cc36ea6988a5d75c43d9015789e52bb09cad20e))
+* **ci:** push only tags to avoid branch protection rule violation ([1888021](https://github.com/martinsjavacode/finn/commit/1888021ec3f7efa4232c7536d7dc2cbe47f6b326))
+* **ci:** revert to push --follow-tags (requires bypass rule) ([05a05f3](https://github.com/martinsjavacode/finn/commit/05a05f37273904fe36de642756212c95766c900e))
+
 ## [0.0.5](https://github.com/martinsjavacode/finn/compare/v0.0.4...v0.0.5) (2026-05-25)
 
 
