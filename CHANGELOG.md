@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.0.13](https://github.com/martinsjavacode/finn/compare/v0.0.12...v0.0.13) (2026-05-26)
+
+
+### Features
+
+* adicionar contagem de itens no título de todas as páginas CRUD ([0caea5d](https://github.com/martinsjavacode/finn/commit/0caea5d49baa92d8f3446bbe10dd44e7c59583be))
+* melhorar UX da tela de lançamentos ([26a5a2c](https://github.com/martinsjavacode/finn/commit/26a5a2c6d8d5f0a31354865a4060acd618dbf2b3))
+* polish dashboard - hover nos summary cards e feedback positivo de contas em dia ([99a566b](https://github.com/martinsjavacode/finn/commit/99a566b220a11c30dfbbbbabf57a5159637cfc42))
+* redesign categorias e cartões com CardGrid componentizado ([dd01384](https://github.com/martinsjavacode/finn/commit/dd01384777b180953ca694e09dd5d37d0601545d))
+* redesign orçamentos com CardGrid e ações laterais no card ([84e3f77](https://github.com/martinsjavacode/finn/commit/84e3f7737e43818343f91303ae3478cba1c98181))
+* redesign projeção com cards, barras de progresso e total geral ([b0e27a3](https://github.com/martinsjavacode/finn/commit/b0e27a38a515939a6c8cb55dbafe5afeb262c635))
+* redesign tela de permissões - tabs, labels em português, badge toggle na matriz ([5e044d7](https://github.com/martinsjavacode/finn/commit/5e044d73516ba4cfaf4d8936a1d0414b358ac224))
+
+
+### Bug Fixes
+
+* aguardar permissões carregarem antes de redirecionar rotas protegidas ([d8fcc15](https://github.com/martinsjavacode/finn/commit/d8fcc15470aa44e55b31c803e9e203447a00809c))
+
 ## [0.0.12](https://github.com/martinsjavacode/finn/compare/v0.0.11...v0.0.12) (2026-05-26)
 
 
