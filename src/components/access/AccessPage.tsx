@@ -7,8 +7,8 @@ import { confirm } from '../../lib/confirm'
 import Button from '../ui/Button'
 import Select from '../ui/Select'
 import Modal from '../ui/Modal'
-import MobileCard from '../ui/MobileCard'
 import Badge from '../ui/Badge'
+import { CardGrid, CardItem, Chip } from '../ui/CardGrid'
 import { TableSkeleton } from '../ui/Skeleton'
 
 interface RoleOption { id: string; name: string }
@@ -77,7 +77,7 @@ export default function AccessPage() {
   return (
     <div>
       <div className="page-header">
-        <h2>Usuários</h2>
+        <h2>Usuários <span style={{ fontSize: '0.85rem', fontWeight: 400, color: 'var(--text-muted)' }}>({users.length})</span></h2>
         <Button onClick={openNew}>+ Novo</Button>
       </div>
 
@@ -94,31 +94,27 @@ export default function AccessPage() {
         </Modal>
       )}
 
-      <section>
-        <table className="desktop-table">
-          <thead><tr><th>Nome</th><th>Email</th><th>Permissão</th><th>Status</th><th></th></tr></thead>
-          <tbody>
-            {users.map(u => (
-              <tr key={u.id}>
-                <td>{u.display_name || <span style={{ color: 'var(--text-muted)' }}>—</span>}</td>
-                <td>{u.email}</td>
-                <td><Badge variant={getRoleName(u) !== 'viewer' ? 'success' : 'danger'}>{roleLabel(getRoleName(u))}</Badge></td>
-                <td><Badge variant={u.activated ? 'success' : 'danger'}>{u.activated ? 'Ativo' : 'Pendente'}</Badge></td>
-                <td>
-                  <Button variant="icon" aria-label="Editar" onClick={() => openEdit(u)}><Pencil size={14} /></Button>
-                  <Button variant="icon" className="delete-btn" aria-label="Excluir" onClick={() => handleDelete(u.id)}><Trash2 size={14} /></Button>
-                </td>
-              </tr>
-            ))}
-            {!users.length && <tr><td colSpan={5} className="empty">Nenhum usuário cadastrado</td></tr>}
-          </tbody>
-        </table>
-        <div className="mobile-cards">
-          {users.length ? users.map(u => (
-            <MobileCard key={u.id} status={<Badge variant={u.activated ? 'success' : 'danger'}>{u.activated ? '●' : '○'}</Badge>} title={u.display_name || u.email} value={<Badge variant={getRoleName(u) !== 'viewer' ? 'success' : 'danger'}>{roleLabel(getRoleName(u))}</Badge>} subtitle={u.display_name ? u.email : (u.activated ? 'Ativo' : 'Pendente')} onTap={() => openEdit(u)} />
-          )) : <p className="empty">Nenhum usuário cadastrado</p>}
-        </div>
-      </section>
+      <CardGrid>
+        {users.map(u => {
+          const roleName = getRoleName(u)
+          const color = roleName === 'owner' ? 'var(--purple)' : roleName === 'editor' ? 'var(--green)' : 'var(--blue)'
+          return (
+            <CardItem
+              key={u.id}
+              title={<>{u.display_name || u.email} <Badge variant={u.activated ? 'success' : 'warning'}>{u.activated ? 'Ativo' : 'Pendente'}</Badge></>}
+              style={{ borderTop: `3px solid ${color}` }}
+              actions={<>
+                <Button variant="icon" aria-label="Editar" onClick={() => openEdit(u)}><Pencil size={14} /></Button>
+                <Button variant="icon" className="delete-btn" aria-label="Excluir" onClick={() => handleDelete(u.id)}><Trash2 size={14} /></Button>
+              </>}
+            >
+              <Chip>{u.email}</Chip>
+              <Chip className="cat-chip-highlight">{roleLabel(roleName)}</Chip>
+            </CardItem>
+          )
+        })}
+        {!users.length && <div className="empty-state"><p>Nenhum usuário cadastrado</p><Button onClick={openNew}>Adicionar primeiro usuário</Button></div>}
+      </CardGrid>
     </div>
   )
 }

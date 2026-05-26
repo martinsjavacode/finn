@@ -65,7 +65,7 @@ export default function BudgetsPage() {
   return (
     <div>
       <div className="page-header">
-        <h2>Orçamentos</h2>
+        <h2>Orçamentos <span style={{ fontSize: '0.85rem', fontWeight: 400, color: 'var(--text-muted)' }}>({budgets.length})</span></h2>
         {canCreate && <Button onClick={() => { setShowForm(true); if (!newCat && availableCats.length) setNewCat(availableCats[0].id) }}>+ Novo</Button>}
       </div>
 

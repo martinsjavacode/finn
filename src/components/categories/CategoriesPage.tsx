@@ -71,7 +71,7 @@ export default function CategoriesPage() {
   return (
     <div>
       <div className="page-header">
-        <h2>Categorias</h2>
+        <h2>Categorias <span style={{ fontSize: '0.85rem', fontWeight: 400, color: 'var(--text-muted)' }}>({categories.length})</span></h2>
         {canCreate && <Button onClick={() => openAdd()}>+ Nova</Button>}
       </div>
 

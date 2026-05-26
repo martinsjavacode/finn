@@ -74,7 +74,7 @@ export default function CardsPage() {
   return (
     <div>
       <div className="page-header">
-        <h2>Cartões</h2>
+        <h2>Cartões <span style={{ fontSize: '0.85rem', fontWeight: 400, color: 'var(--text-muted)' }}>({cards.length})</span></h2>
         {canCreate && <Button onClick={openNew}>+ Novo</Button>}
       </div>
 

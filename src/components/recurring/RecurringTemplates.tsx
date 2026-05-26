@@ -99,7 +99,7 @@ export default function RecurringPage() {
   return (
     <div>
       <div className="page-header">
-        <h2>Lançamentos Recorrentes</h2>
+        <h2>Lançamentos Recorrentes <span style={{ fontSize: '0.85rem', fontWeight: 400, color: 'var(--text-muted)' }}>({templates.length})</span></h2>
         <div className="page-actions">
           <input type="month" value={genMonth} onChange={e => setGenMonth(e.target.value)} className="input-month" />
           <Button onClick={handleGenerate} disabled={generating}>{generating ? 'Gerando...' : '⚡ Gerar'}</Button>
