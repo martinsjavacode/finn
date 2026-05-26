@@ -1,5 +1,6 @@
 import { Pencil, Trash2, Check, Circle, TrendingUp, TrendingDown } from 'lucide-react'
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import type { Transaction, Category, Owner, TransactionType } from '../../types/database'
 import { confirm } from '../../lib/confirm'
 import { fmt, ownerLabel, categoryOptions } from '../../utils/format'
@@ -137,7 +138,7 @@ export default function TransactionsTable({ transactions, categories, month, can
       </div>
       <Pagination currentPage={safePage} totalPages={totalPages} totalItems={filtered.length} perPage={perPage} onPageChange={setPage} onPerPageChange={setPerPage} />
 
-      {editing && (
+      {editing && createPortal(
         <div className="modal-overlay" onClick={() => setEditing(null)} role="dialog" aria-modal="true">
           <form className="modal" onClick={e => e.stopPropagation()} onSubmit={e => { e.preventDefault(); saveEdit(editing) }}>
             <h2>Editar Lançamento</h2>
@@ -165,7 +166,8 @@ export default function TransactionsTable({ transactions, categories, month, can
               <Button variant="primary" type="submit">Salvar</Button>
             </div>
           </form>
-        </div>
+        </div>,
+        document.body
       )}
     </section>
   )

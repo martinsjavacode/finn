@@ -229,7 +229,7 @@ export type Database = {
           installments: number
           owner: string
           start_month: string
-          target: string
+          target: Database["public"]["Enums"]["payment_method"]
           total_amount: number
         }
         Insert: {
@@ -241,7 +241,7 @@ export type Database = {
           installments: number
           owner?: string
           start_month: string
-          target: string
+          target: Database["public"]["Enums"]["payment_method"]
           total_amount: number
         }
         Update: {
@@ -253,7 +253,7 @@ export type Database = {
           installments?: number
           owner?: string
           start_month?: string
-          target?: string
+          target?: Database["public"]["Enums"]["payment_method"]
           total_amount?: number
         }
         Relationships: [
@@ -305,7 +305,7 @@ export type Database = {
           description: string
           id: string
           owner: string
-          target: string
+          target: Database["public"]["Enums"]["payment_method"]
           type: string
         }
         Insert: {
@@ -318,7 +318,7 @@ export type Database = {
           description: string
           id?: string
           owner?: string
-          target: string
+          target: Database["public"]["Enums"]["payment_method"]
           type: string
         }
         Update: {
@@ -331,7 +331,7 @@ export type Database = {
           description?: string
           id?: string
           owner?: string
-          target?: string
+          target?: Database["public"]["Enums"]["payment_method"]
           type?: string
         }
         Relationships: [
@@ -455,7 +455,7 @@ export type Database = {
     Enums: {
       closing_rule_type: "fixed" | "relative"
       entry_type: "expense" | "income"
-      payment_method: "pix" | "boleto" | "credit_card"
+      payment_method: "pix" | "credit_card"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -585,7 +585,7 @@ export const Constants = {
     Enums: {
       closing_rule_type: ["fixed", "relative"],
       entry_type: ["expense", "income"],
-      payment_method: ["pix", "boleto", "credit_card"],
+      payment_method: ["pix", "credit_card"],
     },
   },
 } as const
