@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { useAuth, useAppData, useTransactions } from './hooks'
 import type { Owner } from './types/database'
+import { categoryOptions } from './utils/format'
 import Auth from './components/auth/Auth'
 import Sidebar from './components/ui/Sidebar'
 import Select from './components/ui/Select'
@@ -72,7 +73,7 @@ function TransactionsPage() {
         <Select
           value={catFilter}
           onChange={setCatFilter}
-          options={[{ value: 'all', label: 'Todas categorias' }, ...categories.map(c => ({ value: c.id, label: c.label }))]}
+          options={[{ value: 'all', label: 'Todas categorias' }, ...categoryOptions(categories)]}
         />
         <Select
           value={owner}

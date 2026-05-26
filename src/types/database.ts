@@ -9,6 +9,7 @@ export interface Category {
   id: string
   name: string
   label: string
+  parent_id: string | null
 }
 
 export interface Entry {

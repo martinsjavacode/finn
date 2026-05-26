@@ -7,6 +7,7 @@ import { showError, toast } from '../../lib/toast'
 import { useModal } from '../../hooks/useModal'
 import { confirm } from '../../lib/confirm'
 import Button from '../ui/Button'
+import Select from '../ui/Select'
 import MobileCard from '../ui/MobileCard'
 
 export default function CategoriesPage() {
@@ -19,6 +20,7 @@ export default function CategoriesPage() {
   const modalRef = useModal<HTMLFormElement>(() => setShowForm(false))
   const [name, setName] = useState('')
   const [label, setLabel] = useState('')
+  const [parentId, setParentId] = useState('')
   const [editing, setEditing] = useState<string | null>(null)
   const [editLabel, setEditLabel] = useState('')
 
@@ -26,13 +28,20 @@ export default function CategoriesPage() {
     supabase.from('categories').select('*').order('label').then(({ data }) => setCategories((data ?? []) as Category[]))
   }, [])
 
+  const parents = categories.filter(c => !c.parent_id)
+  const getChildren = (id: string) => categories.filter(c => c.parent_id === id)
+
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault()
-    const { data, error } = await supabase.from('categories').insert({ name: name.toLowerCase().replace(/\s+/g, '_'), label } as never).select().single()
+    const { data, error } = await supabase.from('categories').insert({
+      name: name.toLowerCase().replace(/\s+/g, '_'),
+      label,
+      parent_id: parentId || null,
+    } as never).select().single()
     if (error) return showError(error)
     if (data) setCategories(prev => [...prev, data as Category])
     setShowForm(false)
-    setName(''); setLabel('')
+    setName(''); setLabel(''); setParentId('')
     toast('Categoria criada')
   }
 
@@ -46,10 +55,14 @@ export default function CategoriesPage() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!await confirm('Tem certeza que deseja excluir esta categoria?')) return
+    const children = getChildren(id)
+    const msg = children.length
+      ? `Excluir "${categories.find(c => c.id === id)?.label}" e suas ${children.length} subcategorias?`
+      : 'Tem certeza que deseja excluir esta categoria?'
+    if (!await confirm(msg)) return
     const { error } = await supabase.from('categories').delete().eq('id', id)
     if (error) return showError(error)
-    setCategories(prev => prev.filter(c => c.id !== id))
+    setCategories(prev => prev.filter(c => c.id !== id && c.parent_id !== id))
   }
 
   return (
@@ -63,11 +76,14 @@ export default function CategoriesPage() {
         <div className="modal-overlay" onClick={() => setShowForm(false)} role="dialog" aria-modal="true">
           <form className="modal" ref={modalRef} onClick={e => e.stopPropagation()} onSubmit={handleAdd}>
             <h2>Nova Categoria</h2>
+            <label className="form-label">Categoria pai (opcional)
+              <Select value={parentId} onChange={setParentId} options={[{ value: '', label: 'Nenhuma (raiz)' }, ...parents.map(c => ({ value: c.id, label: c.label }))]} />
+            </label>
             <label className="form-label">Nome (identificador)
-              <input type="text" placeholder="ex: transport" value={name} onChange={e => setName(e.target.value)} required />
+              <input type="text" placeholder="ex: ead" value={name} onChange={e => setName(e.target.value)} required />
             </label>
             <label className="form-label">Label (exibição)
-              <input type="text" placeholder="ex: Transporte" value={label} onChange={e => setLabel(e.target.value)} required />
+              <input type="text" placeholder="ex: EAD" value={label} onChange={e => setLabel(e.target.value)} required />
             </label>
             <div className="form-actions">
               <Button variant="tab" onClick={() => setShowForm(false)}>Cancelar</Button>
@@ -79,43 +95,45 @@ export default function CategoriesPage() {
 
       <section>
         <table className="desktop-table">
-          <thead><tr><th>Nome</th><th>Label</th>{(canUpdate || canDelete) && <th></th>}</tr></thead>
+          <thead><tr><th>Categoria</th><th>Subcategorias</th>{(canUpdate || canDelete) && <th></th>}</tr></thead>
           <tbody>
-            {categories.map(c => (
-              <tr key={c.id}>
-                <td>{c.name}</td>
+            {parents.map(p => (
+              <tr key={p.id}>
                 <td>
-                  {editing === c.id
+                  {editing === p.id
                     ? <input type="text" value={editLabel} onChange={e => setEditLabel(e.target.value)} className="inline-input" style={{ width: '150px' }} />
-                    : c.label
+                    : <strong>{p.label}</strong>
                   }
                 </td>
+                <td>{getChildren(p.id).map(c => c.label).join(', ') || '—'}</td>
                 {(canUpdate || canDelete) && (
                   <td>
-                    {editing === c.id ? (
-                      <Button onClick={() => saveEdit(c.id)}><Check size={14} /></Button>
+                    {editing === p.id ? (
+                      <Button onClick={() => saveEdit(p.id)}><Check size={14} /></Button>
                     ) : (
                       <>
-                        {canUpdate && <Button variant="icon" aria-label="Editar" onClick={() => startEdit(c)}><Pencil size={14} /></Button>}
-                        {canDelete && <Button variant="icon" className="delete-btn" aria-label="Excluir" onClick={() => handleDelete(c.id)}><Trash2 size={14} /></Button>}
+                        {canUpdate && <Button variant="icon" aria-label="Editar" onClick={() => startEdit(p)}><Pencil size={14} /></Button>}
+                        {canDelete && <Button variant="icon" className="delete-btn" aria-label="Excluir" onClick={() => handleDelete(p.id)}><Trash2 size={14} /></Button>}
                       </>
                     )}
                   </td>
                 )}
               </tr>
             ))}
-            {!categories.length && <tr><td colSpan={(canUpdate || canDelete) ? 3 : 2} className="empty">Nenhuma categoria</td></tr>}
+            {categories.filter(c => c.parent_id && !parents.find(p => getChildren(p.id).includes(c))).length === 0 && !parents.length && (
+              <tr><td colSpan={(canUpdate || canDelete) ? 3 : 2} className="empty">Nenhuma categoria</td></tr>
+            )}
           </tbody>
         </table>
 
         <div className="mobile-cards">
-          {categories.length ? categories.map(c => (
+          {parents.length ? parents.map(p => (
             <MobileCard
-              key={c.id}
-              title={c.label}
+              key={p.id}
+              title={p.label}
               value=""
-              subtitle={c.name}
-              onTap={canUpdate ? () => startEdit(c) : undefined}
+              subtitle={getChildren(p.id).map(c => c.label).join(', ') || 'Sem subcategorias'}
+              onTap={canUpdate ? () => startEdit(p) : undefined}
             />
           )) : <p className="empty">Nenhuma categoria</p>}
         </div>

@@ -2,7 +2,7 @@ import { Pencil, Trash2, Check, Circle, TrendingUp, TrendingDown } from 'lucide-
 import { useState } from 'react'
 import type { Transaction, Category, Owner, TransactionType } from '../../types/database'
 import { confirm } from '../../lib/confirm'
-import { fmt, ownerLabel } from '../../utils/format'
+import { fmt, ownerLabel, categoryOptions } from '../../utils/format'
 import { useTransactionMutations } from '../../hooks/useTransactionMutations'
 import Button from '../ui/Button'
 import Select from '../ui/Select'
@@ -89,7 +89,7 @@ export default function TransactionsTable({ transactions, categories, month, can
                 <>
                   <td><input className="inline-input" type="date" value={editData.month ?? r.month} onChange={e => setEditData(d => ({ ...d, month: e.target.value }))} /></td>
                   <td><input className="inline-input" value={editData.description ?? ''} onChange={e => setEditData(d => ({ ...d, description: e.target.value }))} /></td>
-                  <td><Select value={editData.category ?? ''} onChange={v => setEditData(d => ({ ...d, category: v }))} options={categories.map(c => ({ value: c.id, label: c.label }))} /></td>
+                  <td><Select value={editData.category ?? ''} onChange={v => setEditData(d => ({ ...d, category: v }))} options={categoryOptions(categories)} /></td>
                   <td>{r.type === 'income' ? <TrendingUp size={14} /> : <TrendingDown size={14} />}</td>
                   <td>{r.current_installment && r.total_installments ? `${r.current_installment}/${r.total_installments}` : '-'}</td>
                   <td><input className="inline-input" type="number" step="0.01" value={editData.amount ?? ''} onChange={e => setEditData(d => ({ ...d, amount: +e.target.value }))} style={{ width: '100px' }} /></td>

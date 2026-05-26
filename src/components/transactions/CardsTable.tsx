@@ -6,7 +6,7 @@ import { supabase } from '../../lib/supabase'
 import type { CreditCard, CardListItem, Category, Owner } from '../../types/database'
 import { confirm } from '../../lib/confirm'
 import { showError, toast } from '../../lib/toast'
-import { fmt, ownerLabel } from '../../utils/format'
+import { fmt, ownerLabel, categoryOptions } from '../../utils/format'
 import { fetchCardInvoice, upsertCardInvoice } from '../../services/transactions'
 import { useTransactionMutations } from '../../hooks/useTransactionMutations'
 import { useModal } from '../../hooks/useModal'
@@ -193,7 +193,7 @@ function EditCardModal({ card, cardsList, categories, onClose }: { card: CreditC
         {/* Seção: Classificação */}
         <div className="form-row">
           <label className="form-label form-grow">Categoria
-            <Select value={category} onChange={setCategory} options={categories.map(c => ({ value: c.id, label: c.label }))} />
+            <Select value={category} onChange={setCategory} options={categoryOptions(categories)} />
           </label>
           <label className="form-label form-grow">Responsável
             <Select value={owner} onChange={v => setOwner(v as Owner)} options={[{ value: 'personal', label: 'Pessoal' }, { value: 'mother_in_law', label: 'Sogra' }]} />

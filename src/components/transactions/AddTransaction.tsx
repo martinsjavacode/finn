@@ -5,6 +5,7 @@ import type { Category, Owner, TransactionType, CardListItem } from '../../types
 import { useTransactionMutations } from '../../hooks/useTransactionMutations'
 import { useModal } from '../../hooks/useModal'
 import { showError, toast } from '../../lib/toast'
+import { categoryOptions } from '../../utils/format'
 import Select from '../ui/Select'
 import Button from '../ui/Button'
 
@@ -133,7 +134,7 @@ export default function AddTransaction({ categories, cardsList, month, onClose }
         {/* Seção: Classificação */}
         <div className="form-row">
           <label className="form-label form-grow">Categoria
-            <Select value={category} onChange={setCategory} options={categories.map(c => ({ value: c.id, label: c.label }))} />
+            <Select value={category} onChange={setCategory} options={categoryOptions(categories)} />
           </label>
           <label className="form-label form-grow">Responsável
             <Select value={owner} onChange={v => setOwner(v as Owner)} options={[{ value: 'personal', label: 'Pessoal' }, { value: 'mother_in_law', label: 'Sogra' }]} />
