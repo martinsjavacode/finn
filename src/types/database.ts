@@ -1,3 +1,5 @@
+import type { ClosingRule } from '../utils/format'
+
 export type Owner = 'personal' | 'mother_in_law'
 export type TransactionType = 'expense' | 'income'
 export type PaymentMethod = 'pix' | 'boleto' | 'credit_card'
@@ -83,12 +85,14 @@ export interface CardInfo {
   credit_limit: number
   closing_day: number
   due_day: number
+  closing_rule: ClosingRule
+  days_before_due: number
   color: string
   active: boolean
   created_at: string
 }
 
-export type CardListItem = Pick<CardInfo, 'name' | 'label' | 'color'>
+export type CardListItem = Pick<CardInfo, 'name' | 'label' | 'color' | 'closing_day' | 'due_day' | 'closing_rule' | 'days_before_due'>
 
 export interface Database {
   public: {

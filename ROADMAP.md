@@ -41,6 +41,8 @@
 - [x] Categoria em lançamentos de cartão de crédito
 - [x] Subcategorias (parent_id hierárquico)
 - [x] Tabela unificada entries (normalização do banco)
+- [x] Motor de regras de fechamento de cartão (fixed/relative)
+- [x] Resolução automática do mês da fatura ao lançar compra no cartão
 
 ## 🎯 Quick Wins
 

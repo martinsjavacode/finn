@@ -121,7 +121,11 @@ migrations/
 ├── 015-credit-cards-category.sql — categoria em cartões de crédito
 ├── 016-installment-purchase-id.sql — FK para rastrear parcelas
 ├── 017-installments-crud-policies.sql — policies de delete/update para parcelamentos
-└── 018-card-invoices.sql      — faturas de cartão com pagamento parcial
+├── 018-card-invoices.sql      — faturas de cartão com pagamento parcial
+├── 019-unify-entries.sql      — tabela unificada entries + enums
+├── 020-fk-card-and-target-enum.sql — FKs para cards(name)
+├── 021-subcategories.sql      — subcategorias hierárquicas
+└── 022-card-closing-rule.sql  — motor de regras de fechamento de cartão
 ```
 
 ## Funcionalidades
@@ -181,6 +185,9 @@ migrations/
 
 ### Cartões
 - CRUD de cartões (nome, limite, fechamento, vencimento, cor)
+- Motor de regras de fechamento (data fixa ou relativo ao vencimento)
+- Resolução automática do mês da fatura ao lançar compra no cartão
+- Tratamento de meses com dias variáveis (28/29/30/31)
 - Cor do cartão como indicador visual nos lançamentos (dot, tab, borda mobile)
 - Edição via modal
 
