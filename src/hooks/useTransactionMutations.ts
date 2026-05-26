@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { supabase } from '../lib/supabase'
 import { insertTransaction, insertCreditCard, updateTransaction, deleteTransaction, deleteCreditCard, toggleTransactionPaid } from '../services/transactions'
 import { showError, toast } from '../lib/toast'
 
@@ -51,5 +52,11 @@ export function useTransactionMutations(month: string) {
     onError: (e) => showError(e),
   })
 
-  return { addTransaction, addCreditCard, editTransaction, removeTransaction, removeCreditCard, togglePaid }
+  const removeInstallment = useMutation({
+    mutationFn: async (id: string) => throwOnError(await supabase.from('installment_purchases').delete().eq('id', id)),
+    onSuccess: () => invalidate(),
+    onError: (e) => showError(e),
+  })
+
+  return { addTransaction, addCreditCard, editTransaction, removeTransaction, removeCreditCard, removeInstallment, togglePaid }
 }

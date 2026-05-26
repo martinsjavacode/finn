@@ -19,7 +19,7 @@ interface Props {
 
 export default function TransactionsTable({ transactions, categories, month, canUpdate, canDelete }: Props) {
   const canEdit = canUpdate || canDelete
-  const { togglePaid: togglePaidMutation, editTransaction, removeTransaction } = useTransactionMutations(month)
+  const { togglePaid: togglePaidMutation, editTransaction, removeTransaction, removeInstallment } = useTransactionMutations(month)
   const [typeFilter, setTypeFilter] = useState<'all' | TransactionType>('all')
   const [catFilter, setCatFilter] = useState('all')
   const [paidFilter, setPaidFilter] = useState<'all' | 'paid' | 'pending'>('all')
@@ -55,9 +55,14 @@ export default function TransactionsTable({ transactions, categories, month, can
     setEditing(null)
   }
 
-  const handleDelete = async (id: string) => {
-    if (!await confirm('Tem certeza que deseja excluir este lançamento?')) return
-    removeTransaction.mutate(id)
+  const handleDelete = async (r: Transaction) => {
+    if (r.installment_purchase_id) {
+      if (!await confirm(`Excluir todas as ${r.total_installments} parcelas deste parcelamento?`)) return
+      removeInstallment.mutate(r.installment_purchase_id)
+    } else {
+      if (!await confirm('Tem certeza que deseja excluir este lançamento?')) return
+      removeTransaction.mutate(r.id)
+    }
     setEditing(null)
   }
 
@@ -116,8 +121,8 @@ export default function TransactionsTable({ transactions, categories, month, can
                   <td>{canUpdate ? <button className={`paid-btn ${r.paid ? 'paid' : ''}`} aria-label={r.paid ? 'Marcar como pendente' : 'Marcar como pago'} onClick={() => togglePaid(r.id, r.paid)}>{r.paid ? <Check size={14} /> : <Circle size={14} />}</button> : <span className={`badge ${r.paid ? 'badge-success' : 'badge-danger'}`}>{r.paid ? 'Pago' : 'Pendente'}</span>}</td>
                   {canEdit && (
                     <td>
-                      {canUpdate && <Button variant="icon" aria-label="Editar" onClick={() => startEdit(r)}><Pencil size={14} /></Button>}
-                      {canDelete && <Button variant="icon" className="delete-btn" aria-label="Excluir" onClick={() => handleDelete(r.id)}><Trash2 size={14} /></Button>}
+                      {canUpdate && !r.installment_purchase_id && <Button variant="icon" aria-label="Editar" onClick={() => startEdit(r)}><Pencil size={14} /></Button>}
+                      {canDelete && <Button variant="icon" className="delete-btn" aria-label="Excluir" onClick={() => handleDelete(r)}><Trash2 size={14} /></Button>}
                     </td>
                   )}
                 </>
@@ -137,7 +142,7 @@ export default function TransactionsTable({ transactions, categories, month, can
             title={r.description}
             value={fmt(+r.amount)}
             subtitle={<>{getCatLabel(r)} · {new Date(r.month + 'T12:00:00').toLocaleDateString('pt-BR')} · {ownerLabel(r.owner)}{r.current_installment ? ` · ${r.current_installment}/${r.total_installments}` : ''}</>}
-            onTap={canUpdate ? () => startEdit(r) : undefined}
+            onTap={canUpdate && !r.installment_purchase_id ? () => startEdit(r) : undefined}
           />
         )) : <p className="empty">Nenhum lançamento</p>}
       </div>

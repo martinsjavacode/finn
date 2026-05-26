@@ -78,6 +78,7 @@ function TransactionsPage() {
       <CardsTable
         cards={fc}
         cardsList={cardsList}
+        categories={categories}
         month={month}
         canUpdate={can('credit_cards', 'update')}
         canDelete={can('credit_cards', 'delete')}

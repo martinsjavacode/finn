@@ -46,7 +46,7 @@ export default function AddTransaction({ categories, cardsList, month, onClose }
         owner,
         target,
         card: target === 'credit_card' ? card : null,
-        category: target === 'transaction' ? category : null,
+        category,
       } as never)
       if (error) return showError(error)
       queryClient.invalidateQueries({ queryKey: ['transactions'] })
@@ -56,7 +56,7 @@ export default function AddTransaction({ categories, cardsList, month, onClose }
     } else if (target === 'transaction') {
       addTransaction.mutate({ month: txDate, description, amount: +amount, type, category, owner, paid: false })
     } else {
-      addCreditCard.mutate({ month: txDate, description, amount: +amount, card, owner })
+      addCreditCard.mutate({ month: txDate, description, amount: +amount, card, owner, category })
     }
     onClose()
   }
@@ -66,9 +66,26 @@ export default function AddTransaction({ categories, cardsList, month, onClose }
       <form className="modal" ref={modalRef} onClick={e => e.stopPropagation()} onSubmit={handleSubmit}>
         <h2>Novo Lançamento</h2>
 
+        {/* Seção: O quê */}
+        <label className="form-label">Descrição
+          <input type="text" placeholder="Ex: Aluguel, Netflix..." value={description} onChange={e => setDescription(e.target.value)} required />
+        </label>
+
         <div className="form-row">
-          <div>
-            <label className="form-label">Forma de pagamento</label>
+          <label className="form-label form-grow">Valor (R$)
+            <input type="number" step="0.01" placeholder="0.00" value={amount} onChange={e => setAmount(e.target.value)} required />
+          </label>
+          <label className="form-label">Data
+            <input type="date" value={txDate} onChange={e => setTxDate(e.target.value)} required />
+          </label>
+        </div>
+
+        <div className="form-divider" />
+
+        {/* Seção: Como */}
+        <div className="form-row">
+          <div className="form-grow">
+            <label className="form-label">Pagamento</label>
             <div className="form-tabs">
               <Button variant="tab" active={target === 'transaction'} onClick={() => setTarget('transaction')}>Boleto/Pix</Button>
               <Button variant="tab" active={target === 'credit_card'} onClick={() => setTarget('credit_card')}>Cartão</Button>
@@ -76,7 +93,7 @@ export default function AddTransaction({ categories, cardsList, month, onClose }
           </div>
 
           {target === 'transaction' && (
-            <div>
+            <div className="form-grow">
               <label className="form-label">Tipo</label>
               <div className="form-tabs">
                 <Button variant="tab" active={type === 'expense'} onClick={() => setType('expense')} disabled={installment}>Despesa</Button>
@@ -84,19 +101,12 @@ export default function AddTransaction({ categories, cardsList, month, onClose }
               </div>
             </div>
           )}
-        </div>
 
-        <label className="form-label">Descrição
-          <input type="text" placeholder="Ex: Aluguel, Netflix..." value={description} onChange={e => setDescription(e.target.value)} required />
-        </label>
-
-        <div className="form-row">
-          <label className="form-label form-grow">{installment ? 'Valor total (R$)' : 'Valor (R$)'}
-            <input type="number" step="0.01" placeholder="0.00" value={amount} onChange={e => setAmount(e.target.value)} required />
-          </label>
-          <label className="form-label">Data
-            <input type="date" value={txDate} onChange={e => setTxDate(e.target.value)} required />
-          </label>
+          {target === 'credit_card' && (
+            <label className="form-label form-grow">Cartão
+              <Select value={card} onChange={v => setCard(v)} options={cardsList.map(c => ({ value: c.name, label: c.label }))} />
+            </label>
+          )}
         </div>
 
         <div className="form-row" style={{ alignItems: 'flex-end' }}>
@@ -118,19 +128,13 @@ export default function AddTransaction({ categories, cardsList, month, onClose }
           </div>
         )}
 
+        <div className="form-divider" />
+
+        {/* Seção: Classificação */}
         <div className="form-row">
-          {target === 'transaction' && (
-            <label className="form-label form-grow">Categoria
-              <Select value={category} onChange={setCategory} options={categories.map(c => ({ value: c.id, label: c.label }))} />
-            </label>
-          )}
-
-          {target === 'credit_card' && (
-            <label className="form-label form-grow">Cartão
-              <Select value={card} onChange={v => setCard(v)} options={cardsList.map(c => ({ value: c.name, label: c.label }))} />
-            </label>
-          )}
-
+          <label className="form-label form-grow">Categoria
+            <Select value={category} onChange={setCategory} options={categories.map(c => ({ value: c.id, label: c.label }))} />
+          </label>
           <label className="form-label form-grow">Responsável
             <Select value={owner} onChange={v => setOwner(v as Owner)} options={[{ value: 'personal', label: 'Pessoal' }, { value: 'mother_in_law', label: 'Sogra' }]} />
           </label>

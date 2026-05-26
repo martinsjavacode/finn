@@ -62,7 +62,7 @@ export async function insertTransaction(row: {
 }
 
 export async function insertCreditCard(row: {
-  month: string; description: string; amount: number; card: string; owner: string
+  month: string; description: string; amount: number; card: string; owner: string; category?: string
 }) {
   const { error } = await supabase.from('credit_cards').insert(row as never)
   return { error }
