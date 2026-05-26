@@ -25,8 +25,10 @@ export async function getUserRole(session: Session): Promise<{ name: Role; id: s
     .single()
   if (!data) return null
   const row = data as { role_id: string; activated: boolean; roles: { name: string } }
-  if (!row.activated) {
-    await supabase.from('users').update({ activated: true } as never).eq('email', email)
-  }
+  if (!row.activated) activateUser(email)
   return { name: row.roles.name as Role, id: row.role_id }
+}
+
+export async function activateUser(email: string) {
+  await supabase.from('users').update({ activated: true } as never).eq('email', email)
 }

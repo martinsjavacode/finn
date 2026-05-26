@@ -8,6 +8,7 @@ import Button from '../ui/Button'
 import Select from '../ui/Select'
 import Modal from '../ui/Modal'
 import MobileCard from '../ui/MobileCard'
+import Badge from '../ui/Badge'
 import { TableSkeleton } from '../ui/Skeleton'
 
 interface RoleOption { id: string; name: string }
@@ -101,8 +102,8 @@ export default function AccessPage() {
               <tr key={u.id}>
                 <td>{u.display_name || <span style={{ color: 'var(--text-muted)' }}>—</span>}</td>
                 <td>{u.email}</td>
-                <td><span className={`badge ${getRoleName(u) !== 'viewer' ? 'badge-success' : 'badge-danger'}`}>{roleLabel(getRoleName(u))}</span></td>
-                <td><span className={`badge ${u.activated ? 'badge-success' : 'badge-danger'}`}>{u.activated ? 'Ativo' : 'Pendente'}</span></td>
+                <td><Badge variant={getRoleName(u) !== 'viewer' ? 'success' : 'danger'}>{roleLabel(getRoleName(u))}</Badge></td>
+                <td><Badge variant={u.activated ? 'success' : 'danger'}>{u.activated ? 'Ativo' : 'Pendente'}</Badge></td>
                 <td>
                   <Button variant="icon" aria-label="Editar" onClick={() => openEdit(u)}><Pencil size={14} /></Button>
                   <Button variant="icon" className="delete-btn" aria-label="Excluir" onClick={() => handleDelete(u.id)}><Trash2 size={14} /></Button>
@@ -114,7 +115,7 @@ export default function AccessPage() {
         </table>
         <div className="mobile-cards">
           {users.length ? users.map(u => (
-            <MobileCard key={u.id} status={<span className={`badge ${u.activated ? 'badge-success' : 'badge-danger'}`} style={{ fontSize: '0.6rem' }}>{u.activated ? '●' : '○'}</span>} title={u.display_name || u.email} value={<span className={`badge ${getRoleName(u) !== 'viewer' ? 'badge-success' : 'badge-danger'}`}>{roleLabel(getRoleName(u))}</span>} subtitle={u.display_name ? u.email : (u.activated ? 'Ativo' : 'Pendente')} onTap={() => openEdit(u)} />
+            <MobileCard key={u.id} status={<Badge variant={u.activated ? 'success' : 'danger'}>{u.activated ? '●' : '○'}</Badge>} title={u.display_name || u.email} value={<Badge variant={getRoleName(u) !== 'viewer' ? 'success' : 'danger'}>{roleLabel(getRoleName(u))}</Badge>} subtitle={u.display_name ? u.email : (u.activated ? 'Ativo' : 'Pendente')} onTap={() => openEdit(u)} />
           )) : <p className="empty">Nenhum usuário cadastrado</p>}
         </div>
       </section>

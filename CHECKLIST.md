@@ -73,16 +73,16 @@ Baseado na análise completa de UX, UI, Arquitetura, Performance e Acessibilidad
 ### Novos componentes UI ✅
 - [x] Criar `src/components/ui/Badge.tsx` (variants: success, danger, warning, info)
 - [x] Criar `src/components/ui/Input.tsx` (label, error, helper text, icon)
-- [ ] Substituir badges inline por `<Badge>` em TransactionsTable
-- [ ] Substituir badges inline por `<Badge>` em AccessPage
-- [ ] Substituir badges inline por `<Badge>` em RecurringTemplates
-- [ ] Substituir badges inline por `<Badge>` em CardsPage
+- [x] Substituir badges inline por `<Badge>` em TransactionsTable
+- [x] Substituir badges inline por `<Badge>` em AccessPage
+- [x] Substituir badges inline por `<Badge>` em RecurringTemplates
+- [x] Substituir badges inline por `<Badge>` em CardsPage
 
 ### Type safety ✅
 - [x] Mover `ClosingRule` e `CardWithRule` de utils/format.ts para types/database.ts
 - [x] Atualizar imports em utils/format.ts e CardsPage
-- [ ] Regenerar Database types com `supabase gen types typescript`
-- [ ] Eliminar todos os `as never` casts (9 ocorrências)
+- [ ] Regenerar Database types com `supabase gen types` (requer SUPABASE_ACCESS_TOKEN)
+- [ ] Eliminar todos os `as never` casts (depende do item acima)
 
 ### CSS modularização ✅
 - [x] Criar `src/styles/variables.css` (extrair :root variables)
@@ -104,7 +104,7 @@ Baseado na análise completa de UX, UI, Arquitetura, Performance e Acessibilidad
 - [x] Adicionar error handling em queryFn (throw on error em useTransactions)
 - [x] Criar `TRANSACTION_KEYS` constants compartilhadas
 - [x] Unificar `invalidate()` via `invalidateTransactions()` exportada
-- [ ] `getUserRole`: separar side-effect de ativação em função dedicada
+- [x] `getUserRole`: separar side-effect de ativação em função dedicada
 
 ---
 

@@ -10,6 +10,7 @@ import type { ClosingRule } from '../../types/database'
 import Button from '../ui/Button'
 import Modal from '../ui/Modal'
 import MobileCard from '../ui/MobileCard'
+import Badge from '../ui/Badge'
 import { TableSkeleton } from '../ui/Skeleton'
 
 interface CardInfo { id: string; name: string; label: string; credit_limit: number; closing_day: number; due_day: number; closing_rule: ClosingRule; days_before_due: number; color: string; active: boolean }
@@ -106,7 +107,7 @@ export default function CardsPage() {
                 <td>{fmt(c.credit_limit)}</td>
                 <td>Dia {getEffectiveClosingDay(c)}</td>
                 <td>Dia {c.due_day}</td>
-                <td>{canUpdate ? <button className={`paid-btn ${c.active ? 'paid' : ''}`} aria-label={c.active ? 'Desativar' : 'Ativar'} onClick={() => toggleMutation.mutate({ id: c.id, active: c.active })}>{c.active ? <Check size={14} /> : <Circle size={14} />}</button> : <span className={`badge ${c.active ? 'badge-success' : 'badge-danger'}`}>{c.active ? 'Ativo' : 'Inativo'}</span>}</td>
+                <td>{canUpdate ? <button className={`paid-btn ${c.active ? 'paid' : ''}`} aria-label={c.active ? 'Desativar' : 'Ativar'} onClick={() => toggleMutation.mutate({ id: c.id, active: c.active })}>{c.active ? <Check size={14} /> : <Circle size={14} />}</button> : <Badge variant={c.active ? 'success' : 'danger'}>{c.active ? 'Ativo' : 'Inativo'}</Badge>}</td>
                 {(canUpdate || canDelete) && (
                   <td>
                     {canUpdate && <Button variant="icon" aria-label="Editar" onClick={() => openEdit(c)}><Pencil size={14} /></Button>}
@@ -120,7 +121,7 @@ export default function CardsPage() {
         </table>
         <div className="mobile-cards">
           {cards.length ? cards.map(c => (
-            <MobileCard key={c.id} className={!c.active ? 'row-paid' : ''} status={canUpdate ? <button className={`paid-btn ${c.active ? 'paid' : ''}`} aria-label={c.active ? 'Desativar' : 'Ativar'} onClick={e => { e.stopPropagation(); toggleMutation.mutate({ id: c.id, active: c.active }) }}>{c.active ? <Check size={14} /> : <Circle size={14} />}</button> : <span className={`badge ${c.active ? 'badge-success' : 'badge-danger'}`}>{c.active ? 'Ativo' : 'Inativo'}</span>} title={<><span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: c.color, marginRight: 6 }} />{c.label}</>} value={fmt(c.credit_limit)} subtitle={<>Fecha dia {getEffectiveClosingDay(c)} · Vence dia {c.due_day}</>} onTap={canUpdate ? () => openEdit(c) : undefined} />
+            <MobileCard key={c.id} className={!c.active ? 'row-paid' : ''} status={canUpdate ? <button className={`paid-btn ${c.active ? 'paid' : ''}`} aria-label={c.active ? 'Desativar' : 'Ativar'} onClick={e => { e.stopPropagation(); toggleMutation.mutate({ id: c.id, active: c.active }) }}>{c.active ? <Check size={14} /> : <Circle size={14} />}</button> : <Badge variant={c.active ? 'success' : 'danger'}>{c.active ? 'Ativo' : 'Inativo'}</Badge>} title={<><span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: c.color, marginRight: 6 }} />{c.label}</>} value={fmt(c.credit_limit)} subtitle={<>Fecha dia {getEffectiveClosingDay(c)} · Vence dia {c.due_day}</>} onTap={canUpdate ? () => openEdit(c) : undefined} />
           )) : <p className="empty">Nenhum cartão cadastrado</p>}
         </div>
       </section>

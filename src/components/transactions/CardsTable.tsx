@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useQueryClient, useQuery } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
+import Badge from '../ui/Badge'
 import type { CreditCard, CardListItem, Category, Owner } from '../../types/database'
 import { confirm } from '../../lib/confirm'
 import { showError, toast } from '../../lib/toast'
@@ -93,7 +94,7 @@ export default function CardsTable({ cards, cardsList, categories, month, canUpd
               <td>{categories.find(c => c.id === r.category)?.label ?? '-'}</td>
               <td>{r.current_installment && r.total_installments ? `${r.current_installment}/${r.total_installments}` : '-'}</td>
               <td>{fmt(+r.amount)}</td>
-              <td><span className={`badge ${r.owner === 'personal' ? 'badge-success' : 'badge-danger'}`}>{ownerLabel(r.owner)}</span></td>
+              <td><Badge variant={r.owner === 'personal' ? 'success' : 'danger'}>{ownerLabel(r.owner)}</Badge></td>
               {canEdit && (
                 <td>
                   {canUpdate && !r.installment_purchase_id && <Button variant="icon" aria-label="Editar" onClick={() => setEditing(r)}><Pencil size={14} /></Button>}

@@ -10,6 +10,7 @@ import Select from '../ui/Select'
 import Button from '../ui/Button'
 import Modal from '../ui/Modal'
 import MobileCard from '../ui/MobileCard'
+import Badge from '../ui/Badge'
 import { TableSkeleton } from '../ui/Skeleton'
 import { fmt, categoryOptions } from '../../utils/format'
 
@@ -139,8 +140,8 @@ export default function RecurringPage() {
                 <td>{fmt(+t.amount)}</td>
                 <td>{t.target === 'credit_card' ? 'Cartão' : t.type === 'income' ? 'Receita' : 'Despesa'}</td>
                 <td>{t.target === 'credit_card' ? cardsList.find(c => c.name === t.card)?.label ?? t.card : catLabel(t.category)}</td>
-                <td><span className={`badge ${t.owner === 'personal' ? 'badge-success' : 'badge-danger'}`}>{t.owner === 'personal' ? 'Pessoal' : 'Sogra'}</span></td>
-                <td>{canUpdate ? <button className={`paid-btn ${t.active ? 'paid' : ''}`} aria-label={t.active ? 'Desativar' : 'Ativar'} onClick={() => toggleMutation.mutate({ id: t.id, active: t.active })}>{t.active ? <Check size={14} /> : <Circle size={14} />}</button> : <span className={`badge ${t.active ? 'badge-success' : 'badge-danger'}`}>{t.active ? 'Ativo' : 'Inativo'}</span>}</td>
+                <td><Badge variant={t.owner === 'personal' ? 'success' : 'danger'}>{t.owner === 'personal' ? 'Pessoal' : 'Sogra'}</Badge></td>
+                <td>{canUpdate ? <button className={`paid-btn ${t.active ? 'paid' : ''}`} aria-label={t.active ? 'Desativar' : 'Ativar'} onClick={() => toggleMutation.mutate({ id: t.id, active: t.active })}>{t.active ? <Check size={14} /> : <Circle size={14} />}</button> : <Badge variant={t.active ? 'success' : 'danger'}>{t.active ? 'Ativo' : 'Inativo'}</Badge>}</td>
                 {(canUpdate || canDelete) && (
                   <td>
                     {canUpdate && <Button variant="icon" aria-label="Editar" onClick={() => openEdit(t)}><Pencil size={14} /></Button>}
@@ -154,7 +155,7 @@ export default function RecurringPage() {
         </table>
         <div className="mobile-cards">
           {templates.length ? templates.map(t => (
-            <MobileCard key={t.id} className={!t.active ? 'row-paid' : ''} status={canUpdate ? <button className={`paid-btn ${t.active ? 'paid' : ''}`} aria-label={t.active ? 'Desativar' : 'Ativar'} onClick={e => { e.stopPropagation(); toggleMutation.mutate({ id: t.id, active: t.active }) }}>{t.active ? <Check size={14} /> : <Circle size={14} />}</button> : <span className={`badge ${t.active ? 'badge-success' : 'badge-danger'}`}>{t.active ? 'Ativo' : 'Inativo'}</span>} title={t.description} value={fmt(+t.amount)} subtitle={<>Dia {t.day} · {t.target === 'credit_card' ? cardsList.find(c => c.name === t.card)?.label ?? t.card : catLabel(t.category)} · {t.owner === 'personal' ? 'Pessoal' : 'Sogra'}</>} onTap={canUpdate ? () => openEdit(t) : undefined} />
+            <MobileCard key={t.id} className={!t.active ? 'row-paid' : ''} status={canUpdate ? <button className={`paid-btn ${t.active ? 'paid' : ''}`} aria-label={t.active ? 'Desativar' : 'Ativar'} onClick={e => { e.stopPropagation(); toggleMutation.mutate({ id: t.id, active: t.active }) }}>{t.active ? <Check size={14} /> : <Circle size={14} />}</button> : <Badge variant={t.active ? 'success' : 'danger'}>{t.active ? 'Ativo' : 'Inativo'}</Badge>} title={t.description} value={fmt(+t.amount)} subtitle={<>Dia {t.day} · {t.target === 'credit_card' ? cardsList.find(c => c.name === t.card)?.label ?? t.card : catLabel(t.category)} · {t.owner === 'personal' ? 'Pessoal' : 'Sogra'}</>} onTap={canUpdate ? () => openEdit(t) : undefined} />
           )) : <p className="empty">Nenhum template cadastrado</p>}
         </div>
       </section>
