@@ -27,10 +27,10 @@ export default function Pagination({ currentPage, totalPages, totalItems, perPag
       </div>
       <span className="pagination-info">{start}–{end} de {totalItems}</span>
       <div className="pagination-right">
-        <button className="pagination-btn" disabled={currentPage === 1} onClick={() => onPageChange(currentPage - 1)}>
+        <button className="pagination-btn" disabled={currentPage === 1} onClick={() => onPageChange(currentPage - 1)} aria-label="Página anterior">
           <ChevronLeft size={16} />
         </button>
-        <button className="pagination-btn" disabled={currentPage === totalPages} onClick={() => onPageChange(currentPage + 1)}>
+        <button className="pagination-btn" disabled={currentPage === totalPages} onClick={() => onPageChange(currentPage + 1)} aria-label="Próxima página">
           <ChevronRight size={16} />
         </button>
       </div>

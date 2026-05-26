@@ -4,11 +4,13 @@
   --surface-hover: rgba(255, 255, 255, 0.06);
   --border: rgba(255, 255, 255, 0.08);
   --text: #f1f5f9;
-  --text-muted: #64748b;
+  --text-muted: #7c8db5;
   --green: #00d68f;
   --red: #ff6b6b;
   --purple: #a78bfa;
   --blue: #38bdf8;
+  --accent: #667eea;
+  --card: #1a1f2e;
   --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   --gradient-2: linear-gradient(135deg, #00d68f 0%, #00b4d8 100%);
   --gradient-3: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
@@ -18,6 +20,8 @@
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
+*:focus-visible { outline: 2px solid var(--purple); outline-offset: 2px; }
+*:focus:not(:focus-visible) { outline: none; }
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -211,6 +215,7 @@ select:focus { outline: none; border-color: var(--purple); box-shadow: 0 0 0 3px
 }
 .custom-select-menu li:hover { background: rgba(167, 139, 250, 0.1); color: var(--text); }
 .custom-select-menu li.active { background: rgba(167, 139, 250, 0.15); color: var(--purple); font-weight: 600; }
+.custom-select-menu li.focused { background: rgba(167, 139, 250, 0.1); color: var(--text); }
 
 /* Summary Cards */
 .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2.5rem; }
@@ -261,7 +266,7 @@ tbody tr { cursor: pointer; transition: background 0.15s; }
 .pagination { display: flex; align-items: center; justify-content: space-between; margin-top: 1.2rem; gap: 12px; }
 .pagination-left { display: flex; align-items: center; gap: 6px; }
 .pagination-right { display: flex; align-items: center; gap: 4px; }
-.pagination-btn { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); color: var(--text); cursor: pointer; transition: all 0.15s; }
+.pagination-btn { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); color: var(--text); cursor: pointer; transition: all 0.15s; }
 .pagination-btn:hover:not(:disabled) { background: var(--border); }
 .pagination-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 .pagination-select { height: 32px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); color: var(--text); font-size: 0.8rem; padding: 0 8px; cursor: pointer; }
@@ -274,7 +279,7 @@ tbody tr { cursor: pointer; transition: background 0.15s; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
 /* Buttons */
-.paid-btn { background: none; border: 1px solid var(--border); border-radius: 50%; width: 28px; height: 28px; cursor: pointer; color: var(--red); font-size: 0.9rem; transition: all 0.2s; border-color: var(--red); }
+.paid-btn { background: none; border: 1px solid var(--border); border-radius: 50%; width: 44px; height: 44px; cursor: pointer; color: var(--red); font-size: 0.9rem; transition: all 0.2s; border-color: var(--red); display: inline-flex; align-items: center; justify-content: center; }
 .paid-btn:hover { border-color: var(--green); color: var(--green); }
 .paid-btn.paid { background: rgba(0, 214, 143, 0.15); color: var(--green); border-color: var(--green); }
 
@@ -282,7 +287,7 @@ tbody tr { cursor: pointer; transition: background 0.15s; }
 .btn-primary:hover { opacity: 0.9; }
 .btn-primary:disabled { opacity: 0.5; }
 
-.edit-btn, .delete-btn { background: none; border: none; cursor: pointer; font-size: 1rem; padding: 0.2rem 0.5rem; border-radius: 4px; transition: background 0.2s; }
+.edit-btn, .delete-btn { background: none; border: none; cursor: pointer; font-size: 1rem; padding: 0.2rem 0.5rem; border-radius: 4px; transition: background 0.2s; min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
 .edit-btn:hover { background: var(--surface-hover); }
 .delete-btn { color: var(--red); }
 .delete-btn:hover { background: rgba(255, 107, 107, 0.1); }

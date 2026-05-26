@@ -214,10 +214,10 @@ migrations/
 ```
 src/
 ├── components/
-│   ├── ui/            — Button, Select, Sidebar, Toast, Skeleton, MobileCard, ErrorBoundary
+│   ├── ui/            — Button, Select, Sidebar, Toast, Skeleton, MobileCard, Pagination, ErrorBoundary, ConfirmDialog
 │   ├── auth/          — Auth (login email+senha + GitHub)
 │   ├── dashboard/     — Dashboard, SummaryCards
-│   ├── transactions/  — TransactionsTable, CardsTable, AddTransaction
+│   ├── transactions/  — TransactionsPage, TransactionsTable, CardsTable, AddTransaction
 │   ├── recurring/     — RecurringTemplates
 │   ├── budgets/       — BudgetsPage
 │   ├── categories/    — CategoriesPage
@@ -225,13 +225,13 @@ src/
 │   ├── projection/    — Projection
 │   ├── access/        — AccessPage (gerenciamento de usuários)
 │   └── roles/         — RolesPage (gerenciamento de permissões)
-├── hooks/             — useAuth, usePermissions, useTransactions, useAppData
+├── hooks/             — useAuth, usePermissions, useTransactions, useAppData, useModal, useFocusTrap
 ├── services/          — auth, transactions, categories, recurring
-├── utils/             — format (fmt, ownerLabel, monthRange, etc.)
+├── utils/             — format (fmt, ownerLabel, monthRange, resolveInvoiceMonth, etc.)
 ├── lib/               — Supabase client, toast, confirm
 ├── types/             — TypeScript types (Database)
-├── test/              — Vitest + Testing Library (32 testes)
-└── App.tsx            — Router + Layout + ErrorBoundary
+├── test/              — Vitest + Testing Library (38 testes)
+└── App.tsx            — Router + Layout + ProtectedRoute + Code Splitting
 ```
 
 ### Princípios aplicados
@@ -239,9 +239,18 @@ src/
 - **DRY** — Utilitários centralizados em `utils/format.ts`
 - **SRP** — Camada de serviço separa acesso a dados dos componentes
 - **OCP** — RBAC extensível via banco (novas roles/permissões sem alterar código)
-- **KISS** — CSS global único, sem over-engineering
+- **KISS** — CSS com custom properties, sem over-engineering
 - **YAGNI** — Permissões granulares no banco, consumo simples no frontend (`can()`)
 - **Clean Architecture** — hooks → services → supabase (camadas bem definidas)
+
+### Performance & Acessibilidade
+
+- **Code Splitting** — Pages carregadas sob demanda via `React.lazy` + `Suspense`
+- **Route Guards** — `ProtectedRoute` com verificação de permissão por rota
+- **Focus Trap** — Modais prendem foco via `useFocusTrap` hook
+- **WAI-ARIA** — Select com Listbox pattern (keyboard nav completa)
+- **WCAG AA** — Contraste ≥4.5:1, touch targets ≥44px, focus-visible global
+- **Skeleton Loading** — Estados de carregamento com shimmer animation
 
 ## Testes
 
