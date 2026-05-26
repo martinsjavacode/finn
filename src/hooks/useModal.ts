@@ -2,14 +2,16 @@ import { useEffect, useRef } from 'react'
 
 export function useModal<T extends HTMLElement = HTMLElement>(onClose: () => void) {
   const ref = useRef<T>(null)
+  const onCloseRef = useRef(onClose)
+
+  useEffect(() => { onCloseRef.current = onClose })
 
   useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onCloseRef.current() }
     document.addEventListener('keydown', handleKey)
-    const prev = document.activeElement as HTMLElement
     ref.current?.querySelector<HTMLElement>('input, select, button')?.focus()
-    return () => { document.removeEventListener('keydown', handleKey); prev?.focus() }
-  }, [onClose])
+    return () => document.removeEventListener('keydown', handleKey)
+  }, [])
 
   return ref
 }

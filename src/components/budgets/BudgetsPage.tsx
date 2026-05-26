@@ -1,8 +1,7 @@
 import { Pencil, Trash2, Check } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
-import { useAuth } from '../../hooks'
-import type { Category } from '../../types/database'
+import { useAuth, useAppData } from '../../hooks'
 import { showError, toast } from '../../lib/toast'
 import { useModal } from '../../hooks/useModal'
 import { confirm } from '../../lib/confirm'
@@ -13,10 +12,9 @@ import MobileCard from '../ui/MobileCard'
 
 interface Budget { id: string; category: string; monthly_limit: number }
 
-interface Props { categories: Category[] }
-
-export default function BudgetsPage({ categories }: Props) {
+export default function BudgetsPage() {
   const { can } = useAuth()
+  const { categories } = useAppData(true)
   const canCreate = can('budgets', 'create')
   const canUpdate = can('budgets', 'update')
   const canDelete = can('budgets', 'delete')

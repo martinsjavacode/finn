@@ -1,8 +1,8 @@
 import { Pencil, Trash2, Check, Circle } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
-import { useAuth } from '../../hooks'
-import type { Category, Owner, Card, CardListItem } from '../../types/database'
+import { useAuth, useAppData } from '../../hooks'
+import type { Owner, Card } from '../../types/database'
 import { showError, toast } from '../../lib/toast'
 import { useModal } from '../../hooks/useModal'
 import { confirm } from '../../lib/confirm'
@@ -24,13 +24,9 @@ interface Template {
   active: boolean
 }
 
-interface Props {
-  categories: Category[]
-  cardsList: CardListItem[]
-}
-
-export default function RecurringPage({ categories, cardsList }: Props) {
+export default function RecurringPage() {
   const { can } = useAuth()
+  const { categories, cardsList } = useAppData(true)
   const canCreate = can('recurring_templates', 'create')
   const canUpdate = can('recurring_templates', 'update')
   const canDelete = can('recurring_templates', 'delete')

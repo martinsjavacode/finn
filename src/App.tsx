@@ -116,7 +116,6 @@ function TransactionsPage() {
 
 function AppLayout() {
   const { session, loading, isOwner, unauthorized, can, signOut: logout } = useAuth()
-  const { categories, cardsList } = useAppData(!!session && !unauthorized)
   const navigate = useNavigate()
 
   if (loading) return <div className="auth"><div className="skeleton" style={{ width: '120px', height: '2rem', margin: '0 auto' }} /><div className="skeleton" style={{ width: '200px', height: '1rem', margin: '1rem auto' }} /></div>
@@ -138,11 +137,11 @@ function AppLayout() {
       <Sidebar session={session} isOwner={isOwner} can={can} />
       <main className="main" id="main-content">
         <Routes>
-          <Route path="/" element={<Dashboard categories={categories} />} />
+          <Route path="/" element={<Dashboard />} />
           <Route path="/transactions" element={<TransactionsPage />} />
-          <Route path="/recurring" element={<RecurringPage categories={categories} cardsList={cardsList} />} />
+          <Route path="/recurring" element={<RecurringPage />} />
           <Route path="/projection" element={<Projection />} />
-          <Route path="/budgets" element={<BudgetsPage categories={categories} />} />
+          <Route path="/budgets" element={<BudgetsPage />} />
           <Route path="/access" element={<AccessPage />} />
           <Route path="/roles" element={<RolesPage />} />
           <Route path="/categories" element={<CategoriesPage />} />
