@@ -16,11 +16,11 @@ export function CardGrid({ children }: { children: ReactNode }) {
 export function CardItem({ title, actions, children, style, className = '' }: CardItemProps) {
   return (
     <div className={`cat-card ${className}`} style={style}>
-      <div className="cat-card-header">
+      <div className="cat-card-content">
         <h3>{title}</h3>
-        {actions && <div className="cat-card-actions">{actions}</div>}
+        <div className="cat-children">{children}</div>
       </div>
-      <div className="cat-children">{children}</div>
+      {actions && <div className="cat-card-actions">{actions}</div>}
     </div>
   )
 }
