@@ -84,30 +84,27 @@ Baseado na análise completa de UX, UI, Arquitetura, Performance e Acessibilidad
 - [ ] Regenerar Database types com `supabase gen types typescript`
 - [ ] Eliminar todos os `as never` casts (9 ocorrências)
 
-### CSS modularização
-- [ ] Criar `src/styles/variables.css` (extrair :root variables)
-- [ ] Criar `src/styles/reset.css` (extrair *, body, global resets)
-- [ ] Criar `src/styles/layout.css` (extrair .layout, .sidebar, .main, .skip-link)
-- [ ] Criar `src/styles/controls.css` (extrair .controls, .search-input, .custom-select)
-- [ ] Criar `src/styles/cards.css` (extrair .card, .grid, .summary)
-- [ ] Criar `src/styles/tables.css` (extrair table, th, td, .badge)
-- [ ] Criar `src/styles/modals.css` (extrair .modal-overlay, .modal, .form-actions)
-- [ ] Criar `src/styles/forms.css` (extrair input, select, label, .form-toggle)
-- [ ] Criar `src/styles/responsive.css` (extrair @media queries)
-- [ ] Atualizar imports em App.tsx para novos CSS files
-- [ ] Remover App.css monolítico
+### CSS modularização ✅
+- [x] Criar `src/styles/variables.css` (extrair :root variables)
+- [x] Criar `src/styles/reset.css` (extrair *, body, global resets)
+- [x] Criar `src/styles/layout.css` (extrair .layout, .sidebar, .main, .skip-link)
+- [x] Criar `src/styles/components.css` (extrair controls, cards, tables, badges, buttons, pagination)
+- [x] Criar `src/styles/modals.css` (extrair .modal-overlay, .modal)
+- [x] Criar `src/styles/forms.css` (extrair form styles + invoice bar)
+- [x] Criar `src/styles/responsive.css` (extrair @media queries)
+- [x] Atualizar App.css para importar módulos
+- [x] Remover App.css monolítico (substituído por imports)
 
-### Performance Dashboard
-- [ ] Adicionar `useMemo` para `catData` (cálculo por categoria)
-- [ ] Adicionar `useMemo` para `trend` (média móvel)
-- [ ] Adicionar `useMemo` para `expenses` filter
-- [ ] Adicionar `useMemo` para `buildConicGradient`
+### Performance Dashboard ✅
+- [x] Adicionar `useMemo` para `maxValue`
+- [x] Adicionar `useMemo` para `trend` (média móvel)
+- [x] Adicionar `useMemo` para `expenses`, `catData`, `balance`, `paidPercent`
 
-### Melhorias de hooks
-- [ ] Adicionar error handling em queryFn (não descartar errors silenciosamente)
-- [ ] `useAuth`: separar em hooks menores (useSession + useRole) se necessário
+### Melhorias de hooks ✅
+- [x] Adicionar error handling em queryFn (throw on error em useTransactions)
+- [x] Criar `TRANSACTION_KEYS` constants compartilhadas
+- [x] Unificar `invalidate()` via `invalidateTransactions()` exportada
 - [ ] `getUserRole`: separar side-effect de ativação em função dedicada
-- [ ] Unificar `invalidate()` entre useTransactions e useTransactionMutations
 
 ---
 
@@ -166,6 +163,7 @@ Baseado na análise completa de UX, UI, Arquitetura, Performance e Acessibilidad
 | Bundle JS inicial | 549KB | 485KB (+ lazy chunks) | <200KB |
 | Code splitting | ❌ | ✅ 9 chunks | ✅ |
 | CSS variables indefinidas | 2 | 0 | 0 |
+| CSS monolítico | 1 arquivo (400+ linhas) | 7 módulos | ✅ |
 | Rotas sem permission guard | 7 | 0 | 0 |
 | Componentes sem keyboard nav | 2 (Select, MobileCard) | 0 | 0 |
 | Focus trap em modais | ❌ | ✅ | ✅ |
@@ -175,4 +173,6 @@ Baseado na análise completa de UX, UI, Arquitetura, Performance e Acessibilidad
 | Pages sem loading skeleton | 7 | 0 | 0 |
 | Linhas duplicadas (modal pattern) | ~210 | 0 (Modal component) | 0 |
 | Circular dependency (types↔utils) | 1 | 0 | 0 |
+| Dashboard sem useMemo | 5 cálculos | 0 | 0 |
+| Query keys duplicadas | 2 hooks | 1 shared constant | ✅ |
 | `as never` casts | 9 | 9 | 0 |

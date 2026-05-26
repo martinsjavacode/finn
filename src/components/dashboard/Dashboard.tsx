@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import type { Transaction } from '../../types/database'
 import { fetchAllTransactions, fetchTransactions } from '../../services/transactions'
@@ -47,6 +47,39 @@ export default function Dashboard() {
     enabled: !!selectedMonth,
   })
 
+  // Evolução anual
+  const maxValue = useMemo(() => Math.max(...monthsData.flatMap(d => [d.income, d.expense]), 1), [monthsData])
+
+  // Média móvel 3 meses (tendência de despesas)
+  const trend = useMemo(() => monthsData.map((_, i) => {
+    const slice = monthsData.slice(Math.max(0, i - 2), i + 1)
+    return slice.reduce((s, d) => s + d.expense, 0) / slice.length
+  }), [monthsData])
+
+  // Percentual por categoria (despesas do mês selecionado)
+  const { expenses, totalIncome, totalExpense, balance, catData, paidPercent, paidCount, totalCount } = useMemo(() => {
+    const exp = currentTransactions.filter(r => r.type === 'expense')
+    const inc = currentTransactions.filter(r => r.type === 'income').reduce((s, r) => s + +r.amount, 0)
+    const expTotal = exp.reduce((s, r) => s + +r.amount, 0)
+    const byCat: Record<string, number> = {}
+    for (const r of exp) {
+      const label = r.categories?.label ?? 'Outros'
+      byCat[label] = (byCat[label] || 0) + +r.amount
+    }
+    const tCount = exp.length
+    const pCount = exp.filter(r => r.paid).length
+    return {
+      expenses: exp,
+      totalIncome: inc,
+      totalExpense: expTotal,
+      balance: inc - expTotal,
+      catData: Object.entries(byCat).sort((a, b) => b[1] - a[1]),
+      paidPercent: tCount > 0 ? Math.round((pCount / tCount) * 100) : 0,
+      paidCount: pCount,
+      totalCount: tCount,
+    }
+  }, [currentTransactions])
+
   if (isLoading) return <div><h2 className="dashboard-title">Dashboard</h2><ChartSkeleton /><CardsSkeleton /></div>
 
   if (!monthsData.length) return (
@@ -55,32 +88,6 @@ export default function Dashboard() {
       <section><p className="empty">Nenhum dado encontrado. Adicione lançamentos para visualizar o dashboard.</p></section>
     </div>
   )
-
-  // Evolução anual
-  const maxValue = Math.max(...monthsData.flatMap(d => [d.income, d.expense]), 1)
-
-  // Média móvel 3 meses (tendência de despesas)
-  const trend = monthsData.map((_, i) => {
-    const slice = monthsData.slice(Math.max(0, i - 2), i + 1)
-    return slice.reduce((s, d) => s + d.expense, 0) / slice.length
-  })
-
-  // Percentual por categoria (despesas do mês selecionado)
-  const expenses = currentTransactions.filter(r => r.type === 'expense')
-  const totalIncome = currentTransactions.filter(r => r.type === 'income').reduce((s, r) => s + +r.amount, 0)
-  const totalExpense = expenses.reduce((s, r) => s + +r.amount, 0)
-  const balance = totalIncome - totalExpense
-  const byCat: Record<string, number> = {}
-  for (const r of expenses) {
-    const label = r.categories?.label ?? 'Outros'
-    byCat[label] = (byCat[label] || 0) + +r.amount
-  }
-  const catData = Object.entries(byCat).sort((a, b) => b[1] - a[1])
-
-  // Progresso de pagamento
-  const totalCount = expenses.length
-  const paidCount = expenses.filter(r => r.paid).length
-  const paidPercent = totalCount > 0 ? Math.round((paidCount / totalCount) * 100) : 0
 
   const monthLabel = (ym: string) => new Date(ym + '-01T12:00:00').toLocaleDateString('pt-BR', { month: 'short' })
 

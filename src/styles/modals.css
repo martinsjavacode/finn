@@ -1,0 +1,6 @@
+.modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 200; animation: fadeIn 0.2s ease-out; }
+.modal { background: #1a1f2e; border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 1rem; }
+.modal h2 { font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem; }
+.modal input, .modal select { width: 100%; padding: 0.65rem 0.8rem; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface); color: var(--text); color-scheme: dark; font-size: 0.9rem; box-sizing: border-box; }
+.modal input:focus, .modal select:focus { outline: none; border-color: var(--purple); }
+.modal-lg { max-width: 600px; max-height: 80vh; overflow-y: auto; }
