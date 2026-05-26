@@ -1,10 +1,10 @@
 import { useEffect, useState, useCallback } from 'react'
-import type { Category } from '../types/database'
+import type { Category, CardListItem } from '../types/database'
 import { fetchCategories, fetchActiveCards } from '../services/categories'
 
 export function useAppData(authenticated: boolean) {
   const [categories, setCategories] = useState<Category[]>([])
-  const [cardsList, setCardsList] = useState<{ name: string; label: string }[]>([])
+  const [cardsList, setCardsList] = useState<CardListItem[]>([])
 
   const reload = useCallback(async () => {
     const [cats, cards] = await Promise.all([fetchCategories(), fetchActiveCards()])

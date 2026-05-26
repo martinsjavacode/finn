@@ -1,3 +1,4 @@
+import { Pencil, Trash2, Check, Circle } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { showError, toast } from '../../lib/toast'
@@ -78,7 +79,7 @@ export default function RolesPage() {
   return (
     <div>
       <div className="page-header">
-        <h2>🔐 Roles e Permissões</h2>
+        <h2>Roles e Permissões</h2>
         <Button onClick={openNew}>+ Nova Role</Button>
       </div>
 
@@ -111,8 +112,8 @@ export default function RolesPage() {
                 <td><button className="auth-btn-link" style={{ fontWeight: 600, fontSize: '0.85rem' }} onClick={() => setSelectedRole(selectedRole === r.id ? null : r.id)}>{r.name}</button></td>
                 <td style={{ color: 'var(--text-muted)' }}>{r.description || '—'}</td>
                 <td>
-                  <Button variant="icon" onClick={() => openEdit(r)}>✏️</Button>
-                  <Button variant="icon" className="delete-btn" onClick={() => handleDelete(r.id)}>🗑️</Button>
+                  <Button variant="icon" onClick={() => openEdit(r)}><Pencil size={14} /></Button>
+                  <Button variant="icon" className="delete-btn" onClick={() => handleDelete(r.id)}><Trash2 size={14} /></Button>
                 </td>
               </tr>
             ))}
@@ -156,7 +157,7 @@ export default function RolesPage() {
                     return (
                       <td key={act}>
                         <button className={`paid-btn ${active ? 'paid' : ''}`} onClick={() => togglePermission(selectedRole, permId)}>
-                          {active ? '✓' : '○'}
+                          {active ? <Check size={14} /> : <Circle size={14} />}
                         </button>
                       </td>
                     )

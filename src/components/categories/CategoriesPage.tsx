@@ -1,5 +1,7 @@
+import { Pencil, Trash2, Check } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
+import { useAuth } from '../../hooks'
 import type { Category } from '../../types/database'
 import { showError, toast } from '../../lib/toast'
 import { confirm } from '../../lib/confirm'
@@ -7,6 +9,10 @@ import Button from '../ui/Button'
 import MobileCard from '../ui/MobileCard'
 
 export default function CategoriesPage() {
+  const { can } = useAuth()
+  const canCreate = can('categories', 'create')
+  const canUpdate = can('categories', 'update')
+  const canDelete = can('categories', 'delete')
   const [categories, setCategories] = useState<Category[]>([])
   const [showForm, setShowForm] = useState(false)
   const [name, setName] = useState('')
@@ -47,8 +53,8 @@ export default function CategoriesPage() {
   return (
     <div>
       <div className="page-header">
-        <h2>🏷️ Categorias</h2>
-        <Button onClick={() => setShowForm(!showForm)}>+ Nova</Button>
+        <h2>Categorias</h2>
+        {canCreate && <Button onClick={() => setShowForm(!showForm)}>+ Nova</Button>}
       </div>
 
       {showForm && (
@@ -71,7 +77,7 @@ export default function CategoriesPage() {
 
       <section>
         <table className="desktop-table">
-          <thead><tr><th>Nome</th><th>Label</th><th></th></tr></thead>
+          <thead><tr><th>Nome</th><th>Label</th>{(canUpdate || canDelete) && <th></th>}</tr></thead>
           <tbody>
             {categories.map(c => (
               <tr key={c.id}>
@@ -82,19 +88,21 @@ export default function CategoriesPage() {
                     : c.label
                   }
                 </td>
-                <td>
-                  {editing === c.id ? (
-                    <Button onClick={() => saveEdit(c.id)}>✓</Button>
-                  ) : (
-                    <>
-                      <Button variant="icon" onClick={() => startEdit(c)}>✏️</Button>
-                      <Button variant="icon" className="delete-btn" onClick={() => handleDelete(c.id)}>🗑️</Button>
-                    </>
-                  )}
-                </td>
+                {(canUpdate || canDelete) && (
+                  <td>
+                    {editing === c.id ? (
+                      <Button onClick={() => saveEdit(c.id)}><Check size={14} /></Button>
+                    ) : (
+                      <>
+                        {canUpdate && <Button variant="icon" onClick={() => startEdit(c)}><Pencil size={14} /></Button>}
+                        {canDelete && <Button variant="icon" className="delete-btn" onClick={() => handleDelete(c.id)}><Trash2 size={14} /></Button>}
+                      </>
+                    )}
+                  </td>
+                )}
               </tr>
             ))}
-            {!categories.length && <tr><td colSpan={3} className="empty">Nenhuma categoria</td></tr>}
+            {!categories.length && <tr><td colSpan={(canUpdate || canDelete) ? 3 : 2} className="empty">Nenhuma categoria</td></tr>}
           </tbody>
         </table>
 
@@ -105,7 +113,7 @@ export default function CategoriesPage() {
               title={c.label}
               value=""
               subtitle={c.name}
-              onTap={() => startEdit(c)}
+              onTap={canUpdate ? () => startEdit(c) : undefined}
             />
           )) : <p className="empty">Nenhuma categoria</p>}
         </div>
