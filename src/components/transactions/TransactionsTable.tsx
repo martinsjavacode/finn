@@ -1,10 +1,9 @@
 import { Pencil, Trash2, Check, Circle, TrendingUp, TrendingDown } from 'lucide-react'
 import { useState } from 'react'
-import { supabase } from '../../lib/supabase'
 import type { Transaction, Category, Owner, TransactionType } from '../../types/database'
-import { showError } from '../../lib/toast'
 import { confirm } from '../../lib/confirm'
 import { fmt, ownerLabel } from '../../utils/format'
+import { useTransactionMutations } from '../../hooks/useTransactionMutations'
 import Button from '../ui/Button'
 import Select from '../ui/Select'
 import MobileCard from '../ui/MobileCard'
@@ -13,28 +12,25 @@ import Pagination from '../ui/Pagination'
 interface Props {
   transactions: Transaction[]
   categories: Category[]
+  month: string
   canUpdate: boolean
   canDelete: boolean
-  onUpdate: (id: string, data: Partial<Transaction>) => void
-  onDelete: (id: string) => void
 }
 
-export default function TransactionsTable({ transactions, categories, canUpdate, canDelete, onUpdate, onDelete }: Props) {
+export default function TransactionsTable({ transactions, categories, month, canUpdate, canDelete }: Props) {
   const canEdit = canUpdate || canDelete
+  const { togglePaid: togglePaidMutation, editTransaction, removeTransaction, removeInstallment } = useTransactionMutations(month)
   const [typeFilter, setTypeFilter] = useState<'all' | TransactionType>('all')
-  const [catFilter, setCatFilter] = useState('all')
   const [paidFilter, setPaidFilter] = useState<'all' | 'paid' | 'pending'>('all')
   const [editing, setEditing] = useState<string | null>(null)
   const [editData, setEditData] = useState<Partial<Transaction>>({})
   const [page, setPage] = useState(1)
   const [perPage, setPerPage] = useState(10)
 
-  const catLabel = (id: string) => categories.find(c => c.id === id)?.label ?? id
   const getCatLabel = (t: Transaction) => t.categories?.label ?? ''
 
   const filtered = transactions.filter(r =>
     (typeFilter === 'all' || r.type === typeFilter) &&
-    (catFilter === 'all' || r.category === catFilter) &&
     (paidFilter === 'all' || (paidFilter === 'paid' ? r.paid : !r.paid))
   )
 
@@ -42,31 +38,26 @@ export default function TransactionsTable({ transactions, categories, canUpdate,
   const safePage = page > totalPages ? 1 : page
   const paginated = filtered.slice((safePage - 1) * perPage, safePage * perPage)
 
-  const usedCats = ['all', ...new Set(transactions.map(r => r.category))]
-
-  const togglePaid = async (id: string, paid: boolean) => {
-    const { error } = await supabase.from('transactions').update({ paid: !paid } as never).eq('id', id)
-    if (error) return showError(error)
-    onUpdate(id, { paid: !paid })
-  }
+  const togglePaid = (id: string, paid: boolean) => togglePaidMutation.mutate({ id, paid })
 
   const startEdit = (r: Transaction) => {
     setEditing(r.id)
     setEditData({ description: r.description, amount: r.amount, category: r.category, owner: r.owner, month: r.month })
   }
 
-  const saveEdit = async (id: string) => {
-    const { error } = await supabase.from('transactions').update(editData as never).eq('id', id)
-    if (error) return showError(error)
-    onUpdate(id, editData)
+  const saveEdit = (id: string) => {
+    editTransaction.mutate({ id, data: editData })
     setEditing(null)
   }
 
-  const handleDelete = async (id: string) => {
-    if (!await confirm('Tem certeza que deseja excluir este lançamento?')) return
-    const { error } = await supabase.from('transactions').delete().eq('id', id)
-    if (error) return showError(error)
-    onDelete(id)
+  const handleDelete = async (r: Transaction) => {
+    if (r.installment_purchase_id) {
+      if (!await confirm(`Excluir todas as ${r.total_installments} parcelas deste parcelamento?`)) return
+      removeInstallment.mutate(r.installment_purchase_id)
+    } else {
+      if (!await confirm('Tem certeza que deseja excluir este lançamento?')) return
+      removeTransaction.mutate(r.id)
+    }
     setEditing(null)
   }
 
@@ -77,13 +68,6 @@ export default function TransactionsTable({ transactions, categories, canUpdate,
         {(['all', 'income', 'expense'] as const).map(t => (
           <Button key={t} variant="tab" active={t === typeFilter} onClick={() => setTypeFilter(t)}>
             {t === 'all' ? 'Todos' : t === 'income' ? <><TrendingUp size={14} /> Receitas</> : <><TrendingDown size={14} /> Despesas</>}
-          </Button>
-        ))}
-      </div>
-      <div className="tabs">
-        {usedCats.map(c => (
-          <Button key={c} variant="tab" active={c === catFilter} onClick={() => setCatFilter(c)}>
-            {c === 'all' ? 'Todas categorias' : catLabel(c)}
           </Button>
         ))}
       </div>
@@ -122,11 +106,11 @@ export default function TransactionsTable({ transactions, categories, canUpdate,
                   <td>{r.current_installment && r.total_installments ? `${r.current_installment}/${r.total_installments}` : '-'}</td>
                   <td>{fmt(+r.amount)}</td>
                   <td><span className={`badge ${r.owner === 'personal' ? 'badge-success' : 'badge-danger'}`}>{ownerLabel(r.owner)}</span></td>
-                  <td>{canUpdate ? <button className={`paid-btn ${r.paid ? 'paid' : ''}`} onClick={() => togglePaid(r.id, r.paid)}>{r.paid ? <Check size={14} /> : <Circle size={14} />}</button> : <span className={`badge ${r.paid ? 'badge-success' : 'badge-danger'}`}>{r.paid ? 'Pago' : 'Pendente'}</span>}</td>
+                  <td>{canUpdate ? <button className={`paid-btn ${r.paid ? 'paid' : ''}`} aria-label={r.paid ? 'Marcar como pendente' : 'Marcar como pago'} onClick={() => togglePaid(r.id, r.paid)}>{r.paid ? <Check size={14} /> : <Circle size={14} />}</button> : <span className={`badge ${r.paid ? 'badge-success' : 'badge-danger'}`}>{r.paid ? 'Pago' : 'Pendente'}</span>}</td>
                   {canEdit && (
                     <td>
-                      {canUpdate && <Button variant="icon" onClick={() => startEdit(r)}><Pencil size={14} /></Button>}
-                      {canDelete && <Button variant="icon" className="delete-btn" onClick={() => handleDelete(r.id)}><Trash2 size={14} /></Button>}
+                      {canUpdate && !r.installment_purchase_id && <Button variant="icon" aria-label="Editar" onClick={() => startEdit(r)}><Pencil size={14} /></Button>}
+                      {canDelete && <Button variant="icon" className="delete-btn" aria-label="Excluir" onClick={() => handleDelete(r)}><Trash2 size={14} /></Button>}
                     </td>
                   )}
                 </>
@@ -142,11 +126,11 @@ export default function TransactionsTable({ transactions, categories, canUpdate,
           <MobileCard
             key={r.id}
             className={r.paid ? 'row-paid' : ''}
-            status={canUpdate ? <button className={`paid-btn ${r.paid ? 'paid' : ''}`} onClick={(e) => { e.stopPropagation(); togglePaid(r.id, r.paid) }}>{r.paid ? <Check size={14} /> : <Circle size={14} />}</button> : <span className={`badge ${r.paid ? 'badge-success' : 'badge-danger'}`}>{r.paid ? 'Pago' : 'Pendente'}</span>}
+            status={canUpdate ? <button className={`paid-btn ${r.paid ? 'paid' : ''}`} aria-label={r.paid ? 'Marcar como pendente' : 'Marcar como pago'} onClick={(e) => { e.stopPropagation(); togglePaid(r.id, r.paid) }}>{r.paid ? <Check size={14} /> : <Circle size={14} />}</button> : <span className={`badge ${r.paid ? 'badge-success' : 'badge-danger'}`}>{r.paid ? 'Pago' : 'Pendente'}</span>}
             title={r.description}
             value={fmt(+r.amount)}
             subtitle={<>{getCatLabel(r)} · {new Date(r.month + 'T12:00:00').toLocaleDateString('pt-BR')} · {ownerLabel(r.owner)}{r.current_installment ? ` · ${r.current_installment}/${r.total_installments}` : ''}</>}
-            onTap={canUpdate ? () => startEdit(r) : undefined}
+            onTap={canUpdate && !r.installment_purchase_id ? () => startEdit(r) : undefined}
           />
         )) : <p className="empty">Nenhum lançamento</p>}
       </div>

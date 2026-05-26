@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.0.8](https://github.com/martinsjavacode/finn/compare/v0.0.7...v0.0.8) (2026-05-26)
+
+
+### Features
+
+* **auth:** navigate to / on sign out ([6dd4133](https://github.com/martinsjavacode/finn/commit/6dd41337af4b2b8786e2adfe3dc41be3c8aba76a))
+* **auth:** redirect to dashboard after login ([5f18438](https://github.com/martinsjavacode/finn/commit/5f1843833c10f3e70ad3231f89c24cc6d0c4ab69))
+* **dashboard:** add trend line, summary cards, tooltip, fade-in and balance area ([beb662d](https://github.com/martinsjavacode/finn/commit/beb662d5643ae2c61f380988d126e9cb8db10411))
+* **rbac:** enforce granular permissions on all CRUD actions ([57fcbe4](https://github.com/martinsjavacode/finn/commit/57fcbe49490d6bde9b199c7adc6f2c1cd39d6738))
+* **ui:** add pagination with per-page selector to transactions tables ([301d060](https://github.com/martinsjavacode/finn/commit/301d06017880b0c28df2db6206dadbb10fc89bd4))
+* **ui:** use card color as visual indicator in credit card table ([ed4748d](https://github.com/martinsjavacode/finn/commit/ed4748d6fa4883af2f16ec14e65bfb410c119351))
+
+
+### Bug Fixes
+
+* add transactions page title and fix icon-text gap in tabs ([e4dc4ae](https://github.com/martinsjavacode/finn/commit/e4dc4ae7f4edc6b8bb1ed97075f9968b890038c0))
+* auto-login after signup so user is immediately activated ([abebda9](https://github.com/martinsjavacode/finn/commit/abebda9c9cfdfc5fcdee3403bbbb36950da88886))
+* **lint:** remove redundant roleId default in AccessPage useEffect ([d0c4c14](https://github.com/martinsjavacode/finn/commit/d0c4c141c530dfab3c8c321b3d942e39e5560c24))
+
 ## [0.0.7](https://github.com/martinsjavacode/finn/compare/v0.0.5...v0.0.7) (2026-05-25)
 
 

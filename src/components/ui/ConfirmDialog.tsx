@@ -7,12 +7,19 @@ export default function ConfirmDialog() {
 
   useEffect(() => subscribeConfirm(s => setState(s)), [])
 
-  if (!state) return null
-
   const handle = (confirmed: boolean) => {
-    state.resolve(confirmed)
+    state?.resolve(confirmed)
     setState(null)
   }
+
+  useEffect(() => {
+    if (!state) return
+    const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') handle(false) }
+    document.addEventListener('keydown', handleKey)
+    return () => document.removeEventListener('keydown', handleKey)
+  })
+
+  if (!state) return null
 
   return (
     <div className="modal-overlay" onClick={() => handle(false)}>

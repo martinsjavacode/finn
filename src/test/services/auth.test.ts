@@ -43,7 +43,7 @@ describe('auth service', () => {
       const mockFrom = vi.fn().mockReturnValue({
         select: vi.fn().mockReturnValue({
           eq: vi.fn().mockReturnValue({
-            single: vi.fn().mockResolvedValue({ data: { role_id: 'r1', roles: { name: 'editor' } }, error: null }),
+            single: vi.fn().mockResolvedValue({ data: { role_id: 'r1', activated: true, roles: { name: 'editor' } }, error: null }),
           }),
         }),
       })

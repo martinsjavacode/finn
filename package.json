@@ -1,7 +1,7 @@
 {
   "name": "finn",
   "private": true,
-  "version": "0.0.7",
+  "version": "0.0.8",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.106.1",
+    "@tanstack/react-query": "5.80.6",
     "lucide-react": "^0.511.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",

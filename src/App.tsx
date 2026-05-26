@@ -20,32 +20,49 @@ import RolesPage from './components/roles/RolesPage'
 import Button from './components/ui/Button'
 import ToastContainer from './components/ui/Toast'
 import ConfirmDialog from './components/ui/ConfirmDialog'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import ErrorBoundary from './components/ui/ErrorBoundary'
 import './App.css'
 
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { staleTime: 1000 * 60 * 5, retry: 1, refetchOnWindowFocus: false } },
+})
+
 function TransactionsPage() {
   const { session, can } = useAuth()
-  const { categories, cardsList, reloadAppData } = useAppData(!!session)
-  const { month, setMonth, months, transactions, cards, reload, updateTransaction, removeTransaction, removeCard } = useTransactions(!!session)
+  const { categories, cardsList } = useAppData(!!session)
+  const { month, setMonth, months, transactions, cards } = useTransactions(!!session)
   const [owner, setOwner] = useState<'all' | Owner>('all')
   const [search, setSearch] = useState('')
   const [showAdd, setShowAdd] = useState(false)
+  const [catFilter, setCatFilter] = useState('all')
 
-  const ft = transactions.filter(r => (owner === 'all' || r.owner === owner) && (!search || r.description.toLowerCase().includes(search.toLowerCase())))
-  const fc = cards.filter(r => (owner === 'all' || r.owner === owner) && (!search || r.description.toLowerCase().includes(search.toLowerCase())))
+  const ft = transactions.filter(r =>
+    (owner === 'all' || r.owner === owner) &&
+    (!search || r.description.toLowerCase().includes(search.toLowerCase())) &&
+    (catFilter === 'all' || r.category === catFilter)
+  )
+  const fc = cards.filter(r =>
+    (owner === 'all' || r.owner === owner) &&
+    (!search || r.description.toLowerCase().includes(search.toLowerCase())) &&
+    (catFilter === 'all' || r.category === catFilter)
+  )
 
   const income = ft.filter(r => r.type === 'income').reduce((s, r) => s + +r.amount, 0)
   const expense = ft.filter(r => r.type === 'expense').reduce((s, r) => s + +r.amount, 0)
   const cardTotal = fc.reduce((s, r) => s + +r.amount, 0)
 
-  const handleReload = async () => { await reloadAppData(); await reload() }
   const canCreate = can('transactions', 'create')
   const canUpdate = can('transactions', 'update')
   const canDelete = can('transactions', 'delete')
 
   return (
     <>
-      <h2 className="dashboard-title">Lançamentos</h2>
+      <div className="page-header">
+        <h2>Lançamentos</h2>
+        {canCreate && <Button onClick={() => setShowAdd(true)}>+ Novo</Button>}
+      </div>
+
       <div className="controls">
         <Select
           value={month}
@@ -53,12 +70,16 @@ function TransactionsPage() {
           options={months.length ? months.map(m => ({ value: m, label: new Date(m + '-01T12:00:00').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }) })) : [{ value: '', label: 'Sem dados' }]}
         />
         <Select
+          value={catFilter}
+          onChange={setCatFilter}
+          options={[{ value: 'all', label: 'Todas categorias' }, ...categories.map(c => ({ value: c.id, label: c.label }))]}
+        />
+        <Select
           value={owner}
           onChange={v => setOwner(v as 'all' | Owner)}
           options={[{ value: 'all', label: 'Todos' }, { value: 'personal', label: 'Pessoal' }, { value: 'mother_in_law', label: 'Sogra' }]}
         />
         <input type="text" className="search-input" placeholder="🔍 Buscar..." value={search} onChange={e => setSearch(e.target.value)} />
-        {canCreate && <Button onClick={() => setShowAdd(true)}>+ Novo</Button>}
       </div>
 
       <SummaryCards income={income} expense={expense} cardTotal={cardTotal} />
@@ -66,25 +87,25 @@ function TransactionsPage() {
       <TransactionsTable
         transactions={ft}
         categories={categories}
+        month={month}
         canUpdate={canUpdate}
         canDelete={canDelete}
-        onUpdate={(id, data) => updateTransaction(id, data)}
-        onDelete={removeTransaction}
       />
 
       <CardsTable
         cards={fc}
         cardsList={cardsList}
+        categories={categories}
+        month={month}
         canUpdate={can('credit_cards', 'update')}
         canDelete={can('credit_cards', 'delete')}
-        onDelete={removeCard}
       />
 
       {showAdd && (
         <AddTransaction
           categories={categories}
           cardsList={cardsList}
-          onSaved={handleReload}
+          month={month}
           onClose={() => setShowAdd(false)}
         />
       )}
@@ -112,8 +133,9 @@ function AppLayout() {
 
   return (
     <div className="layout">
+      <a href="#main-content" className="skip-link">Pular para conteúdo</a>
       <Sidebar session={session} isOwner={isOwner} can={can} />
-      <main className="main">
+      <main className="main" id="main-content">
         <Routes>
           <Route path="/" element={<Dashboard categories={categories} />} />
           <Route path="/transactions" element={<TransactionsPage />} />
@@ -136,9 +158,11 @@ function AppLayout() {
 export default function App() {
   return (
     <ErrorBoundary>
-      <BrowserRouter basename="/finn">
-        <AppLayout />
-      </BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter basename="/finn">
+          <AppLayout />
+        </BrowserRouter>
+      </QueryClientProvider>
     </ErrorBoundary>
   )
 }

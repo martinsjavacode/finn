@@ -2,6 +2,7 @@ import { Pencil, Trash2, Check, Circle } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { showError, toast } from '../../lib/toast'
+import { useModal } from '../../hooks/useModal'
 import { confirm } from '../../lib/confirm'
 import Button from '../ui/Button'
 import MobileCard from '../ui/MobileCard'
@@ -16,6 +17,7 @@ export default function RolesPage() {
   const [rolePermissions, setRolePermissions] = useState<RolePermission[]>([])
   const [selectedRole, setSelectedRole] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
+  const modalRef = useModal<HTMLFormElement>(() => setShowForm(false))
   const [editingId, setEditingId] = useState<string | null>(null)
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
@@ -84,8 +86,8 @@ export default function RolesPage() {
       </div>
 
       {showForm && (
-        <div className="modal-overlay" onClick={() => setShowForm(false)}>
-          <form className="modal" onClick={e => e.stopPropagation()} onSubmit={handleSubmit}>
+        <div className="modal-overlay" onClick={() => setShowForm(false)} role="dialog" aria-modal="true">
+          <form className="modal" ref={modalRef} onClick={e => e.stopPropagation()} onSubmit={handleSubmit}>
             <h2>{editingId ? 'Editar Role' : 'Nova Role'}</h2>
             <label className="form-label">Nome
               <input type="text" placeholder="ex: manager" value={name} onChange={e => setName(e.target.value)} required />
@@ -112,8 +114,8 @@ export default function RolesPage() {
                 <td><button className="auth-btn-link" style={{ fontWeight: 600, fontSize: '0.85rem' }} onClick={() => setSelectedRole(selectedRole === r.id ? null : r.id)}>{r.name}</button></td>
                 <td style={{ color: 'var(--text-muted)' }}>{r.description || '—'}</td>
                 <td>
-                  <Button variant="icon" onClick={() => openEdit(r)}><Pencil size={14} /></Button>
-                  <Button variant="icon" className="delete-btn" onClick={() => handleDelete(r.id)}><Trash2 size={14} /></Button>
+                  <Button variant="icon" aria-label="Editar" onClick={() => openEdit(r)}><Pencil size={14} /></Button>
+                  <Button variant="icon" className="delete-btn" aria-label="Excluir" onClick={() => handleDelete(r.id)}><Trash2 size={14} /></Button>
                 </td>
               </tr>
             ))}
@@ -156,7 +158,7 @@ export default function RolesPage() {
                     const active = hasPerm(selectedRole, permId)
                     return (
                       <td key={act}>
-                        <button className={`paid-btn ${active ? 'paid' : ''}`} onClick={() => togglePermission(selectedRole, permId)}>
+                        <button className={`paid-btn ${active ? 'paid' : ''}`} aria-label={active ? 'Remover permissão' : 'Adicionar permissão'} onClick={() => togglePermission(selectedRole, permId)}>
                           {active ? <Check size={14} /> : <Circle size={14} />}
                         </button>
                       </td>

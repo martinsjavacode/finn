@@ -1,4 +1,6 @@
 export { useAuth } from './useAuth'
 export { useAppData } from './useAppData'
 export { useTransactions } from './useTransactions'
+export { useTransactionMutations } from './useTransactionMutations'
 export { usePermissions } from './usePermissions'
+export { useModal } from './useModal'
