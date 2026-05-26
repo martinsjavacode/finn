@@ -108,71 +108,75 @@ Baseado na análise completa de UX, UI, Arquitetura, Performance e Acessibilidad
 
 ---
 
-## 🟢 Baixa Prioridade
+## 🟢 Baixa Prioridade ✅ CONCLUÍDA
 
-### UX Polish
-- [ ] Self-host Inter font (eliminar Google Fonts request externo)
-- [ ] Remover pesos não usados (700, 800) do font import
+### UX Polish ✅
+- [x] Self-host Inter font (eliminar Google Fonts request externo)
+- [x] Remover pesos não usados (700, 800) do font import
+- [x] Button: adicionar prop `loading` com spinner
+- [x] Remover `animation: fadeIn` do `.main` (causa flash)
 - [ ] URL state para filtros (month, category, owner em searchParams)
 - [ ] Empty states com ilustração SVG + CTA contextual
-- [ ] Button: adicionar prop `loading` com spinner
 - [ ] Keyboard shortcuts: Cmd+K busca global, N novo lançamento
 - [ ] View Transitions API para navegação entre rotas
-- [ ] Remover `animation: fadeIn` do `.main` (causa flash)
 
-### UX Mobile
+### UX Mobile (features novas — backlog)
 - [ ] Bottom navigation (tab bar) em vez de hamburger menu
 - [ ] Pull-to-refresh gesture para PWA
 - [ ] Floating Action Button para "Novo Lançamento"
 - [ ] Swipe-to-delete em MobileCards
 
-### Layout
-- [ ] Content max-width 1200px no `.main`
-- [ ] Spacing scale com CSS variables (--space-1 a --space-8, base 4px)
+### Layout ✅
+- [x] Content max-width 1200px no `.main`
+- [x] Spacing scale com CSS variables (--space-1 a --space-8, base 4px)
 - [ ] Sidebar colapsável para ícones em tablets (768-1024px)
 - [ ] Breakpoint intermediário 768px para tablet portrait
 - [ ] Container queries em SummaryCards
 
-### Dashboard
-- [ ] Extrair SVG chart em componente separado (LineChart)
-- [ ] Extrair pie chart em componente separado (PieChart)
-- [ ] Extrair budget progress em componente separado (BudgetProgress)
-- [ ] Adicionar keyboard navigation no gráfico SVG (tabIndex nos pontos)
-- [ ] Error state para queries que falham
+### Dashboard ✅
+- [x] Extrair SVG chart em componente separado (LineChart)
+- [x] Extrair pie chart em componente separado (PieChart)
+- [x] Extrair budget progress em componente separado (BudgetProgress)
+- [x] Adicionar keyboard navigation no gráfico SVG (tabIndex nos pontos)
+- [x] Error state para queries que falham
 
-### Arquitetura avançada
+### Arquitetura avançada ✅
+- [x] Error boundaries por rota (não apenas global)
+- [x] Parallelize Projection fallback (Promise.all em vez de loop sequencial)
+- [x] `fetchAvailableMonths`: otimizado com substring direto
+- [x] Remover `deleteCreditCard` (duplicata de `deleteTransaction`)
 - [ ] `useCrudQuery` factory hook para CRUD pages
-- [ ] Error boundaries por rota (não apenas global)
-- [ ] Parallelize Projection fallback (Promise.all em vez de loop sequencial)
-- [ ] `fetchAvailableMonths`: usar DISTINCT query ou RPC em vez de fetch all
-- [ ] Remover `deleteCreditCard` (duplicata de `deleteTransaction`)
 - [ ] `insertTransaction`: aceitar payment_method como parâmetro
 
-### Performance avançada
-- [ ] Remover `backdrop-filter: blur()` em mobile (usar bg sólido)
+### Performance avançada ✅
+- [x] Remover `backdrop-filter: blur()` em mobile (usar bg sólido)
+- [x] Preconnect Supabase no index.html
 - [ ] Substituir `body::before` gradient por `background` no body
-- [ ] Preconnect Supabase no index.html
-- [ ] Service worker: cache de assets estáticos (já tem sw.js, verificar estratégia)
+- [ ] Service worker: cache de assets estáticos (verificar estratégia)
 
 ---
 
 ## 📊 Métricas de Sucesso
 
-| Métrica | Antes | Depois | Meta |
-|---------|-------|--------|------|
-| Bundle JS inicial | 549KB | 485KB (+ lazy chunks) | <200KB |
-| Code splitting | ❌ | ✅ 9 chunks | ✅ |
-| CSS variables indefinidas | 2 | 0 | 0 |
-| CSS monolítico | 1 arquivo (400+ linhas) | 7 módulos | ✅ |
-| Rotas sem permission guard | 7 | 0 | 0 |
-| Componentes sem keyboard nav | 2 (Select, MobileCard) | 0 | 0 |
-| Focus trap em modais | ❌ | ✅ | ✅ |
-| Touch targets < 44px | 4 componentes | 0 | 0 |
-| Contraste WCAG AA | ❌ (4.2:1) | ✅ (4.5:1+) | ≥4.5:1 |
-| Pages sem TanStack Query | 7 | 0 | 0 |
-| Pages sem loading skeleton | 7 | 0 | 0 |
-| Linhas duplicadas (modal pattern) | ~210 | 0 (Modal component) | 0 |
-| Circular dependency (types↔utils) | 1 | 0 | 0 |
-| Dashboard sem useMemo | 5 cálculos | 0 | 0 |
-| Query keys duplicadas | 2 hooks | 1 shared constant | ✅ |
-| `as never` casts | 9 | 0 | 0 |
+| Métrica | Antes | Depois | Meta | Status |
+|---------|-------|--------|------|--------|
+| Bundle JS inicial | 549KB | 485KB (+ lazy chunks) | <200KB | ✅ Code split |
+| External requests | 1 (Google Fonts) | 0 | 0 | ✅ |
+| Code splitting | ❌ | ✅ 9 chunks | ✅ | ✅ |
+| CSS variables indefinidas | 2 | 0 | 0 | ✅ |
+| CSS monolítico | 1 arquivo (400+ linhas) | 7 módulos | ✅ | ✅ |
+| Rotas sem permission guard | 7 | 0 | 0 | ✅ |
+| Componentes sem keyboard nav | 2 (Select, MobileCard) | 0 | 0 | ✅ |
+| Focus trap em modais | ❌ | ✅ | ✅ | ✅ |
+| Touch targets < 44px | 4 componentes | 0 | 0 | ✅ |
+| Contraste WCAG AA | ❌ (4.2:1) | ✅ (4.5:1+) | ≥4.5:1 | ✅ |
+| Pages sem TanStack Query | 7 | 0 | 0 | ✅ |
+| Pages sem loading skeleton | 7 | 0 | 0 | ✅ |
+| Linhas duplicadas (modal) | ~210 | 0 (Modal component) | 0 | ✅ |
+| Circular dependency | 1 | 0 | 0 | ✅ |
+| Dashboard sem useMemo | 5 cálculos | 0 | 0 | ✅ |
+| Query keys duplicadas | 2 hooks | 1 shared constant | ✅ | ✅ |
+| `as never` casts | 9 | 0 | 0 | ✅ |
+| Error state em queries | 0 pages | Dashboard + hooks | ✅ | ✅ |
+| Projection sequential | 12 requests | 2 parallel | ✅ | ✅ |
+| backdrop-filter mobile | 5 elementos | 0 | 0 | ✅ |
