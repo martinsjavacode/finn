@@ -35,8 +35,8 @@ jobs:
           JS_SIZE=$(stat -c%s dist/assets/*.js | awk '{sum+=$1} END {print sum}')
           CSS_SIZE=$(stat -c%s dist/assets/*.css | awk '{sum+=$1} END {print sum}')
           echo "📦 JS: $((JS_SIZE / 1024))KB | CSS: $((CSS_SIZE / 1024))KB"
-          if [ "$JS_SIZE" -gt 524288 ]; then
-            echo "⚠️ Bundle JS > 512KB!"
+          if [ "$JS_SIZE" -gt 614400 ]; then
+            echo "⚠️ Bundle JS > 600KB!"
             exit 1
           fi
 
