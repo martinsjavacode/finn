@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.0](https://github.com/martinsjavacode/finn/compare/v0.0.13...v0.1.0) (2026-05-27)
+
+
+### ⚠ BREAKING CHANGES
+
+* owner field removed, requires migration 025+026
+
+### Features
+
+* **accounts:** add members management per account ([74898ec](https://github.com/martinsjavacode/finn/commit/74898ece94ee41f9406442df4afcca4ec9c3593d))
+* add RBAC RLS, useMediaQuery, unified modals, offline support ([0951e7d](https://github.com/martinsjavacode/finn/commit/0951e7dfd4569aa9af48962331e14f24519a3b1c))
+* migrate from owner to accounts model with per-account RBAC ([95aa3f0](https://github.com/martinsjavacode/finn/commit/95aa3f034d77d8a9c4ed3ad7ab4750436e8af7c1))
+
+
+### Bug Fixes
+
+* permissionsLoaded stuck false for superadmin ([4494f57](https://github.com/martinsjavacode/finn/commit/4494f571e72b857aeec844ac070b575311b490d6))
+* scope all queries by activeAccountId with enabled guards ([62c057f](https://github.com/martinsjavacode/finn/commit/62c057fd6dd1057eff67d756b0b2889d72800b87))
+* sync account switch across all pages and filter by account_id ([f829c7c](https://github.com/martinsjavacode/finn/commit/f829c7cfedc0b1f6a34f90d47ed681883bc74cb5))
+* **test:** pass accountId to useTransactions in tests ([40c2ce1](https://github.com/martinsjavacode/finn/commit/40c2ce1263e3e3b8f0a415bfe5dab63f34b1faf3))
+
 ## [0.0.13](https://github.com/martinsjavacode/finn/compare/v0.0.12...v0.0.13) (2026-05-26)
 
 
