@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useAuth, useAppData, useTransactions } from '../../hooks'
-import type { Owner } from '../../types/database'
 import { categoryOptions } from '../../utils/format'
 import Select from '../ui/Select'
 import SummaryCards from '../dashboard/SummaryCards'
@@ -10,21 +9,18 @@ import AddTransaction from './AddTransaction'
 import Button from '../ui/Button'
 
 export default function TransactionsPage() {
-  const { session, can } = useAuth()
+  const { session, can, activeAccountId } = useAuth()
   const { categories, cardsList } = useAppData(!!session)
-  const { month, setMonth, months, transactions, cards } = useTransactions(!!session)
-  const [owner, setOwner] = useState<'all' | Owner>('all')
+  const { month, setMonth, months, transactions, cards } = useTransactions(!!session, activeAccountId)
   const [search, setSearch] = useState('')
   const [showAdd, setShowAdd] = useState(false)
   const [catFilter, setCatFilter] = useState('all')
 
   const ft = transactions.filter(r =>
-    (owner === 'all' || r.owner === owner) &&
     (!search || r.description.toLowerCase().includes(search.toLowerCase())) &&
     (catFilter === 'all' || r.category === catFilter)
   )
   const fc = cards.filter(r =>
-    (owner === 'all' || r.owner === owner) &&
     (!search || r.description.toLowerCase().includes(search.toLowerCase())) &&
     (catFilter === 'all' || r.category === catFilter)
   )
@@ -55,11 +51,6 @@ export default function TransactionsPage() {
           onChange={setCatFilter}
           options={[{ value: 'all', label: 'Todas categorias' }, ...categoryOptions(categories)]}
         />
-        <Select
-          value={owner}
-          onChange={v => setOwner(v as 'all' | Owner)}
-          options={[{ value: 'all', label: 'Todos' }, { value: 'personal', label: 'Pessoal' }, { value: 'mother_in_law', label: 'Sogra' }]}
-        />
         <input type="text" className="search-input" placeholder="🔍 Buscar..." value={search} onChange={e => setSearch(e.target.value)} aria-label="Buscar lançamentos" />
       </div>
 
@@ -84,11 +75,12 @@ export default function TransactionsPage() {
         canDelete={can('credit_cards', 'delete')}
       />
 
-      {showAdd && (
+      {showAdd && activeAccountId && (
         <AddTransaction
           categories={categories}
           cardsList={cardsList}
           month={month}
+          accountId={activeAccountId}
           onClose={() => setShowAdd(false)}
         />
       )}

@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
+import { useAuth } from '../../hooks'
 import { fmt } from '../../utils/format'
 import { TableSkeleton } from '../ui/Skeleton'
 import '../categories/CategoriesPage.css'
@@ -13,46 +14,36 @@ interface MonthProjection {
 }
 
 export default function Projection() {
-  const [projections, setProjections] = useState<MonthProjection[]>([])
-  const [loading, setLoading] = useState(true)
+  const { activeAccountId } = useAuth()
 
-  useEffect(() => {
-    ;(async () => {
-      try {
-        // Tenta usar RPC agregada (migration 009)
-        const { data, error } = await supabase.rpc('get_projection', { months_ahead: 6 })
-
-        if (!error && data) {
-          setProjections((data as { month: string; recurring: number; installments: number }[]).map(r => ({
-            ...r, total: +r.recurring + +r.installments
-          })))
-        } else {
-          // Fallback: parallelized
-          const { data: templates } = await supabase.from('recurring_templates').select('amount').eq('active', true).eq('type', 'expense') as { data: { amount: number }[] | null }
-          const monthlyRecurring = (templates ?? []).reduce((s, t) => s + +t.amount, 0)
-          const today = new Date()
-
-          const results = await Promise.all(Array.from({ length: 6 }, async (_, i) => {
-            const d = new Date(today.getFullYear(), today.getMonth() + i, 1)
-            const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-            const start = `${ym}-01`
-            const nextM = d.getMonth() === 11 ? `${d.getFullYear() + 1}-01-01` : `${d.getFullYear()}-${String(d.getMonth() + 2).padStart(2, '0')}-01`
-
-            const [{ data: cards }, { data: txInstall }] = await Promise.all([
-              supabase.from('entries').select('amount').eq('payment_method', 'credit_card').gte('month', start).lt('month', nextM),
-              supabase.from('entries').select('amount').neq('payment_method', 'credit_card').gte('month', start).lt('month', nextM).not('total_installments', 'is', null),
-            ])
-
-            const installments = (cards ?? []).reduce((s, r) => s + +r.amount, 0) + (txInstall ?? []).reduce((s, r) => s + +r.amount, 0)
-            return { month: ym, recurring: monthlyRecurring, installments, total: monthlyRecurring + installments }
-          }))
-          setProjections(results)
+  const { data: projections = [], isLoading: loading } = useQuery<MonthProjection[]>({
+    queryKey: ['projection', activeAccountId],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_projection', { months_ahead: 6, p_account_id: activeAccountId! })
+      if (!error && data) {
+        return (data as { month: string; recurring: number; installments: number }[]).map(r => ({
+          ...r, total: +r.recurring + +r.installments
+        }))
       }
-      } finally {
-        setLoading(false)
-      }
-    })()
-  }, [])
+      // Fallback
+      const { data: templates } = await supabase.from('recurring_templates').select('amount').eq('active', true).eq('type', 'expense').eq('account_id', activeAccountId!) as { data: { amount: number }[] | null }
+      const monthlyRecurring = (templates ?? []).reduce((s, t) => s + +t.amount, 0)
+      const today = new Date()
+      return Promise.all(Array.from({ length: 6 }, async (_, i) => {
+        const d = new Date(today.getFullYear(), today.getMonth() + i, 1)
+        const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+        const start = `${ym}-01`
+        const nextM = d.getMonth() === 11 ? `${d.getFullYear() + 1}-01-01` : `${d.getFullYear()}-${String(d.getMonth() + 2).padStart(2, '0')}-01`
+        const [{ data: cards }, { data: txInstall }] = await Promise.all([
+          supabase.from('entries').select('amount').eq('payment_method', 'credit_card').eq('account_id', activeAccountId!).gte('month', start).lt('month', nextM),
+          supabase.from('entries').select('amount').neq('payment_method', 'credit_card').eq('account_id', activeAccountId!).gte('month', start).lt('month', nextM).not('total_installments', 'is', null),
+        ])
+        const installments = (cards ?? []).reduce((s, r) => s + +r.amount, 0) + (txInstall ?? []).reduce((s, r) => s + +r.amount, 0)
+        return { month: ym, recurring: monthlyRecurring, installments, total: monthlyRecurring + installments }
+      }))
+    },
+    enabled: !!activeAccountId,
+  })
 
   if (loading) return <div><h2 className="dashboard-title">Projeção Futura</h2><TableSkeleton rows={6} cols={4} /></div>
 

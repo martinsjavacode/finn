@@ -45,6 +45,11 @@
 .sidebar-group { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); padding: 0.8rem 0.8rem 0.3rem; font-weight: 600; }
 .sidebar-user { font-size: 0.75rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+.account-selector { display: flex; flex-wrap: wrap; gap: 0.4rem; padding: 0 0.2rem 1rem; border-bottom: 1px solid var(--border); margin-bottom: 0.5rem; }
+.account-chip { display: flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0.7rem; border-radius: 20px; font-size: 0.75rem; font-weight: 500; background: var(--surface); border: 1px solid var(--border); color: var(--text-muted); cursor: pointer; transition: all 0.15s; }
+.account-chip.active { background: color-mix(in srgb, var(--account-color) 15%, transparent); border-color: var(--account-color); color: var(--text); }
+.account-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--account-color); }
+
 .main { flex: 1; margin-left: 240px; padding: 2rem 3rem; max-width: calc(100vw - 240px); }
 .main > * { max-width: var(--content-max); margin-left: auto; margin-right: auto; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }

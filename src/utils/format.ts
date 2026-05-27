@@ -1,11 +1,8 @@
-import type { Owner, CardWithRule } from '../types/database'
+import type { CardWithRule } from '../types/database'
 export type { ClosingRule, CardWithRule } from '../types/database'
 
 export const fmt = (v: number) =>
   v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-
-export const ownerLabel = (o: Owner) =>
-  o === 'personal' ? 'Pessoal' : 'Sogra'
 
 export const currentYearMonth = () => {
   const now = new Date()

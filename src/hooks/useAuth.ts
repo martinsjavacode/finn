@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
-import type { Role } from '../types/database'
-import { getSession, onAuthChange, getUserRole, signOut } from '../services/auth'
+import { getSession, onAuthChange, getUser, signOut } from '../services/auth'
+import { useAccount } from './useAccount'
 import { usePermissions } from './usePermissions'
 
 export function useAuth() {
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
-  const [role, setRole] = useState<Role | null>(null)
-  const [roleId, setRoleId] = useState<string | null>(null)
+  const [userId, setUserId] = useState<string | null>(null)
+  const [isSuperadmin, setIsSuperadmin] = useState(false)
   const [unauthorized, setUnauthorized] = useState(false)
 
   useEffect(() => {
@@ -20,18 +20,20 @@ export function useAuth() {
   useEffect(() => {
     if (!session) return
     let cancelled = false
-    getUserRole(session).then(r => {
+    getUser(session).then(u => {
       if (cancelled) return
-      if (r) { setRole(r.name); setRoleId(r.id); setUnauthorized(false) }
-      else { setRole(null); setRoleId(null); setUnauthorized(true) }
+      if (u) { setUserId(u.id); setIsSuperadmin(u.is_superadmin); setUnauthorized(false) }
+      else { setUserId(null); setIsSuperadmin(false); setUnauthorized(true) }
     })
     return () => { cancelled = true }
   }, [session])
 
-  const { can, loaded: permissionsLoaded } = usePermissions(roleId)
+  const { accounts, activeAccount, activeAccountId, setActiveAccount } = useAccount(userId)
+  const { can, loaded: permissionsLoaded } = usePermissions(activeAccountId, userId, isSuperadmin)
 
-  const isOwner = role === 'owner'
-  const isEditor = role === 'editor' || isOwner
-
-  return { session, loading, role, roleId, isEditor, isOwner, unauthorized, can, permissionsLoaded, signOut }
+  return {
+    session, loading, unauthorized, isSuperadmin,
+    accounts, activeAccount, activeAccountId, setActiveAccount,
+    can, permissionsLoaded, signOut,
+  }
 }

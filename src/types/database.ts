@@ -6,7 +6,6 @@ import type { Database } from './supabase-generated'
 type Tables = Database['public']['Tables']
 type Enums = Database['public']['Enums']
 
-export type Owner = 'personal' | 'mother_in_law'
 export type TransactionType = Enums['entry_type']
 export type PaymentMethod = Enums['payment_method']
 export type ClosingRule = Enums['closing_rule_type']
@@ -21,6 +20,8 @@ export interface CardWithRule {
   days_before_due: number
 }
 
+export type Account = Tables['accounts']['Row']
+export type AccountMember = Tables['account_members']['Row']
 export type Category = Tables['categories']['Row']
 export type Entry = Tables['entries']['Row'] & { categories?: Category }
 export type Transaction = Entry

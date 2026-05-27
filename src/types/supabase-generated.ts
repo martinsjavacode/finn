@@ -14,20 +14,90 @@ export type Database = {
   }
   public: {
     Tables: {
+      accounts: {
+        Row: {
+          id: string
+          name: string
+          color: string
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          color?: string
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          color?: string
+          created_at?: string | null
+        }
+        Relationships: []
+      }
+      account_members: {
+        Row: {
+          id: string
+          account_id: string
+          user_id: string
+          role_id: string
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          account_id: string
+          user_id: string
+          role_id: string
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          account_id?: string
+          user_id?: string
+          role_id?: string
+          created_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "account_members_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "account_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "account_members_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       budgets: {
         Row: {
+          account_id: string
           category: string
           created_at: string | null
           id: string
           monthly_limit: number
         }
         Insert: {
+          account_id: string
           category: string
           created_at?: string | null
           id?: string
           monthly_limit: number
         }
         Update: {
+          account_id?: string
           category?: string
           created_at?: string | null
           id?: string
@@ -37,14 +107,22 @@ export type Database = {
           {
             foreignKeyName: "budgets_category_fkey"
             columns: ["category"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budgets_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
             referencedColumns: ["id"]
           },
         ]
       }
       card_invoices: {
         Row: {
+          account_id: string
           card: string
           created_at: string | null
           id: string
@@ -52,6 +130,7 @@ export type Database = {
           paid_amount: number
         }
         Insert: {
+          account_id: string
           card: string
           created_at?: string | null
           id?: string
@@ -59,6 +138,7 @@ export type Database = {
           paid_amount?: number
         }
         Update: {
+          account_id?: string
           card?: string
           created_at?: string | null
           id?: string
@@ -72,6 +152,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "cards"
             referencedColumns: ["name"]
+          },
+          {
+            foreignKeyName: "card_invoices_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -148,6 +235,7 @@ export type Database = {
       }
       entries: {
         Row: {
+          account_id: string
           amount: number
           card: string | null
           category: string | null
@@ -157,13 +245,13 @@ export type Database = {
           id: string
           installment_purchase_id: string | null
           month: string
-          owner: string
           paid: boolean
           payment_method: Database["public"]["Enums"]["payment_method"]
           total_installments: number | null
           type: Database["public"]["Enums"]["entry_type"]
         }
         Insert: {
+          account_id: string
           amount: number
           card?: string | null
           category?: string | null
@@ -173,13 +261,13 @@ export type Database = {
           id?: string
           installment_purchase_id?: string | null
           month: string
-          owner?: string
           paid?: boolean
           payment_method: Database["public"]["Enums"]["payment_method"]
           total_installments?: number | null
           type?: Database["public"]["Enums"]["entry_type"]
         }
         Update: {
+          account_id?: string
           amount?: number
           card?: string | null
           category?: string | null
@@ -189,13 +277,19 @@ export type Database = {
           id?: string
           installment_purchase_id?: string | null
           month?: string
-          owner?: string
           paid?: boolean
           payment_method?: Database["public"]["Enums"]["payment_method"]
           total_installments?: number | null
           type?: Database["public"]["Enums"]["entry_type"]
         }
         Relationships: [
+          {
+            foreignKeyName: "entries_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "entries_card_fkey"
             columns: ["card"]
@@ -221,37 +315,37 @@ export type Database = {
       }
       installment_purchases: {
         Row: {
+          account_id: string
           card: string | null
           category: string | null
           created_at: string | null
           description: string
           id: string
           installments: number
-          owner: string
           start_month: string
           target: Database["public"]["Enums"]["payment_method"]
           total_amount: number
         }
         Insert: {
+          account_id: string
           card?: string | null
           category?: string | null
           created_at?: string | null
           description: string
           id?: string
           installments: number
-          owner?: string
           start_month: string
           target: Database["public"]["Enums"]["payment_method"]
           total_amount: number
         }
         Update: {
+          account_id?: string
           card?: string | null
           category?: string | null
           created_at?: string | null
           description?: string
           id?: string
           installments?: number
-          owner?: string
           start_month?: string
           target?: Database["public"]["Enums"]["payment_method"]
           total_amount?: number
@@ -296,6 +390,7 @@ export type Database = {
       }
       recurring_templates: {
         Row: {
+          account_id: string
           active: boolean
           amount: number
           card: string | null
@@ -304,11 +399,11 @@ export type Database = {
           day: number
           description: string
           id: string
-          owner: string
           target: Database["public"]["Enums"]["payment_method"]
           type: string
         }
         Insert: {
+          account_id: string
           active?: boolean
           amount: number
           card?: string | null
@@ -317,11 +412,11 @@ export type Database = {
           day?: number
           description: string
           id?: string
-          owner?: string
           target: Database["public"]["Enums"]["payment_method"]
           type: string
         }
         Update: {
+          account_id?: string
           active?: boolean
           amount?: number
           card?: string | null
@@ -330,7 +425,6 @@ export type Database = {
           day?: number
           description?: string
           id?: string
-          owner?: string
           target?: Database["public"]["Enums"]["payment_method"]
           type?: string
         }
@@ -409,7 +503,7 @@ export type Database = {
           display_name: string | null
           email: string
           id: string
-          role_id: string
+          is_superadmin: boolean
         }
         Insert: {
           activated?: boolean
@@ -417,7 +511,7 @@ export type Database = {
           display_name?: string | null
           email: string
           id?: string
-          role_id: string
+          is_superadmin?: boolean
         }
         Update: {
           activated?: boolean
@@ -425,26 +519,18 @@ export type Database = {
           display_name?: string | null
           email?: string
           id?: string
-          role_id?: string
+          is_superadmin?: boolean
         }
-        Relationships: [
-          {
-            foreignKeyName: "users_role_id_fkey"
-            columns: ["role_id"]
-            isOneToOne: false
-            referencedRelation: "roles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      generate_recurring: { Args: { target_month: string }; Returns: undefined }
+      generate_recurring: { Args: { target_month: string; p_account_id: string }; Returns: undefined }
       get_projection: {
-        Args: { months_ahead?: number }
+        Args: { months_ahead?: number; p_account_id?: string }
         Returns: {
           installments: number
           month: string

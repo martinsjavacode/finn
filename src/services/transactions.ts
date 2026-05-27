@@ -6,35 +6,36 @@ import { monthRange } from '../utils/format'
 type EntryInsert = Database['public']['Tables']['entries']['Insert']
 type EntryUpdate = Database['public']['Tables']['entries']['Update']
 
-export async function fetchTransactions(ym: string) {
+export async function fetchTransactions(ym: string, accountId?: string) {
   const { start, end } = monthRange(ym)
-  const { data, error } = await supabase
+  let q = supabase
     .from('entries')
     .select('*, categories(*)')
     .neq('payment_method', 'credit_card')
     .gte('month', start)
     .lt('month', end)
-    .order('month')
-    .order('type')
-    .order('description')
+  if (accountId) q = q.eq('account_id', accountId)
+  const { data, error } = await q.order('month').order('type').order('description')
   return { data: (data ?? []) as Transaction[], error }
 }
 
-export async function fetchCreditCards(ym: string) {
+export async function fetchCreditCards(ym: string, accountId?: string) {
   const { start, end } = monthRange(ym)
-  const { data, error } = await supabase
+  let q = supabase
     .from('entries')
     .select('*, categories(*)')
     .eq('payment_method', 'credit_card')
     .gte('month', start)
     .lt('month', end)
-    .order('card')
-    .order('description')
+  if (accountId) q = q.eq('account_id', accountId)
+  const { data, error } = await q.order('card').order('description')
   return { data: (data ?? []) as CreditCard[], error }
 }
 
-export async function fetchAvailableMonths() {
-  const { data } = await supabase.from('entries').select('month').order('month', { ascending: false })
+export async function fetchAvailableMonths(accountId?: string) {
+  let q = supabase.from('entries').select('month').order('month', { ascending: false })
+  if (accountId) q = q.eq('account_id', accountId)
+  const { data } = await q
   return [...new Set((data ?? []).map(r => r.month.substring(0, 7)))].sort()
 }
 
@@ -51,7 +52,7 @@ export async function deleteTransaction(id: string) {
 }
 
 export async function insertTransaction(row: {
-  month: string; description: string; amount: number; type: string; category: string; owner: string; paid: boolean
+  month: string; description: string; amount: number; type: string; category: string; account_id: string; paid: boolean
 }) {
   const insert: EntryInsert = { ...row, payment_method: 'pix', type: row.type as EntryInsert['type'] }
   const { error } = await supabase.from('entries').insert(insert)
@@ -59,7 +60,7 @@ export async function insertTransaction(row: {
 }
 
 export async function insertCreditCard(row: {
-  month: string; description: string; amount: number; card: string; owner: string; category?: string
+  month: string; description: string; amount: number; card: string; account_id: string; category?: string
 }) {
   const insert: EntryInsert = { ...row, payment_method: 'credit_card', type: 'expense', paid: false }
   const { error } = await supabase.from('entries').insert(insert)
@@ -71,8 +72,10 @@ export async function toggleTransactionPaid(id: string, currentPaid: boolean) {
   return { error }
 }
 
-export async function fetchAllTransactions() {
-  const { data, error } = await supabase.from('entries').select('month, amount, type').order('month')
+export async function fetchAllTransactions(accountId?: string) {
+  let q = supabase.from('entries').select('month, amount, type').order('month')
+  if (accountId) q = q.eq('account_id', accountId)
+  const { data, error } = await q
   return { data: (data ?? []) as { month: string; amount: number; type: string }[], error }
 }
 
@@ -81,7 +84,10 @@ export async function fetchCardInvoice(card: string, month: string) {
   return data?.paid_amount ?? 0
 }
 
-export async function upsertCardInvoice(card: string, month: string, paidAmount: number) {
-  const { error } = await supabase.from('card_invoices').upsert({ card, month: `${month}-01`, paid_amount: paidAmount }, { onConflict: 'card,month' })
+export async function upsertCardInvoice(card: string, month: string, paidAmount: number, accountId: string) {
+  const { error } = await supabase.from('card_invoices').upsert(
+    { card, month: `${month}-01`, paid_amount: paidAmount, account_id: accountId },
+    { onConflict: 'account_id,card,month' }
+  )
   return { error }
 }

@@ -1,6 +1,7 @@
 import { lazy, Suspense, type ReactNode } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from './hooks'
+import { useSyncOnReconnect } from './hooks/useOnlineStatus'
 import Auth from './components/auth/Auth'
 import Sidebar from './components/ui/Sidebar'
 import ToastContainer from './components/ui/Toast'
@@ -19,6 +20,7 @@ const AccessPage = lazy(() => import('./components/access/AccessPage'))
 const CategoriesPage = lazy(() => import('./components/categories/CategoriesPage'))
 const CardsPage = lazy(() => import('./components/cards/CardsPage'))
 const RolesPage = lazy(() => import('./components/roles/RolesPage'))
+const AccountsPage = lazy(() => import('./components/accounts/AccountsPage'))
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 1000 * 60 * 5, retry: 1, refetchOnWindowFocus: false } },
@@ -31,8 +33,9 @@ function ProtectedRoute({ children, allowed, loading: permLoading }: { children:
 }
 
 function AppLayout() {
-  const { session, loading, isOwner, unauthorized, can, permissionsLoaded, signOut: logout } = useAuth()
+  const { session, loading, isSuperadmin, unauthorized, can, permissionsLoaded, signOut: logout, accounts, activeAccount, setActiveAccount } = useAuth()
   const navigate = useNavigate()
+  const online = useSyncOnReconnect()
 
   if (loading) return <div className="auth"><div className="skeleton" style={{ width: '120px', height: '2rem', margin: '0 auto' }} aria-hidden="true" /><div className="skeleton" style={{ width: '200px', height: '1rem', margin: '1rem auto' }} aria-hidden="true" /></div>
   if (!session) return <Auth />
@@ -49,8 +52,9 @@ function AppLayout() {
 
   return (
     <div className="layout">
+      {!online && <div className="offline-banner" role="alert">Sem conexão — alterações serão sincronizadas ao reconectar</div>}
       <a href="#main-content" className="skip-link">Pular para conteúdo</a>
-      <Sidebar session={session} isOwner={isOwner} can={can} />
+      <Sidebar session={session} isSuperadmin={isSuperadmin} can={can} accounts={accounts} activeAccount={activeAccount} setActiveAccount={setActiveAccount} />
       <main className="main" id="main-content">
         <ErrorBoundary>
           <Suspense fallback={<TableSkeleton />}>
@@ -62,8 +66,9 @@ function AppLayout() {
               <Route path="/budgets" element={<ProtectedRoute allowed={can('budgets', 'read')} loading={!permissionsLoaded}><BudgetsPage /></ProtectedRoute>} />
               <Route path="/categories" element={<ProtectedRoute allowed={can('categories', 'read')} loading={!permissionsLoaded}><CategoriesPage /></ProtectedRoute>} />
               <Route path="/cards" element={<ProtectedRoute allowed={can('cards', 'read')} loading={!permissionsLoaded}><CardsPage /></ProtectedRoute>} />
-              <Route path="/access" element={<ProtectedRoute allowed={isOwner} loading={!permissionsLoaded && !isOwner}><AccessPage /></ProtectedRoute>} />
-              <Route path="/roles" element={<ProtectedRoute allowed={isOwner} loading={!permissionsLoaded && !isOwner}><RolesPage /></ProtectedRoute>} />
+              <Route path="/access" element={<ProtectedRoute allowed={isSuperadmin}><AccessPage /></ProtectedRoute>} />
+              <Route path="/roles" element={<ProtectedRoute allowed={isSuperadmin}><RolesPage /></ProtectedRoute>} />
+              <Route path="/accounts" element={<ProtectedRoute allowed={isSuperadmin}><AccountsPage /></ProtectedRoute>} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>
