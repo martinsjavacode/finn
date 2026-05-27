@@ -25,7 +25,7 @@ export default function Dashboard() {
   const { data: monthsData = [], isLoading, error } = useQuery<MonthData[]>({
     queryKey: ['dashboard-evolution', activeAccountId],
     queryFn: async () => {
-      const { data, error } = await fetchAllTransactions(activeAccountId ?? undefined)
+      const { data, error } = await fetchAllTransactions(activeAccountId!)
       if (error) throw error
       const byMonth: Record<string, { income: number; expense: number }> = {}
       for (const r of data) {
@@ -39,17 +39,19 @@ export default function Dashboard() {
         .sort((a, b) => a.month.localeCompare(b.month))
         .slice(-12)
     },
+    enabled: !!activeAccountId,
   })
 
   const { data: budgets = [] } = useQuery({
     queryKey: ['budgets', activeAccountId],
-    queryFn: async () => { const { data, error } = await fetchBudgets(activeAccountId ?? undefined); if (error) throw error; return data },
+    queryFn: async () => { const { data, error } = await fetchBudgets(activeAccountId!); if (error) throw error; return data },
+    enabled: !!activeAccountId,
   })
 
   const { data: currentTransactions = [] } = useQuery<Transaction[]>({
     queryKey: ['dashboard-month', selectedMonth, activeAccountId],
-    queryFn: async () => { const { data, error } = await fetchTransactions(selectedMonth, activeAccountId ?? undefined); if (error) throw error; return data },
-    enabled: !!selectedMonth,
+    queryFn: async () => { const { data, error } = await fetchTransactions(selectedMonth, activeAccountId!); if (error) throw error; return data },
+    enabled: !!selectedMonth && !!activeAccountId,
   })
 
   const maxValue = useMemo(() => Math.max(...monthsData.flatMap(d => [d.income, d.expense]), 1), [monthsData])

@@ -23,7 +23,7 @@ export function useTransactions(authenticated: boolean, accountId?: string | nul
   const { data: months = [] } = useQuery<string[]>({
     queryKey: TRANSACTION_KEYS.months(accountId ?? null),
     queryFn: () => fetchAvailableMonths(accountId ?? undefined),
-    enabled: authenticated,
+    enabled: authenticated && !!accountId,
   })
 
   const { data: transactions = [] } = useQuery<Transaction[]>({
@@ -33,7 +33,7 @@ export function useTransactions(authenticated: boolean, accountId?: string | nul
       if (error) throw error
       return data
     },
-    enabled: authenticated && !!month,
+    enabled: authenticated && !!month && !!accountId,
   })
 
   const { data: cards = [] } = useQuery<CreditCard[]>({
@@ -43,7 +43,7 @@ export function useTransactions(authenticated: boolean, accountId?: string | nul
       if (error) throw error
       return data
     },
-    enabled: authenticated && !!month,
+    enabled: authenticated && !!month && !!accountId,
   })
 
   const reload = () => invalidateTransactions(queryClient, month, accountId)
