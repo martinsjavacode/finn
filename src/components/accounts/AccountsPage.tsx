@@ -4,9 +4,11 @@ import { supabase } from '../../lib/supabase'
 import type { Account } from '../../types/database'
 import { showError, toast } from '../../lib/toast'
 import { confirm } from '../../lib/confirm'
+import { useAuth } from '../../hooks'
 import Button from '../ui/Button'
 import Modal from '../ui/Modal'
 import Select from '../ui/Select'
+import Badge from '../ui/Badge'
 import { CardGrid, CardItem, Chip } from '../ui/CardGrid'
 import { TableSkeleton } from '../ui/Skeleton'
 import { Pencil, Trash2, Users } from 'lucide-react'
@@ -25,6 +27,7 @@ interface UserOption { id: string; email: string; display_name: string | null }
 const roleLabel = (name: string) => name === 'owner' ? 'Owner' : name === 'editor' ? 'Editor' : 'Viewer'
 
 export default function AccountsPage() {
+  const { activeAccountId } = useAuth()
   const queryClient = useQueryClient()
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -38,6 +41,16 @@ export default function AccountsPage() {
   const { data: accounts = [], isLoading } = useQuery<Account[]>({
     queryKey: ['accounts-admin'],
     queryFn: async () => (await supabase.from('accounts').select('*').order('name')).data ?? [],
+  })
+
+  const { data: memberCounts = {} } = useQuery<Record<string, number>>({
+    queryKey: ['account-member-counts'],
+    queryFn: async () => {
+      const { data } = await supabase.from('account_members').select('account_id')
+      const counts: Record<string, number> = {}
+      for (const r of data ?? []) counts[r.account_id] = (counts[r.account_id] ?? 0) + 1
+      return counts
+    },
   })
 
   const { data: roles = [] } = useQuery<RoleOption[]>({
@@ -63,7 +76,7 @@ export default function AccountsPage() {
     enabled: !!membersAccountId,
   })
 
-  const invalidateMembers = () => queryClient.invalidateQueries({ queryKey: ['account-members', membersAccountId] })
+  const invalidateMembers = () => { queryClient.invalidateQueries({ queryKey: ['account-members', membersAccountId] }); queryClient.invalidateQueries({ queryKey: ['account-member-counts'] }) }
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -151,7 +164,7 @@ export default function AccountsPage() {
         {accounts.map(a => (
           <CardItem
             key={a.id}
-            title={a.name}
+            title={<>{a.name} {a.id === activeAccountId && <Badge variant="success">Ativa</Badge>}</>}
             style={{ borderTop: `3px solid ${a.color}` }}
             actions={<>
               <Button variant="icon" aria-label="Membros" onClick={() => setMembersAccountId(a.id)}><Users size={14} /></Button>
@@ -159,7 +172,7 @@ export default function AccountsPage() {
               <Button variant="icon" className="delete-btn" aria-label="Excluir" onClick={() => handleDelete(a.id)}><Trash2 size={14} /></Button>
             </>}
           >
-            <Chip className="cat-chip-highlight"><Users size={12} /> Membros</Chip>
+            <Chip><Users size={12} /> {memberCounts[a.id] ?? 0} {(memberCounts[a.id] ?? 0) === 1 ? 'membro' : 'membros'}</Chip>
           </CardItem>
         ))}
         {!accounts.length && <div className="empty-state"><p>Nenhuma conta cadastrada</p><Button onClick={openNew}>Criar primeira conta</Button></div>}
