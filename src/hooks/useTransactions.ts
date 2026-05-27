@@ -22,14 +22,14 @@ export function useTransactions(authenticated: boolean, accountId?: string | nul
 
   const { data: months = [] } = useQuery<string[]>({
     queryKey: TRANSACTION_KEYS.months(accountId ?? null),
-    queryFn: () => fetchAvailableMonths(accountId ?? undefined),
+    queryFn: () => fetchAvailableMonths(accountId!),
     enabled: authenticated && !!accountId,
   })
 
   const { data: transactions = [] } = useQuery<Transaction[]>({
     queryKey: TRANSACTION_KEYS.transactions(month, accountId ?? null),
     queryFn: async () => {
-      const { data, error } = await fetchTransactions(month, accountId ?? undefined)
+      const { data, error } = await fetchTransactions(month, accountId!)
       if (error) throw error
       return data
     },
@@ -39,7 +39,7 @@ export function useTransactions(authenticated: boolean, accountId?: string | nul
   const { data: cards = [] } = useQuery<CreditCard[]>({
     queryKey: TRANSACTION_KEYS.creditCards(month, accountId ?? null),
     queryFn: async () => {
-      const { data, error } = await fetchCreditCards(month, accountId ?? undefined)
+      const { data, error } = await fetchCreditCards(month, accountId!)
       if (error) throw error
       return data
     },
