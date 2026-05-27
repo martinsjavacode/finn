@@ -2,7 +2,7 @@ import { Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
-import { useAuth, useAppData } from '../../hooks'
+import { useAuth, useAppData, useMigration } from '../../hooks'
 import { showError, toast } from '../../lib/toast'
 import { confirm } from '../../lib/confirm'
 import { fmt } from '../../utils/format'
@@ -11,13 +11,15 @@ import Button from '../ui/Button'
 import Modal from '../ui/Modal'
 import { CardGrid, CardItem, Chip } from '../ui/CardGrid'
 import { TableSkeleton } from '../ui/Skeleton'
+import MigrateModal from '../ui/MigrateModal'
 
 interface Budget { id: string; category: string; monthly_limit: number }
 
 export default function BudgetsPage() {
-  const { can, activeAccountId } = useAuth()
+  const { can, activeAccountId, isSuperadmin, accounts } = useAuth()
   const { categories } = useAppData(true)
   const queryClient = useQueryClient()
+  const { migrateBudgets } = useMigration()
   const canCreate = can('budgets', 'create')
   const canUpdate = can('budgets', 'update')
   const canDelete = can('budgets', 'delete')
@@ -26,6 +28,10 @@ export default function BudgetsPage() {
   const [showForm, setShowForm] = useState(false)
   const [newCat, setNewCat] = useState('')
   const [newLimit, setNewLimit] = useState('')
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [showMigrate, setShowMigrate] = useState(false)
+
+  const toggleSelect = (id: string) => setSelected(prev => { const s = new Set(prev); if (s.has(id)) s.delete(id); else s.add(id); return s })
 
   const { data: budgets = [], isLoading } = useQuery<Budget[]>({
     queryKey: ['budgets-page', activeAccountId],
@@ -70,6 +76,7 @@ export default function BudgetsPage() {
     <div>
       <div className="page-header">
         <h2>Orçamentos <span style={{ fontSize: '0.85rem', fontWeight: 400, color: 'var(--text-muted)' }}>({budgets.length})</span></h2>
+        {isSuperadmin && selected.size > 0 && <Button onClick={() => setShowMigrate(true)}>Migrar ({selected.size})</Button>}
         {canCreate && <Button onClick={() => { setShowForm(true); if (!newCat && availableCats.length) setNewCat(availableCats[0].id) }}>+ Novo</Button>}
       </div>
 
@@ -98,6 +105,7 @@ export default function BudgetsPage() {
             key={b.id}
             title={catLabel(b.category)}
             actions={<>
+              {isSuperadmin && <input type="checkbox" checked={selected.has(b.id)} onChange={() => toggleSelect(b.id)} aria-label={`Selecionar ${catLabel(b.category)}`} />}
               {canUpdate && <Button variant="icon" aria-label="Editar" onClick={() => { setEditing(b.id); setEditLimit(String(b.monthly_limit)) }}><Pencil size={14} /></Button>}
               {canDelete && <Button variant="icon" className="delete-btn" aria-label="Excluir" onClick={() => handleDelete(b.id)}><Trash2 size={14} /></Button>}
             </>}
@@ -107,6 +115,17 @@ export default function BudgetsPage() {
         ))}
         {!budgets.length && <div className="empty-state"><p>Nenhum orçamento cadastrado</p>{canCreate && <Button onClick={() => { setShowForm(true); if (!newCat && availableCats.length) setNewCat(availableCats[0].id) }}>Cadastrar primeiro orçamento</Button>}</div>}
       </CardGrid>
+
+      {showMigrate && activeAccountId && (
+        <MigrateModal
+          accounts={accounts}
+          currentAccountId={activeAccountId}
+          count={selected.size}
+          label="orçamento"
+          onClose={() => setShowMigrate(false)}
+          onConfirm={targetId => { migrateBudgets.mutate({ ids: [...selected], targetAccountId: targetId }); setSelected(new Set()); setShowMigrate(false) }}
+        />
+      )}
     </div>
   )
 }

@@ -9,7 +9,7 @@ import AddTransaction from './AddTransaction'
 import Button from '../ui/Button'
 
 export default function TransactionsPage() {
-  const { session, can, activeAccountId } = useAuth()
+  const { session, can, activeAccountId, isSuperadmin, accounts } = useAuth()
   const { categories, cardsList } = useAppData(!!session)
   const { month, setMonth, months, transactions, cards } = useTransactions(!!session, activeAccountId)
   const [search, setSearch] = useState('')
@@ -62,6 +62,9 @@ export default function TransactionsPage() {
         month={month}
         canUpdate={canUpdate}
         canDelete={canDelete}
+        isSuperadmin={isSuperadmin}
+        accounts={accounts}
+        activeAccountId={activeAccountId}
       />
 
       {fc.length > 0 && <div style={{ height: 1, background: 'var(--border)', margin: '0.5rem 0' }} />}
