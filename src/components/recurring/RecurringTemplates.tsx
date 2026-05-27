@@ -39,8 +39,12 @@ export default function RecurringPage() {
   const [day, setDay] = useState(1)
 
   const { data: templates = [], isLoading } = useQuery<Template[]>({
-    queryKey: ['recurring-templates'],
-    queryFn: async () => (await supabase.from('recurring_templates').select('*').order('day').order('description')).data ?? [],
+    queryKey: ['recurring-templates', activeAccountId],
+    queryFn: async () => {
+      let q = supabase.from('recurring_templates').select('*').order('day').order('description')
+      if (activeAccountId) q = q.eq('account_id', activeAccountId)
+      return (await q).data ?? []
+    },
   })
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ['recurring-templates'] })

@@ -11,7 +11,7 @@ import Button from '../ui/Button'
 export default function TransactionsPage() {
   const { session, can, activeAccountId } = useAuth()
   const { categories, cardsList } = useAppData(!!session)
-  const { month, setMonth, months, transactions, cards } = useTransactions(!!session)
+  const { month, setMonth, months, transactions, cards } = useTransactions(!!session, activeAccountId)
   const [search, setSearch] = useState('')
   const [showAdd, setShowAdd] = useState(false)
   const [catFilter, setCatFilter] = useState('all')

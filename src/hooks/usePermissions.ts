@@ -5,11 +5,10 @@ interface Permission { resource: string; action: string }
 
 export function usePermissions(accountId: string | null, userId: string | null, isSuperadmin: boolean) {
   const [permissions, setPermissions] = useState<Permission[]>([])
-  const [loaded, setLoaded] = useState(isSuperadmin)
+  const [fetched, setFetched] = useState(false)
 
   useEffect(() => {
-    if (isSuperadmin) return
-    if (!accountId || !userId) return
+    if (isSuperadmin || !accountId || !userId) return
     let cancelled = false
 
     supabase
@@ -19,7 +18,7 @@ export function usePermissions(accountId: string | null, userId: string | null, 
       .eq('user_id', userId)
       .single()
       .then(({ data }) => {
-        if (cancelled || !data) { if (!cancelled) { setPermissions([]); setLoaded(true) }; return }
+        if (cancelled || !data) { if (!cancelled) { setPermissions([]); setFetched(true) }; return }
         return supabase
           .from('role_permissions')
           .select('permissions(resource, action)')
@@ -28,12 +27,14 @@ export function usePermissions(accountId: string | null, userId: string | null, 
             if (cancelled) return
             const perms = (rp ?? []).map((r: unknown) => (r as { permissions: Permission }).permissions)
             setPermissions(perms)
-            setLoaded(true)
+            setFetched(true)
           })
       })
 
     return () => { cancelled = true }
   }, [accountId, userId, isSuperadmin])
+
+  const loaded = isSuperadmin || fetched
 
   const can = (resource: string, action: string) => {
     if (isSuperadmin) return true

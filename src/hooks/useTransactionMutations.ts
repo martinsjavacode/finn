@@ -2,7 +2,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { insertTransaction, insertCreditCard, updateTransaction, deleteTransaction, toggleTransactionPaid } from '../services/transactions'
 import { showError, toast } from '../lib/toast'
-import { invalidateTransactions } from './useTransactions'
 
 function throwOnError<T extends { error: unknown }>(result: T) {
   if (result.error) throw result.error
@@ -11,7 +10,11 @@ function throwOnError<T extends { error: unknown }>(result: T) {
 
 export function useTransactionMutations(month: string) {
   const queryClient = useQueryClient()
-  const invalidate = () => invalidateTransactions(queryClient, month)
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey: ['transactions', month] })
+    queryClient.invalidateQueries({ queryKey: ['creditCards', month] })
+    queryClient.invalidateQueries({ queryKey: ['months'] })
+  }
 
   const addTransaction = useMutation({
     mutationFn: async (row: Parameters<typeof insertTransaction>[0]) => throwOnError(await insertTransaction(row)),

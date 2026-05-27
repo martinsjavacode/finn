@@ -28,11 +28,15 @@ export default function BudgetsPage() {
   const [newLimit, setNewLimit] = useState('')
 
   const { data: budgets = [], isLoading } = useQuery<Budget[]>({
-    queryKey: ['budgets-page'],
-    queryFn: async () => (await supabase.from('budgets').select('*')).data as Budget[] ?? [],
+    queryKey: ['budgets-page', activeAccountId],
+    queryFn: async () => {
+      const { data } = await supabase.from('budgets').select('*').eq('account_id', activeAccountId!)
+      return data as Budget[] ?? []
+    },
+    enabled: !!activeAccountId,
   })
 
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: ['budgets-page'] })
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: ['budgets-page', activeAccountId] })
 
   const addMutation = useMutation({
     mutationFn: async () => { const { error } = await supabase.from('budgets').insert({ category: newCat, monthly_limit: +newLimit, account_id: activeAccountId! }); if (error) throw error },
