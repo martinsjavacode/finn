@@ -7,6 +7,8 @@ import { confirm } from '../../lib/confirm'
 import Button from '../ui/Button'
 import Modal from '../ui/Modal'
 import Select from '../ui/Select'
+import { CardGrid, CardItem, Chip } from '../ui/CardGrid'
+import { TableSkeleton } from '../ui/Skeleton'
 import { Pencil, Trash2, Users } from 'lucide-react'
 
 interface Member {
@@ -20,6 +22,8 @@ interface Member {
 interface RoleOption { id: string; name: string }
 interface UserOption { id: string; email: string; display_name: string | null }
 
+const roleLabel = (name: string) => name === 'owner' ? 'Owner' : name === 'editor' ? 'Editor' : 'Viewer'
+
 export default function AccountsPage() {
   const queryClient = useQueryClient()
   const [showForm, setShowForm] = useState(false)
@@ -31,7 +35,7 @@ export default function AccountsPage() {
   const [newMemberUserId, setNewMemberUserId] = useState('')
   const [newMemberRoleId, setNewMemberRoleId] = useState('')
 
-  const { data: accounts = [] } = useQuery<Account[]>({
+  const { data: accounts = [], isLoading } = useQuery<Account[]>({
     queryKey: ['accounts-admin'],
     queryFn: async () => (await supabase.from('accounts').select('*').order('name')).data ?? [],
   })
@@ -111,7 +115,7 @@ export default function AccountsPage() {
   const handleRemoveMember = async (id: string) => { if (await confirm('Remover este membro da conta?')) removeMemberMutation.mutate(id) }
 
   const openAddMember = () => {
-    setNewMemberUserId(allUsers[0]?.id ?? '')
+    setNewMemberUserId(availableUsers[0]?.id ?? '')
     setNewMemberRoleId(roles.find(r => r.name === 'viewer')?.id ?? roles[0]?.id ?? '')
     setShowAddMember(true)
   }
@@ -120,32 +124,46 @@ export default function AccountsPage() {
   const existingUserIds = members.map(m => m.user_id)
   const availableUsers = allUsers.filter(u => !existingUserIds.includes(u.id))
 
+  if (isLoading) return <div><div className="page-header"><h2>Contas</h2></div><TableSkeleton rows={3} cols={3} /></div>
+
   return (
     <div>
       <div className="page-header">
-        <h2>Contas</h2>
+        <h2>Contas <span style={{ fontSize: '0.85rem', fontWeight: 400, color: 'var(--text-muted)' }}>({accounts.length})</span></h2>
         <Button onClick={openNew}>+ Nova</Button>
       </div>
 
-      <section>
-        <table className="desktop-table">
-          <thead><tr><th>Cor</th><th>Nome</th><th>Membros</th><th></th></tr></thead>
-          <tbody>
-            {accounts.map(a => (
-              <tr key={a.id}>
-                <td><span style={{ display: 'inline-block', width: 16, height: 16, borderRadius: '50%', background: a.color }} /></td>
-                <td>{a.name}</td>
-                <td><Button variant="icon" aria-label="Gerenciar membros" onClick={() => setMembersAccountId(a.id)}><Users size={14} /></Button></td>
-                <td>
-                  <Button variant="icon" aria-label="Editar" onClick={() => openEdit(a)}><Pencil size={14} /></Button>
-                  <Button variant="icon" className="delete-btn" aria-label="Excluir" onClick={() => handleDelete(a.id)}><Trash2 size={14} /></Button>
-                </td>
-              </tr>
-            ))}
-            {!accounts.length && <tr><td colSpan={4} className="empty">Nenhuma conta</td></tr>}
-          </tbody>
-        </table>
-      </section>
+      {showForm && (
+        <Modal title={editingId ? 'Editar Conta' : 'Nova Conta'} onClose={() => setShowForm(false)} onSubmit={e => { e.preventDefault(); saveMutation.mutate() }}>
+          <label className="form-label">Nome
+            <input type="text" value={name} onChange={e => setName(e.target.value)} required placeholder="Ex: Pessoal, Empresa..." />
+          </label>
+          <label className="form-label">Cor
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+              <input type="color" value={color} onChange={e => setColor(e.target.value)} style={{ width: 44, height: 44, padding: 0, border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer' }} />
+              <span style={{ width: '100%', height: 6, borderRadius: 3, background: color }} />
+            </div>
+          </label>
+        </Modal>
+      )}
+
+      <CardGrid>
+        {accounts.map(a => (
+          <CardItem
+            key={a.id}
+            title={a.name}
+            style={{ borderTop: `3px solid ${a.color}` }}
+            actions={<>
+              <Button variant="icon" aria-label="Membros" onClick={() => setMembersAccountId(a.id)}><Users size={14} /></Button>
+              <Button variant="icon" aria-label="Editar" onClick={() => openEdit(a)}><Pencil size={14} /></Button>
+              <Button variant="icon" className="delete-btn" aria-label="Excluir" onClick={() => handleDelete(a.id)}><Trash2 size={14} /></Button>
+            </>}
+          >
+            <Chip className="cat-chip-highlight"><Users size={12} /> Membros</Chip>
+          </CardItem>
+        ))}
+        {!accounts.length && <div className="empty-state"><p>Nenhuma conta cadastrada</p><Button onClick={openNew}>Criar primeira conta</Button></div>}
+      </CardGrid>
 
       {/* Modal: Membros da conta */}
       {membersAccountId && (
@@ -160,7 +178,7 @@ export default function AccountsPage() {
                     <Select
                       value={m.role_id}
                       onChange={v => updateRoleMutation.mutate({ id: m.id, roleId: v })}
-                      options={roles.map(r => ({ value: r.id, label: r.name === 'owner' ? 'Owner' : r.name === 'editor' ? 'Editor' : 'Viewer' }))}
+                      options={roles.map(r => ({ value: r.id, label: roleLabel(r.name) }))}
                     />
                   </td>
                   <td><Button variant="icon" className="delete-btn" aria-label="Remover" onClick={() => handleRemoveMember(m.id)}><Trash2 size={14} /></Button></td>
@@ -180,19 +198,7 @@ export default function AccountsPage() {
             <Select value={newMemberUserId} onChange={setNewMemberUserId} options={availableUsers.map(u => ({ value: u.id, label: u.display_name || u.email }))} />
           </label>
           <label className="form-label">Role
-            <Select value={newMemberRoleId} onChange={setNewMemberRoleId} options={roles.map(r => ({ value: r.id, label: r.name === 'owner' ? 'Owner' : r.name === 'editor' ? 'Editor' : 'Viewer' }))} />
-          </label>
-        </Modal>
-      )}
-
-      {/* Modal: Criar/Editar conta */}
-      {showForm && (
-        <Modal title={editingId ? 'Editar Conta' : 'Nova Conta'} onClose={() => setShowForm(false)} onSubmit={e => { e.preventDefault(); saveMutation.mutate() }}>
-          <label className="form-label">Nome
-            <input type="text" value={name} onChange={e => setName(e.target.value)} required placeholder="Ex: Pessoal, Empresa..." />
-          </label>
-          <label className="form-label">Cor
-            <input type="color" value={color} onChange={e => setColor(e.target.value)} style={{ width: 48, height: 36, padding: 2, border: '1px solid var(--border)', borderRadius: 6 }} />
+            <Select value={newMemberRoleId} onChange={setNewMemberRoleId} options={roles.map(r => ({ value: r.id, label: roleLabel(r.name) }))} />
           </label>
         </Modal>
       )}
