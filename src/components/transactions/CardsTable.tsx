@@ -2,14 +2,14 @@ import { Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useQueryClient, useQuery } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
-import Badge from '../ui/Badge'
-import type { CreditCard, CardListItem, Category, Owner } from '../../types/database'
+import type { CreditCard, CardListItem, Category } from '../../types/database'
 import { confirm } from '../../lib/confirm'
 import { showError, toast } from '../../lib/toast'
-import { fmt, ownerLabel, categoryOptions } from '../../utils/format'
+import { fmt, categoryOptions } from '../../utils/format'
 import { fetchCardInvoice, upsertCardInvoice } from '../../services/transactions'
 import { useTransactionMutations } from '../../hooks/useTransactionMutations'
 import { useIsMobile } from '../../hooks/useMediaQuery'
+import { useAuth } from '../../hooks'
 import Button from '../ui/Button'
 import Select from '../ui/Select'
 import Modal from '../ui/Modal'
@@ -28,6 +28,7 @@ interface Props {
 export default function CardsTable({ cards, cardsList, categories, month, canUpdate, canDelete }: Props) {
   const canEdit = canUpdate || canDelete
   const isMobile = useIsMobile()
+  const { activeAccountId } = useAuth()
   const queryClient = useQueryClient()
   const { removeCreditCard, removeInstallment } = useTransactionMutations(month)
   const [cardFilter, setCardFilter] = useState('all')
@@ -56,7 +57,7 @@ export default function CardsTable({ cards, cardsList, categories, month, canUpd
   }
 
   const updatePaidAmount = async (cardName: string, amount: number) => {
-    const { error } = await upsertCardInvoice(cardName, month, amount)
+    const { error } = await upsertCardInvoice(cardName, month, amount, activeAccountId!)
     if (error) return showError(error)
     queryClient.invalidateQueries({ queryKey: ['cardInvoices', month] })
   }
@@ -85,7 +86,7 @@ export default function CardsTable({ cards, cardsList, categories, month, canUpd
       )}
 
       {!isMobile && <table className="desktop-table">
-        <thead><tr><th>Data</th><th>Descrição</th><th>Cartão</th><th>Categoria</th><th>Parcela</th><th>Valor</th><th>Resp.</th>{canEdit && <th></th>}</tr></thead>
+        <thead><tr><th>Data</th><th>Descrição</th><th>Cartão</th><th>Categoria</th><th>Parcela</th><th>Valor</th>{canEdit && <th></th>}</tr></thead>
         <tbody>
           {filtered.length ? paginated.map(r => (
             <tr key={r.id}>
@@ -95,7 +96,6 @@ export default function CardsTable({ cards, cardsList, categories, month, canUpd
               <td>{categories.find(c => c.id === r.category)?.label ?? '-'}</td>
               <td>{r.current_installment && r.total_installments ? `${r.current_installment}/${r.total_installments}` : '-'}</td>
               <td>{fmt(+r.amount)}</td>
-              <td><Badge variant={r.owner === 'personal' ? 'success' : 'danger'}>{ownerLabel(r.owner as Owner)}</Badge></td>
               {canEdit && (
                 <td>
                   {canUpdate && !r.installment_purchase_id && <Button variant="icon" aria-label="Editar" onClick={() => setEditing(r)}><Pencil size={14} /></Button>}
@@ -103,7 +103,7 @@ export default function CardsTable({ cards, cardsList, categories, month, canUpd
                 </td>
               )}
             </tr>
-          )) : <tr><td colSpan={canEdit ? 8 : 7} className="empty">Nenhum lançamento</td></tr>}
+          )) : <tr><td colSpan={canEdit ? 7 : 6} className="empty">Nenhum lançamento</td></tr>}
         </tbody>
       </table>}
 
@@ -113,7 +113,7 @@ export default function CardsTable({ cards, cardsList, categories, month, canUpd
             key={r.id}
             title={r.description}
             value={fmt(+r.amount)}
-            subtitle={<>{new Date(r.month + 'T12:00:00').toLocaleDateString('pt-BR')} · {getLabel(r.card!)} · {categories.find(c => c.id === r.category)?.label ?? ''} · {ownerLabel(r.owner as Owner)}{r.current_installment ? ` · ${r.current_installment}/${r.total_installments}` : ''}</>}
+            subtitle={<>{new Date(r.month + 'T12:00:00').toLocaleDateString('pt-BR')} · {getLabel(r.card!)} · {categories.find(c => c.id === r.category)?.label ?? ''}{r.current_installment ? ` · ${r.current_installment}/${r.total_installments}` : ''}</>}
             onTap={canUpdate && !r.installment_purchase_id ? () => setEditing(r) : canDelete ? () => handleDelete(r) : undefined}
             style={{ borderLeft: `3px solid ${getColor(r.card!)}` }}
           />
@@ -139,13 +139,12 @@ function EditCardModal({ card, cardsList, categories, onClose }: { card: CreditC
   const [amount, setAmount] = useState(String(card.amount))
   const [cardName, setCardName] = useState(card.card ?? '')
   const [category, setCategory] = useState(card.category ?? categories[0]?.id ?? '')
-  const [owner, setOwner] = useState<Owner>(card.owner as Owner)
 
   const isInstallment = !!card.installment_purchase_id
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const update = { description, amount: +amount, card: cardName, category, owner }
+    const update = { description, amount: +amount, card: cardName, category }
 
     if (isInstallment) {
       const { error } = await supabase
@@ -186,14 +185,9 @@ function EditCardModal({ card, cardsList, categories, onClose }: { card: CreditC
 
       <div className="form-divider" />
 
-      <div className="form-row">
-        <label className="form-label form-grow">Categoria
-          <Select value={category} onChange={setCategory} options={categoryOptions(categories)} />
-        </label>
-        <label className="form-label form-grow">Responsável
-          <Select value={owner} onChange={v => setOwner(v as Owner)} options={[{ value: 'personal', label: 'Pessoal' }, { value: 'mother_in_law', label: 'Sogra' }]} />
-        </label>
-      </div>
+      <label className="form-label">Categoria
+        <Select value={category} onChange={setCategory} options={categoryOptions(categories)} />
+      </label>
     </Modal>
   )
 }

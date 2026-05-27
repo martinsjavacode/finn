@@ -1,8 +1,8 @@
 import { Pencil, Trash2, Check, TrendingUp, TrendingDown } from 'lucide-react'
 import { useState } from 'react'
-import type { Transaction, Category, Owner, TransactionType } from '../../types/database'
+import type { Transaction, Category, TransactionType } from '../../types/database'
 import { confirm } from '../../lib/confirm'
-import { fmt, ownerLabel, categoryOptions } from '../../utils/format'
+import { fmt, categoryOptions } from '../../utils/format'
 import Badge from '../ui/Badge'
 import { useTransactionMutations } from '../../hooks/useTransactionMutations'
 import { useIsMobile } from '../../hooks/useMediaQuery'
@@ -46,7 +46,7 @@ export default function TransactionsTable({ transactions, categories, month, can
 
   const startEdit = (r: Transaction) => {
     setEditing(r.id)
-    setEditData({ description: r.description, amount: r.amount, category: r.category, owner: r.owner, month: r.month })
+    setEditData({ description: r.description, amount: r.amount, category: r.category, month: r.month })
   }
 
   const saveEdit = (id: string) => {
@@ -85,7 +85,7 @@ export default function TransactionsTable({ transactions, categories, month, can
 
       {/* Desktop */}
       {!isMobile && <table className="desktop-table">
-        <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Parcela</th><th>Valor</th><th>Resp.</th><th>Pago</th>{canEdit && <th></th>}</tr></thead>
+        <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Parcela</th><th>Valor</th><th>Pago</th>{canEdit && <th></th>}</tr></thead>
         <tbody>
           {filtered.length ? paginated.map(r => (
             <tr key={r.id} className={r.paid ? 'row-paid' : ''}>
@@ -97,7 +97,6 @@ export default function TransactionsTable({ transactions, categories, month, can
                   <td>{r.type === 'income' ? <TrendingUp size={14} /> : <TrendingDown size={14} />}</td>
                   <td>{r.current_installment && r.total_installments ? `${r.current_installment}/${r.total_installments}` : '-'}</td>
                   <td><input className="inline-input" type="number" step="0.01" value={editData.amount ?? ''} onChange={e => setEditData(d => ({ ...d, amount: +e.target.value }))} style={{ width: '100px' }} /></td>
-                  <td><Select value={editData.owner ?? ''} onChange={v => setEditData(d => ({ ...d, owner: v as Owner }))} options={[{ value: 'personal', label: 'Pessoal' }, { value: 'mother_in_law', label: 'Sogra' }]} /></td>
                   <td></td>
                   <td><Button onClick={() => saveEdit(r.id)}><Check size={14} /></Button></td>
                 </>
@@ -109,7 +108,6 @@ export default function TransactionsTable({ transactions, categories, month, can
                   <td>{r.type === 'income' ? 'Receita' : 'Despesa'}</td>
                   <td>{r.current_installment && r.total_installments ? `${r.current_installment}/${r.total_installments}` : '-'}</td>
                   <td>{fmt(+r.amount)}</td>
-                  <td><Badge variant={r.owner === 'personal' ? 'success' : 'danger'}>{ownerLabel(r.owner as Owner)}</Badge></td>
                   <td>{canUpdate ? <button className="badge-toggle" role="switch" aria-checked={r.paid} onClick={() => togglePaid(r.id, r.paid)}><Badge variant={r.paid ? 'success' : 'danger'}>{r.paid ? 'Pago' : 'Pendente'}</Badge></button> : <Badge variant={r.paid ? 'success' : 'danger'}>{r.paid ? 'Pago' : 'Pendente'}</Badge>}</td>
                   {canEdit && (
                     <td>
@@ -120,7 +118,7 @@ export default function TransactionsTable({ transactions, categories, month, can
                 </>
               )}
             </tr>
-          )) : <tr><td colSpan={canEdit ? 9 : 8} className="empty">Nenhum lançamento encontrado</td></tr>}
+          )) : <tr><td colSpan={canEdit ? 8 : 7} className="empty">Nenhum lançamento encontrado</td></tr>}
         </tbody>
       </table>}
 
@@ -133,7 +131,7 @@ export default function TransactionsTable({ transactions, categories, month, can
             status={canUpdate ? <button className="badge-toggle" role="switch" aria-checked={r.paid} onClick={(e) => { e.stopPropagation(); togglePaid(r.id, r.paid) }}><Badge variant={r.paid ? 'success' : 'danger'}>{r.paid ? 'Pago' : 'Pendente'}</Badge></button> : <Badge variant={r.paid ? 'success' : 'danger'}>{r.paid ? 'Pago' : 'Pendente'}</Badge>}
             title={r.description}
             value={fmt(+r.amount)}
-            subtitle={<>{getCatLabel(r)} · {new Date(r.month + 'T12:00:00').toLocaleDateString('pt-BR')} · {ownerLabel(r.owner as Owner)}{r.current_installment ? ` · ${r.current_installment}/${r.total_installments}` : ''}</>}
+            subtitle={<>{getCatLabel(r)} · {new Date(r.month + 'T12:00:00').toLocaleDateString('pt-BR')}{r.current_installment ? ` · ${r.current_installment}/${r.total_installments}` : ''}</>}
             onTap={canUpdate && !r.installment_purchase_id ? () => startEdit(r) : undefined}
           />
         )) : <p className="empty">Nenhum lançamento encontrado</p>}
@@ -156,9 +154,6 @@ export default function TransactionsTable({ transactions, categories, month, can
           <div className="form-row">
             <label className="form-label form-grow">Categoria
               <Select value={editData.category ?? ''} onChange={v => setEditData(d => ({ ...d, category: v }))} options={categoryOptions(categories)} />
-            </label>
-            <label className="form-label form-grow">Responsável
-              <Select value={editData.owner ?? ''} onChange={v => setEditData(d => ({ ...d, owner: v as Owner }))} options={[{ value: 'personal', label: 'Pessoal' }, { value: 'mother_in_law', label: 'Sogra' }]} />
             </label>
           </div>
         </Modal>

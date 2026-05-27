@@ -1,4 +1,5 @@
 export { useAuth } from './useAuth'
+export { useAccount } from './useAccount'
 export { useAppData } from './useAppData'
 export { useTransactions } from './useTransactions'
 export { useTransactionMutations } from './useTransactionMutations'

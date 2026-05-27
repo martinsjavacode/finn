@@ -1,17 +1,10 @@
-import { fmt, ownerLabel, currentYearMonth, monthRange, toYearMonth, monthLabel, monthLabelShort } from '../../utils/format'
+import { fmt, currentYearMonth, monthRange, toYearMonth, monthLabel, monthLabelShort } from '../../utils/format'
 
 describe('fmt', () => {
   it('formata valor em BRL', () => {
     expect(fmt(1500)).toContain('1.500')
     expect(fmt(0)).toContain('0')
     expect(fmt(99.9)).toContain('99,90')
-  })
-})
-
-describe('ownerLabel', () => {
-  it('retorna label correto', () => {
-    expect(ownerLabel('personal')).toBe('Pessoal')
-    expect(ownerLabel('mother_in_law')).toBe('Sogra')
   })
 })
 

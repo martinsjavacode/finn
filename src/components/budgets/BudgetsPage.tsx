@@ -15,7 +15,7 @@ import { TableSkeleton } from '../ui/Skeleton'
 interface Budget { id: string; category: string; monthly_limit: number }
 
 export default function BudgetsPage() {
-  const { can } = useAuth()
+  const { can, activeAccountId } = useAuth()
   const { categories } = useAppData(true)
   const queryClient = useQueryClient()
   const canCreate = can('budgets', 'create')
@@ -35,7 +35,7 @@ export default function BudgetsPage() {
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ['budgets-page'] })
 
   const addMutation = useMutation({
-    mutationFn: async () => { const { error } = await supabase.from('budgets').insert({ category: newCat, monthly_limit: +newLimit }); if (error) throw error },
+    mutationFn: async () => { const { error } = await supabase.from('budgets').insert({ category: newCat, monthly_limit: +newLimit, account_id: activeAccountId! }); if (error) throw error },
     onSuccess: () => { invalidate(); setShowForm(false); setNewLimit(''); toast('Orçamento criado') },
     onError: (e) => showError(e),
   })

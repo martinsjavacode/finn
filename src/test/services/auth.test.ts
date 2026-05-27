@@ -1,5 +1,5 @@
 import { vi } from 'vitest'
-import { getSession, getUserRole, signOut } from '../../services/auth'
+import { getSession, getUser, signOut } from '../../services/auth'
 import { supabase } from '../../lib/supabase'
 import type { Session } from '@supabase/supabase-js'
 
@@ -38,19 +38,19 @@ describe('auth service', () => {
     })
   })
 
-  describe('getUserRole', () => {
-    it('retorna role da tabela users via join com roles', async () => {
+  describe('getUser', () => {
+    it('retorna user com is_superadmin da tabela users', async () => {
       const mockFrom = vi.fn().mockReturnValue({
         select: vi.fn().mockReturnValue({
           eq: vi.fn().mockReturnValue({
-            single: vi.fn().mockResolvedValue({ data: { role_id: 'r1', activated: true, roles: { name: 'editor' } }, error: null }),
+            single: vi.fn().mockResolvedValue({ data: { id: 'u1', activated: true, is_superadmin: true }, error: null }),
           }),
         }),
       })
       vi.mocked(supabase.from).mockImplementation(mockFrom)
 
-      const result = await getUserRole(mockSession('test@test.com'))
-      expect(result).toEqual({ name: 'editor', id: 'r1' })
+      const result = await getUser(mockSession('test@test.com'))
+      expect(result).toEqual({ id: 'u1', is_superadmin: true })
       expect(mockFrom).toHaveBeenCalledWith('users')
     })
   })

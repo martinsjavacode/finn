@@ -51,7 +51,7 @@ export async function deleteTransaction(id: string) {
 }
 
 export async function insertTransaction(row: {
-  month: string; description: string; amount: number; type: string; category: string; owner: string; paid: boolean
+  month: string; description: string; amount: number; type: string; category: string; account_id: string; paid: boolean
 }) {
   const insert: EntryInsert = { ...row, payment_method: 'pix', type: row.type as EntryInsert['type'] }
   const { error } = await supabase.from('entries').insert(insert)
@@ -59,7 +59,7 @@ export async function insertTransaction(row: {
 }
 
 export async function insertCreditCard(row: {
-  month: string; description: string; amount: number; card: string; owner: string; category?: string
+  month: string; description: string; amount: number; card: string; account_id: string; category?: string
 }) {
   const insert: EntryInsert = { ...row, payment_method: 'credit_card', type: 'expense', paid: false }
   const { error } = await supabase.from('entries').insert(insert)
@@ -81,7 +81,10 @@ export async function fetchCardInvoice(card: string, month: string) {
   return data?.paid_amount ?? 0
 }
 
-export async function upsertCardInvoice(card: string, month: string, paidAmount: number) {
-  const { error } = await supabase.from('card_invoices').upsert({ card, month: `${month}-01`, paid_amount: paidAmount }, { onConflict: 'card,month' })
+export async function upsertCardInvoice(card: string, month: string, paidAmount: number, accountId: string) {
+  const { error } = await supabase.from('card_invoices').upsert(
+    { card, month: `${month}-01`, paid_amount: paidAmount, account_id: accountId },
+    { onConflict: 'account_id,card,month' }
+  )
   return { error }
 }

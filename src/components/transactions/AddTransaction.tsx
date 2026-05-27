@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
-import type { Category, Owner, TransactionType, CardListItem } from '../../types/database'
+import type { Category, TransactionType, CardListItem } from '../../types/database'
 import { useTransactionMutations } from '../../hooks/useTransactionMutations'
 import { showError, toast } from '../../lib/toast'
 import { categoryOptions, resolveInvoiceMonth, monthLabel } from '../../utils/format'
@@ -13,10 +13,11 @@ interface Props {
   categories: Category[]
   cardsList: CardListItem[]
   month: string
+  accountId: string
   onClose: () => void
 }
 
-export default function AddTransaction({ categories, cardsList, month, onClose }: Props) {
+export default function AddTransaction({ categories, cardsList, month, accountId, onClose }: Props) {
   const queryClient = useQueryClient()
   const { addTransaction, addCreditCard } = useTransactionMutations(month)
   const [target, setTarget] = useState<'pix' | 'credit_card'>('pix')
@@ -25,7 +26,6 @@ export default function AddTransaction({ categories, cardsList, month, onClose }
   const [amount, setAmount] = useState('')
   const [txDate, setTxDate] = useState(new Date().toISOString().slice(0, 10))
   const [category, setCategory] = useState(categories[0]?.id ?? '')
-  const [owner, setOwner] = useState<Owner>('personal')
   const [card, setCard] = useState(cardsList[0]?.name ?? '')
   const [installment, setInstallment] = useState(false)
   const [installments, setInstallments] = useState('2')
@@ -46,7 +46,7 @@ export default function AddTransaction({ categories, cardsList, month, onClose }
         description,
         total_amount: +amount,
         installments: +installments,
-        owner,
+        account_id: accountId,
         target,
         card: target === 'credit_card' ? card : null,
         category,
@@ -57,16 +57,15 @@ export default function AddTransaction({ categories, cardsList, month, onClose }
       queryClient.invalidateQueries({ queryKey: ['months'] })
       toast(`Parcelamento criado (${installments}x)`)
     } else if (target === 'pix') {
-      addTransaction.mutate({ month: txDate, description, amount: +amount, type, category, owner, paid: false })
+      addTransaction.mutate({ month: txDate, description, amount: +amount, type, category, account_id: accountId, paid: false })
     } else {
-      addCreditCard.mutate({ month: resolvedMonth, description, amount: +amount, card, owner, category })
+      addCreditCard.mutate({ month: resolvedMonth, description, amount: +amount, card, account_id: accountId, category })
     }
     onClose()
   }
 
   return (
     <Modal title="Novo Lançamento" onClose={onClose} onSubmit={handleSubmit}>
-      {/* Seção: O quê */}
       <label className="form-label">Descrição
         <input type="text" placeholder="Ex: Aluguel, Netflix..." value={description} onChange={e => setDescription(e.target.value)} required />
       </label>
@@ -82,7 +81,6 @@ export default function AddTransaction({ categories, cardsList, month, onClose }
 
       <div className="form-divider" />
 
-      {/* Seção: Como */}
       <div className="form-row">
         <div className="form-grow">
           <label className="form-label">Pagamento</label>
@@ -137,15 +135,9 @@ export default function AddTransaction({ categories, cardsList, month, onClose }
 
       <div className="form-divider" />
 
-      {/* Seção: Classificação */}
-      <div className="form-row">
-        <label className="form-label form-grow">Categoria
-          <Select value={category} onChange={setCategory} options={categoryOptions(categories)} />
-        </label>
-        <label className="form-label form-grow">Responsável
-          <Select value={owner} onChange={v => setOwner(v as Owner)} options={[{ value: 'personal', label: 'Pessoal' }, { value: 'mother_in_law', label: 'Sogra' }]} />
-        </label>
-      </div>
+      <label className="form-label">Categoria
+        <Select value={category} onChange={setCategory} options={categoryOptions(categories)} />
+      </label>
     </Modal>
   )
 }

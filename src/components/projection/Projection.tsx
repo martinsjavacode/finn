@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
+import { useAuth } from '../../hooks'
 import { fmt } from '../../utils/format'
 import { TableSkeleton } from '../ui/Skeleton'
 import '../categories/CategoriesPage.css'
@@ -13,14 +14,16 @@ interface MonthProjection {
 }
 
 export default function Projection() {
+  const { activeAccountId } = useAuth()
   const [projections, setProjections] = useState<MonthProjection[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (!activeAccountId) return
     ;(async () => {
       try {
         // Tenta usar RPC agregada (migration 009)
-        const { data, error } = await supabase.rpc('get_projection', { months_ahead: 6 })
+        const { data, error } = await supabase.rpc('get_projection', { months_ahead: 6, p_account_id: activeAccountId })
 
         if (!error && data) {
           setProjections((data as { month: string; recurring: number; installments: number }[]).map(r => ({
@@ -52,7 +55,7 @@ export default function Projection() {
         setLoading(false)
       }
     })()
-  }, [])
+  }, [activeAccountId])
 
   if (loading) return <div><h2 className="dashboard-title">Projeção Futura</h2><TableSkeleton rows={6} cols={4} /></div>
 
