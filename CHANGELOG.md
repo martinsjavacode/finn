@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.1](https://github.com/martinsjavacode/finn/compare/v0.1.0...v0.1.1) (2026-05-27)
+
+
+### Features
+
+* add account migration for superadmin (entries, budgets, installments) ([c29fbf3](https://github.com/martinsjavacode/finn/commit/c29fbf33a0ab51843f55199364c36e651bd43dd1))
+
 ## [0.1.0](https://github.com/martinsjavacode/finn/compare/v0.0.13...v0.1.0) (2026-05-27)
 
 
