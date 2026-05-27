@@ -29,7 +29,7 @@ describe('useTransactions', () => {
   })
 
   it('carrega meses, transações e cartões quando autenticado', async () => {
-    const { result } = renderHook(() => useTransactions(true), { wrapper: createWrapper() })
+    const { result } = renderHook(() => useTransactions(true, 'acc-1'), { wrapper: createWrapper() })
     await waitFor(() => {
       expect(result.current.months).toEqual(['2026-05', '2026-04'])
       expect(result.current.transactions).toHaveLength(1)
@@ -39,7 +39,7 @@ describe('useTransactions', () => {
   })
 
   it('atualiza transação otimisticamente', async () => {
-    const { result } = renderHook(() => useTransactions(true), { wrapper: createWrapper() })
+    const { result } = renderHook(() => useTransactions(true, 'acc-1'), { wrapper: createWrapper() })
     await waitFor(() => expect(result.current.transactions).toHaveLength(1))
 
     act(() => result.current.updateTransaction('t1', { paid: true }))
@@ -48,7 +48,7 @@ describe('useTransactions', () => {
   })
 
   it('remove transação otimisticamente', async () => {
-    const { result } = renderHook(() => useTransactions(true), { wrapper: createWrapper() })
+    const { result } = renderHook(() => useTransactions(true, 'acc-1'), { wrapper: createWrapper() })
     await waitFor(() => expect(result.current.transactions).toHaveLength(1))
 
     act(() => result.current.removeTransaction('t1'))
