@@ -5,12 +5,14 @@ import { confirm } from '../../lib/confirm'
 import { fmt, categoryOptions } from '../../utils/format'
 import Badge from '../ui/Badge'
 import { useTransactionMutations } from '../../hooks/useTransactionMutations'
+import { useMigration } from '../../hooks/useMigration'
 import { useIsMobile } from '../../hooks/useMediaQuery'
 import Button from '../ui/Button'
 import Select from '../ui/Select'
 import Modal from '../ui/Modal'
 import MobileCard from '../ui/MobileCard'
 import Pagination from '../ui/Pagination'
+import MigrateModal from '../ui/MigrateModal'
 
 interface Props {
   transactions: Transaction[]
@@ -18,9 +20,12 @@ interface Props {
   month: string
   canUpdate: boolean
   canDelete: boolean
+  isSuperadmin?: boolean
+  accounts?: { id: string; name: string }[]
+  activeAccountId?: string | null
 }
 
-export default function TransactionsTable({ transactions, categories, month, canUpdate, canDelete }: Props) {
+export default function TransactionsTable({ transactions, categories, month, canUpdate, canDelete, isSuperadmin, accounts, activeAccountId }: Props) {
   const canEdit = canUpdate || canDelete
   const isMobile = useIsMobile()
   const { togglePaid: togglePaidMutation, editTransaction, removeTransaction, removeInstallment } = useTransactionMutations(month)
@@ -30,6 +35,12 @@ export default function TransactionsTable({ transactions, categories, month, can
   const [editData, setEditData] = useState<Partial<Transaction>>({})
   const [page, setPage] = useState(1)
   const [perPage, setPerPage] = useState(10)
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [showMigrate, setShowMigrate] = useState(false)
+  const { migrateEntries } = useMigration()
+
+  const toggleSelect = (id: string) => setSelected(prev => { const s = new Set(prev); if (s.has(id)) s.delete(id); else s.add(id); return s })
+  const toggleAll = () => setSelected(prev => prev.size === filtered.length ? new Set() : new Set(filtered.map(r => r.id)))
 
   const getCatLabel = (t: Transaction) => t.categories?.label ?? ''
 
@@ -67,7 +78,10 @@ export default function TransactionsTable({ transactions, categories, month, can
 
   return (
     <section>
-      <h2>Lançamentos</h2>
+      <div className="page-header">
+        <h2>Lançamentos</h2>
+        {isSuperadmin && selected.size > 0 && <Button onClick={() => setShowMigrate(true)}>Migrar ({selected.size})</Button>}
+      </div>
       <div className="tabs">
         {(['all', 'income', 'expense'] as const).map(t => (
           <Button key={t} variant="tab" active={t === typeFilter} onClick={() => setTypeFilter(t)}>
@@ -85,10 +99,11 @@ export default function TransactionsTable({ transactions, categories, month, can
 
       {/* Desktop */}
       {!isMobile && <table className="desktop-table">
-        <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Parcela</th><th>Valor</th><th>Pago</th>{canEdit && <th></th>}</tr></thead>
+        <thead><tr>{isSuperadmin && <th><input type="checkbox" checked={selected.size === filtered.length && filtered.length > 0} onChange={toggleAll} aria-label="Selecionar todos" /></th>}<th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Parcela</th><th>Valor</th><th>Pago</th>{canEdit && <th></th>}</tr></thead>
         <tbody>
           {filtered.length ? paginated.map(r => (
             <tr key={r.id} className={r.paid ? 'row-paid' : ''}>
+              {isSuperadmin && <td><input type="checkbox" checked={selected.has(r.id)} onChange={() => toggleSelect(r.id)} aria-label={`Selecionar ${r.description}`} /></td>}
               {editing === r.id ? (
                 <>
                   <td><input className="inline-input" type="date" value={editData.month ?? r.month} onChange={e => setEditData(d => ({ ...d, month: e.target.value }))} /></td>
@@ -118,7 +133,7 @@ export default function TransactionsTable({ transactions, categories, month, can
                 </>
               )}
             </tr>
-          )) : <tr><td colSpan={canEdit ? 8 : 7} className="empty">Nenhum lançamento encontrado</td></tr>}
+          )) : <tr><td colSpan={(canEdit ? 8 : 7) + (isSuperadmin ? 1 : 0)} className="empty">Nenhum lançamento encontrado</td></tr>}
         </tbody>
       </table>}
 
@@ -157,6 +172,17 @@ export default function TransactionsTable({ transactions, categories, month, can
             </label>
           </div>
         </Modal>
+      )}
+
+      {showMigrate && accounts && activeAccountId && (
+        <MigrateModal
+          accounts={accounts}
+          currentAccountId={activeAccountId}
+          count={selected.size}
+          label="lançamento"
+          onClose={() => setShowMigrate(false)}
+          onConfirm={targetId => { migrateEntries.mutate({ ids: [...selected], targetAccountId: targetId }); setSelected(new Set()); setShowMigrate(false) }}
+        />
       )}
     </section>
   )
