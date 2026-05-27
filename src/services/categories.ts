@@ -11,7 +11,9 @@ export async function fetchActiveCards() {
   return { data: (data ?? []) as CardListItem[], error }
 }
 
-export async function fetchBudgets() {
-  const { data, error } = await supabase.from('budgets').select('category, monthly_limit')
+export async function fetchBudgets(accountId?: string) {
+  let q = supabase.from('budgets').select('category, monthly_limit')
+  if (accountId) q = q.eq('account_id', accountId)
+  const { data, error } = await q
   return { data: (data ?? []) as { category: string; monthly_limit: number }[], error }
 }

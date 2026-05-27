@@ -1,5 +1,5 @@
 import { vi } from 'vitest'
-import { fetchTransactions, fetchCreditCards, fetchAvailableMonths, toggleTransactionPaid } from '../../services/transactions'
+import { fetchTransactions, fetchCreditCards, fetchAvailableMonths, toggleTransactionPaid, insertTransaction, insertCreditCard, updateTransaction, deleteTransaction } from '../../services/transactions'
 import { supabase } from '../../lib/supabase'
 
 describe('transactions service', () => {
@@ -88,3 +88,73 @@ describe('transactions service', () => {
     })
   })
 })
+
+  describe('insertTransaction', () => {
+    it('insere entry com payment_method pix', async () => {
+      const mockChain = { insert: vi.fn().mockResolvedValue({ error: null }) }
+      vi.mocked(supabase.from).mockReturnValue(mockChain as never)
+
+      const { error } = await insertTransaction({ month: '2026-05-01', description: 'Aluguel', amount: 2000, type: 'expense', category: 'c1', account_id: 'acc-1', paid: false })
+      expect(error).toBeNull()
+      expect(mockChain.insert).toHaveBeenCalledWith(expect.objectContaining({ payment_method: 'pix', account_id: 'acc-1' }))
+    })
+  })
+
+  describe('insertCreditCard', () => {
+    it('insere entry com payment_method credit_card', async () => {
+      const mockChain = { insert: vi.fn().mockResolvedValue({ error: null }) }
+      vi.mocked(supabase.from).mockReturnValue(mockChain as never)
+
+      const { error } = await insertCreditCard({ month: '2026-05-01', description: 'Netflix', amount: 45, card: 'nubank', account_id: 'acc-1' })
+      expect(error).toBeNull()
+      expect(mockChain.insert).toHaveBeenCalledWith(expect.objectContaining({ payment_method: 'credit_card', type: 'expense', account_id: 'acc-1' }))
+    })
+  })
+
+  describe('updateTransaction', () => {
+    it('atualiza entry por id', async () => {
+      const mockChain = { update: vi.fn().mockReturnThis(), eq: vi.fn().mockResolvedValue({ error: null }) }
+      vi.mocked(supabase.from).mockReturnValue(mockChain as never)
+
+      await updateTransaction('t1', { description: 'Novo', amount: 100 })
+      expect(mockChain.update).toHaveBeenCalledWith(expect.objectContaining({ description: 'Novo', amount: 100 }))
+      expect(mockChain.eq).toHaveBeenCalledWith('id', 't1')
+    })
+  })
+
+  describe('deleteTransaction', () => {
+    it('deleta entry por id', async () => {
+      const mockChain = { delete: vi.fn().mockReturnThis(), eq: vi.fn().mockResolvedValue({ error: null }) }
+      vi.mocked(supabase.from).mockReturnValue(mockChain as never)
+
+      await deleteTransaction('t1')
+      expect(supabase.from).toHaveBeenCalledWith('entries')
+      expect(mockChain.eq).toHaveBeenCalledWith('id', 't1')
+    })
+  })
+
+  describe('fetchAllTransactions', () => {
+    it('filtra por accountId', async () => {
+      const { fetchAllTransactions } = await import('../../services/transactions')
+      const mockChain = {
+        select: vi.fn().mockReturnThis(),
+        order: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockResolvedValue({ data: [{ month: '2026-05-01', amount: 100, type: 'expense' }], error: null }),
+      }
+      vi.mocked(supabase.from).mockReturnValue(mockChain as never)
+      const { data } = await fetchAllTransactions('acc-1')
+      expect(data).toHaveLength(1)
+      expect(mockChain.eq).toHaveBeenCalledWith('account_id', 'acc-1')
+    })
+  })
+
+  describe('upsertCardInvoice', () => {
+    it('faz upsert com account_id', async () => {
+      const { upsertCardInvoice } = await import('../../services/transactions')
+      const upsertMock = vi.fn().mockResolvedValue({ error: null })
+      vi.mocked(supabase.from).mockReturnValue({ upsert: upsertMock } as never)
+      const { error } = await upsertCardInvoice('nubank', '2026-05', 500, 'acc-1')
+      expect(error).toBeNull()
+      expect(upsertMock).toHaveBeenCalledWith(expect.objectContaining({ account_id: 'acc-1', paid_amount: 500 }), expect.anything())
+    })
+  })

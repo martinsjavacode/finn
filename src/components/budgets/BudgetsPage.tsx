@@ -15,7 +15,7 @@ import { TableSkeleton } from '../ui/Skeleton'
 interface Budget { id: string; category: string; monthly_limit: number }
 
 export default function BudgetsPage() {
-  const { can } = useAuth()
+  const { can, activeAccountId } = useAuth()
   const { categories } = useAppData(true)
   const queryClient = useQueryClient()
   const canCreate = can('budgets', 'create')
@@ -28,14 +28,18 @@ export default function BudgetsPage() {
   const [newLimit, setNewLimit] = useState('')
 
   const { data: budgets = [], isLoading } = useQuery<Budget[]>({
-    queryKey: ['budgets-page'],
-    queryFn: async () => (await supabase.from('budgets').select('*')).data as Budget[] ?? [],
+    queryKey: ['budgets-page', activeAccountId],
+    queryFn: async () => {
+      const { data } = await supabase.from('budgets').select('*').eq('account_id', activeAccountId!)
+      return data as Budget[] ?? []
+    },
+    enabled: !!activeAccountId,
   })
 
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: ['budgets-page'] })
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: ['budgets-page', activeAccountId] })
 
   const addMutation = useMutation({
-    mutationFn: async () => { const { error } = await supabase.from('budgets').insert({ category: newCat, monthly_limit: +newLimit }); if (error) throw error },
+    mutationFn: async () => { const { error } = await supabase.from('budgets').insert({ category: newCat, monthly_limit: +newLimit, account_id: activeAccountId! }); if (error) throw error },
     onSuccess: () => { invalidate(); setShowForm(false); setNewLimit(''); toast('Orçamento criado') },
     onError: (e) => showError(e),
   })

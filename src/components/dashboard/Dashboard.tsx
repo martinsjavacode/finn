@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import type { Transaction } from '../../types/database'
 import { fetchAllTransactions, fetchTransactions } from '../../services/transactions'
 import { fetchBudgets } from '../../services/categories'
-import { useAppData } from '../../hooks'
+import { useAppData, useAuth } from '../../hooks'
 import { fmt } from '../../utils/format'
 import { ChartSkeleton, CardsSkeleton } from '../ui/Skeleton'
 import LineChart from './LineChart'
@@ -14,6 +14,7 @@ import './Dashboard.css'
 interface MonthData { month: string; income: number; expense: number }
 
 export default function Dashboard() {
+  const { activeAccountId } = useAuth()
   const { categories } = useAppData(true)
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date()
@@ -22,9 +23,9 @@ export default function Dashboard() {
   const [tooltip, setTooltip] = useState<{ i: number } | null>(null)
 
   const { data: monthsData = [], isLoading, error } = useQuery<MonthData[]>({
-    queryKey: ['dashboard-evolution'],
+    queryKey: ['dashboard-evolution', activeAccountId],
     queryFn: async () => {
-      const { data, error } = await fetchAllTransactions()
+      const { data, error } = await fetchAllTransactions(activeAccountId!)
       if (error) throw error
       const byMonth: Record<string, { income: number; expense: number }> = {}
       for (const r of data) {
@@ -38,17 +39,19 @@ export default function Dashboard() {
         .sort((a, b) => a.month.localeCompare(b.month))
         .slice(-12)
     },
+    enabled: !!activeAccountId,
   })
 
   const { data: budgets = [] } = useQuery({
-    queryKey: ['budgets'],
-    queryFn: async () => { const { data, error } = await fetchBudgets(); if (error) throw error; return data },
+    queryKey: ['budgets', activeAccountId],
+    queryFn: async () => { const { data, error } = await fetchBudgets(activeAccountId!); if (error) throw error; return data },
+    enabled: !!activeAccountId,
   })
 
   const { data: currentTransactions = [] } = useQuery<Transaction[]>({
-    queryKey: ['dashboard-month', selectedMonth],
-    queryFn: async () => { const { data, error } = await fetchTransactions(selectedMonth); if (error) throw error; return data },
-    enabled: !!selectedMonth,
+    queryKey: ['dashboard-month', selectedMonth, activeAccountId],
+    queryFn: async () => { const { data, error } = await fetchTransactions(selectedMonth, activeAccountId!); if (error) throw error; return data },
+    enabled: !!selectedMonth && !!activeAccountId,
   })
 
   const maxValue = useMemo(() => Math.max(...monthsData.flatMap(d => [d.income, d.expense]), 1), [monthsData])

@@ -1,6 +1,5 @@
 import { supabase } from '../lib/supabase'
 import type { Session } from '@supabase/supabase-js'
-import type { Role } from '../types/database'
 
 export function onAuthChange(cb: (session: Session | null) => void) {
   const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => cb(s))
@@ -16,21 +15,20 @@ export async function signOut() {
   await supabase.auth.signOut()
 }
 
-export async function getUserRole(session: Session): Promise<{ name: Role; id: string } | null> {
+export async function getUser(session: Session): Promise<{ id: string; is_superadmin: boolean } | null> {
   const email = session.user.email ?? ''
   const { data } = await supabase
     .from('users')
-    .select('role_id, activated, roles(name)')
+    .select('id, activated, is_superadmin')
     .eq('email', email)
     .single()
   if (!data) return null
-  const row = data as { role_id: string; activated: boolean; roles: { name: string } }
-  if (!row.activated) activateUser(email)
-  return { name: row.roles.name as Role, id: row.role_id }
+  if (!data.activated) activateUser(email)
+  return { id: data.id, is_superadmin: data.is_superadmin }
 }
 
 export async function activateUser(email: string) {
   try {
     await supabase.from('users').update({ activated: true }).eq('email', email)
-  } catch { /* non-critical — retries on next login */ }
+  } catch { /* non-critical */ }
 }
