@@ -169,10 +169,20 @@ create policy "Account update" on card_invoices for update using (
 -- ============================================================
 -- categories e cards: globais (qualquer autenticado lê, superadmin gerencia)
 -- ============================================================
+drop policy if exists "Auth read" on categories;
+drop policy if exists "Auth insert" on categories;
+drop policy if exists "Auth update" on categories;
+drop policy if exists "Auth delete" on categories;
+
 create policy "Auth read" on categories for select using (auth.role() = 'authenticated');
 create policy "Superadmin write" on categories for insert with check (is_superadmin());
 create policy "Superadmin update" on categories for update using (is_superadmin());
 create policy "Superadmin delete" on categories for delete using (is_superadmin());
+
+drop policy if exists "Auth read" on cards;
+drop policy if exists "Auth insert" on cards;
+drop policy if exists "Auth update" on cards;
+drop policy if exists "Auth delete" on cards;
 
 create policy "Auth read" on cards for select using (auth.role() = 'authenticated');
 create policy "Superadmin write" on cards for insert with check (is_superadmin());
@@ -203,6 +213,10 @@ create policy "Superadmin delete" on account_members for delete using (is_supera
 -- users: anon pode checar email, superadmin gerencia
 -- ============================================================
 -- Keep existing "Anon check email" policy
+drop policy if exists "Auth insert" on users;
+drop policy if exists "Auth update" on users;
+drop policy if exists "Auth delete" on users;
+
 create policy "Superadmin insert" on users for insert with check (is_superadmin() or auth.role() = 'authenticated');
 create policy "Superadmin update" on users for update using (is_superadmin());
 create policy "Superadmin delete" on users for delete using (is_superadmin());
@@ -210,9 +224,16 @@ create policy "Superadmin delete" on users for delete using (is_superadmin());
 -- ============================================================
 -- roles, permissions, role_permissions: superadmin only para escrita
 -- ============================================================
+drop policy if exists "Auth read" on roles;
+create policy "Auth read" on roles for select using (auth.role() = 'authenticated');
 create policy "Superadmin write" on roles for insert with check (is_superadmin());
 create policy "Superadmin update" on roles for update using (is_superadmin());
 create policy "Superadmin delete" on roles for delete using (is_superadmin());
 
+drop policy if exists "Auth read" on permissions;
+create policy "Auth read" on permissions for select using (auth.role() = 'authenticated');
+
+drop policy if exists "Auth read" on role_permissions;
+create policy "Auth read" on role_permissions for select using (auth.role() = 'authenticated');
 create policy "Superadmin write" on role_permissions for insert with check (is_superadmin());
 create policy "Superadmin delete" on role_permissions for delete using (is_superadmin());
