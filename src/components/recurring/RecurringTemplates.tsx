@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
 import { useAuth, useAppData } from '../../hooks'
+import { useIsMobile } from '../../hooks/useMediaQuery'
 import type { Owner, Card } from '../../types/database'
 import { showError, toast } from '../../lib/toast'
 import { confirm } from '../../lib/confirm'
@@ -19,6 +20,7 @@ interface Template { id: string; description: string; amount: number; type: stri
 export default function RecurringPage() {
   const { can } = useAuth()
   const { categories, cardsList } = useAppData(true)
+  const isMobile = useIsMobile()
   const queryClient = useQueryClient()
   const canCreate = can('recurring_templates', 'create')
   const canUpdate = can('recurring_templates', 'update')
@@ -136,7 +138,7 @@ export default function RecurringPage() {
       )}
 
       <section>
-        <table className="desktop-table">
+        {!isMobile && <table className="desktop-table">
           <thead><tr><th>Dia</th><th>Descrição</th><th>Valor</th><th>Destino</th><th>Categoria/Cartão</th><th>Resp.</th><th>Ativo</th>{(canUpdate || canDelete) && <th></th>}</tr></thead>
           <tbody>
             {templates.map(t => (
@@ -158,12 +160,12 @@ export default function RecurringPage() {
             ))}
             {!templates.length && <tr><td colSpan={(canUpdate || canDelete) ? 9 : 8} className="empty">Nenhum template cadastrado</td></tr>}
           </tbody>
-        </table>
-        <div className="mobile-cards">
+        </table>}
+        {isMobile && <div className="mobile-cards">
           {templates.length ? templates.map(t => (
             <MobileCard key={t.id} style={!t.active ? { opacity: 0.5 } : undefined} status={canUpdate ? <button className="badge-toggle" role="switch" aria-checked={t.active} onClick={e => { e.stopPropagation(); toggleMutation.mutate({ id: t.id, active: t.active }) }}><Badge variant={t.active ? 'success' : 'danger'}>{t.active ? 'Ativo' : 'Inativo'}</Badge></button> : <Badge variant={t.active ? 'success' : 'danger'}>{t.active ? 'Ativo' : 'Inativo'}</Badge>} title={t.description} value={fmt(+t.amount)} subtitle={<>Dia {t.day} · {t.target === 'credit_card' ? cardsList.find(c => c.name === t.card)?.label ?? t.card : catLabel(t.category)} · {t.owner === 'personal' ? 'Pessoal' : 'Sogra'}</>} onTap={canUpdate ? () => openEdit(t) : undefined} />
           )) : <div className="empty-state"><p>Nenhum template cadastrado</p>{canCreate && <Button onClick={openNew}>Cadastrar primeiro template</Button>}</div>}
-        </div>
+        </div>}
       </section>
     </div>
   )

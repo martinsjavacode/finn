@@ -1,9 +1,4 @@
-.mobile-cards { display: none; }
-
-@media (max-width: 1024px) {
-  .mobile-cards { display: flex; flex-direction: column; gap: 0; }
-  .desktop-table { display: none; }
-}
+.mobile-cards { display: flex; flex-direction: column; gap: 0; }
 
 .mcard {
   display: flex;

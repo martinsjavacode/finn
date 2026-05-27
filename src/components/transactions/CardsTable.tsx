@@ -1,6 +1,5 @@
 import { Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
-import { createPortal } from 'react-dom'
 import { useQueryClient, useQuery } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
 import Badge from '../ui/Badge'
@@ -10,9 +9,10 @@ import { showError, toast } from '../../lib/toast'
 import { fmt, ownerLabel, categoryOptions } from '../../utils/format'
 import { fetchCardInvoice, upsertCardInvoice } from '../../services/transactions'
 import { useTransactionMutations } from '../../hooks/useTransactionMutations'
-import { useModal } from '../../hooks/useModal'
+import { useIsMobile } from '../../hooks/useMediaQuery'
 import Button from '../ui/Button'
 import Select from '../ui/Select'
+import Modal from '../ui/Modal'
 import MobileCard from '../ui/MobileCard'
 import Pagination from '../ui/Pagination'
 
@@ -27,6 +27,7 @@ interface Props {
 
 export default function CardsTable({ cards, cardsList, categories, month, canUpdate, canDelete }: Props) {
   const canEdit = canUpdate || canDelete
+  const isMobile = useIsMobile()
   const queryClient = useQueryClient()
   const { removeCreditCard, removeInstallment } = useTransactionMutations(month)
   const [cardFilter, setCardFilter] = useState('all')
@@ -83,7 +84,7 @@ export default function CardsTable({ cards, cardsList, categories, month, canUpd
         />
       )}
 
-      <table className="desktop-table">
+      {!isMobile && <table className="desktop-table">
         <thead><tr><th>Data</th><th>Descrição</th><th>Cartão</th><th>Categoria</th><th>Parcela</th><th>Valor</th><th>Resp.</th>{canEdit && <th></th>}</tr></thead>
         <tbody>
           {filtered.length ? paginated.map(r => (
@@ -104,9 +105,9 @@ export default function CardsTable({ cards, cardsList, categories, month, canUpd
             </tr>
           )) : <tr><td colSpan={canEdit ? 8 : 7} className="empty">Nenhum lançamento</td></tr>}
         </tbody>
-      </table>
+      </table>}
 
-      <div className="mobile-cards">
+      {isMobile && <div className="mobile-cards">
         {filtered.length ? paginated.map(r => (
           <MobileCard
             key={r.id}
@@ -117,24 +118,22 @@ export default function CardsTable({ cards, cardsList, categories, month, canUpd
             style={{ borderLeft: `3px solid ${getColor(r.card!)}` }}
           />
         )) : <p className="empty">Nenhum lançamento</p>}
-      </div>
+      </div>}
       <Pagination currentPage={safePage} totalPages={totalPages} totalItems={filtered.length} perPage={perPage} onPageChange={setPage} onPerPageChange={setPerPage} />
 
-      {editing && canUpdate && createPortal(
+      {editing && canUpdate && (
         <EditCardModal
           card={editing}
           cardsList={cardsList}
           categories={categories}
           onClose={() => setEditing(null)}
-        />,
-        document.body
+        />
       )}
     </section>
   )
 }
 
 function EditCardModal({ card, cardsList, categories, onClose }: { card: CreditCard; cardsList: CardListItem[]; categories: Category[]; onClose: () => void }) {
-  const modalRef = useModal<HTMLFormElement>(onClose)
   const queryClient = useQueryClient()
   const [description, setDescription] = useState(card.description)
   const [amount, setAmount] = useState(String(card.amount))
@@ -167,46 +166,35 @@ function EditCardModal({ card, cardsList, categories, onClose }: { card: CreditC
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-label="Editar Lançamento">
-      <form className="modal" ref={modalRef} onClick={e => e.stopPropagation()} onSubmit={handleSubmit}>
-        <h2>Editar Lançamento</h2>
+    <Modal title="Editar Lançamento" onClose={onClose} onSubmit={handleSubmit} submitLabel={isInstallment ? 'Atualizar parcelas' : 'Salvar'}>
+      {isInstallment && (
+        <p className="form-hint">Parcela {card.current_installment}/{card.total_installments} — alterações aplicam desta parcela em diante.</p>
+      )}
 
-        {isInstallment && (
-          <p className="form-hint">Parcela {card.current_installment}/{card.total_installments} — alterações aplicam desta parcela em diante.</p>
-        )}
+      <label className="form-label">Descrição
+        <input type="text" value={description} onChange={e => setDescription(e.target.value)} required />
+      </label>
 
-        {/* Seção: O quê */}
-        <label className="form-label">Descrição
-          <input type="text" value={description} onChange={e => setDescription(e.target.value)} required />
+      <div className="form-row">
+        <label className="form-label form-grow">Valor (R$)
+          <input type="number" step="0.01" value={amount} onChange={e => setAmount(e.target.value)} required />
         </label>
+        <label className="form-label form-grow">Cartão
+          <Select value={cardName} onChange={setCardName} options={cardsList.map(c => ({ value: c.name, label: c.label }))} />
+        </label>
+      </div>
 
-        <div className="form-row">
-          <label className="form-label form-grow">Valor (R$)
-            <input type="number" step="0.01" value={amount} onChange={e => setAmount(e.target.value)} required />
-          </label>
-          <label className="form-label form-grow">Cartão
-            <Select value={cardName} onChange={setCardName} options={cardsList.map(c => ({ value: c.name, label: c.label }))} />
-          </label>
-        </div>
+      <div className="form-divider" />
 
-        <div className="form-divider" />
-
-        {/* Seção: Classificação */}
-        <div className="form-row">
-          <label className="form-label form-grow">Categoria
-            <Select value={category} onChange={setCategory} options={categoryOptions(categories)} />
-          </label>
-          <label className="form-label form-grow">Responsável
-            <Select value={owner} onChange={v => setOwner(v as Owner)} options={[{ value: 'personal', label: 'Pessoal' }, { value: 'mother_in_law', label: 'Sogra' }]} />
-          </label>
-        </div>
-
-        <div className="form-actions">
-          <Button variant="tab" onClick={onClose}>Cancelar</Button>
-          <Button variant="primary" type="submit">{isInstallment ? 'Atualizar parcelas' : 'Salvar'}</Button>
-        </div>
-      </form>
-    </div>
+      <div className="form-row">
+        <label className="form-label form-grow">Categoria
+          <Select value={category} onChange={setCategory} options={categoryOptions(categories)} />
+        </label>
+        <label className="form-label form-grow">Responsável
+          <Select value={owner} onChange={v => setOwner(v as Owner)} options={[{ value: 'personal', label: 'Pessoal' }, { value: 'mother_in_law', label: 'Sogra' }]} />
+        </label>
+      </div>
+    </Modal>
   )
 }
 

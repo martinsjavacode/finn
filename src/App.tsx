@@ -1,6 +1,7 @@
 import { lazy, Suspense, type ReactNode } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from './hooks'
+import { useSyncOnReconnect } from './hooks/useOnlineStatus'
 import Auth from './components/auth/Auth'
 import Sidebar from './components/ui/Sidebar'
 import ToastContainer from './components/ui/Toast'
@@ -33,6 +34,7 @@ function ProtectedRoute({ children, allowed, loading: permLoading }: { children:
 function AppLayout() {
   const { session, loading, isOwner, unauthorized, can, permissionsLoaded, signOut: logout } = useAuth()
   const navigate = useNavigate()
+  const online = useSyncOnReconnect()
 
   if (loading) return <div className="auth"><div className="skeleton" style={{ width: '120px', height: '2rem', margin: '0 auto' }} aria-hidden="true" /><div className="skeleton" style={{ width: '200px', height: '1rem', margin: '1rem auto' }} aria-hidden="true" /></div>
   if (!session) return <Auth />
@@ -49,6 +51,7 @@ function AppLayout() {
 
   return (
     <div className="layout">
+      {!online && <div className="offline-banner" role="alert">Sem conexão — alterações serão sincronizadas ao reconectar</div>}
       <a href="#main-content" className="skip-link">Pular para conteúdo</a>
       <Sidebar session={session} isOwner={isOwner} can={can} />
       <main className="main" id="main-content">
