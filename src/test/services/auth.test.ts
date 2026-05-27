@@ -1,5 +1,5 @@
 import { vi } from 'vitest'
-import { getSession, getUser, signOut } from '../../services/auth'
+import { getSession, getUser, signOut, onAuthChange, activateUser } from '../../services/auth'
 import { supabase } from '../../lib/supabase'
 import type { Session } from '@supabase/supabase-js'
 
@@ -55,3 +55,20 @@ describe('auth service', () => {
     })
   })
 })
+
+  describe('onAuthChange', () => {
+    it('subscribes to auth state changes', () => {
+      const cb = vi.fn()
+      const sub = onAuthChange(cb)
+      expect(sub).toHaveProperty('unsubscribe')
+    })
+  })
+
+  describe('activateUser', () => {
+    it('atualiza activated para true', async () => {
+      const mockChain = { update: vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({}) }) }
+      vi.mocked(supabase.from).mockReturnValue(mockChain as never)
+      await activateUser('test@test.com')
+      expect(mockChain.update).toHaveBeenCalledWith({ activated: true })
+    })
+  })
