@@ -68,7 +68,7 @@ export default function RolesPage() {
 
   const resources = [...new Set(permissions.map(p => p.resource))].sort()
   const actions = ['read', 'create', 'update', 'delete']
-  const resourceLabel: Record<string, string> = { transactions: 'Lançamentos', credit_cards: 'Cartões de Crédito', recurring_templates: 'Recorrentes', budgets: 'Orçamentos', categories: 'Categorias', cards: 'Cartões', users: 'Usuários' }
+  const resourceLabel: Record<string, string> = { transactions: 'Lançamentos', credit_cards: 'Cartões de Crédito', recurring_templates: 'Recorrentes', budgets: 'Orçamentos', categories: 'Categorias', cards: 'Cartões', users: 'Usuários', investments: 'Investimentos' }
   const hasPerm = (roleId: string, permId: string) => rolePermissions.some(rp => rp.role_id === roleId && rp.permission_id === permId)
   const getPermId = (resource: string, action: string) => permissions.find(p => p.resource === resource && p.action === action)?.id
   const selectedRoleObj = roles.find(r => r.id === selectedRole)

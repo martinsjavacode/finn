@@ -14,48 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
-      accounts: {
-        Row: {
-          id: string
-          name: string
-          color: string
-          created_at: string | null
-        }
-        Insert: {
-          id?: string
-          name: string
-          color?: string
-          created_at?: string | null
-        }
-        Update: {
-          id?: string
-          name?: string
-          color?: string
-          created_at?: string | null
-        }
-        Relationships: []
-      }
       account_members: {
         Row: {
-          id: string
           account_id: string
-          user_id: string
-          role_id: string
           created_at: string | null
+          id: string
+          role_id: string
+          user_id: string
         }
         Insert: {
-          id?: string
           account_id: string
-          user_id: string
-          role_id: string
           created_at?: string | null
+          id?: string
+          role_id: string
+          user_id: string
         }
         Update: {
-          id?: string
           account_id?: string
-          user_id?: string
-          role_id?: string
           created_at?: string | null
+          id?: string
+          role_id?: string
+          user_id?: string
         }
         Relationships: [
           {
@@ -66,20 +45,41 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "account_members_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "account_members_role_id_fkey"
             columns: ["role_id"]
             isOneToOne: false
             referencedRelation: "roles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "account_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      accounts: {
+        Row: {
+          color: string
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          color?: string
+          created_at?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
       }
       budgets: {
         Row: {
@@ -105,17 +105,17 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "budgets_category_fkey"
-            columns: ["category"]
-            isOneToOne: false
-            referencedRelation: "categories"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "budgets_account_id_fkey"
             columns: ["account_id"]
             isOneToOne: false
             referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budgets_category_fkey"
+            columns: ["category"]
+            isOneToOne: false
+            referencedRelation: "categories"
             referencedColumns: ["id"]
           },
         ]
@@ -147,18 +147,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_invoice_card"
-            columns: ["card"]
-            isOneToOne: false
-            referencedRelation: "cards"
-            referencedColumns: ["name"]
-          },
-          {
             foreignKeyName: "card_invoices_account_id_fkey"
             columns: ["account_id"]
             isOneToOne: false
             referencedRelation: "accounts"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_invoice_card"
+            columns: ["card"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["name"]
           },
         ]
       }
@@ -359,10 +359,112 @@ export type Database = {
             referencedColumns: ["name"]
           },
           {
+            foreignKeyName: "installment_purchases_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "installment_purchases_category_fkey"
             columns: ["category"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      investment_transactions: {
+        Row: {
+          account_id: string
+          amount: number
+          created_at: string | null
+          date: string
+          id: string
+          investment_id: string
+          note: string | null
+          type: Database["public"]["Enums"]["investment_tx_type"]
+        }
+        Insert: {
+          account_id: string
+          amount: number
+          created_at?: string | null
+          date?: string
+          id?: string
+          investment_id: string
+          note?: string | null
+          type: Database["public"]["Enums"]["investment_tx_type"]
+        }
+        Update: {
+          account_id?: string
+          amount?: number
+          created_at?: string | null
+          date?: string
+          id?: string
+          investment_id?: string
+          note?: string | null
+          type?: Database["public"]["Enums"]["investment_tx_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investment_transactions_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investment_transactions_investment_id_fkey"
+            columns: ["investment_id"]
+            isOneToOne: false
+            referencedRelation: "investments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      investments: {
+        Row: {
+          account_id: string
+          active: boolean
+          broker: string | null
+          created_at: string | null
+          current_balance: number
+          id: string
+          invested_total: number
+          maturity_date: string | null
+          name: string
+          type: Database["public"]["Enums"]["investment_type"]
+        }
+        Insert: {
+          account_id: string
+          active?: boolean
+          broker?: string | null
+          created_at?: string | null
+          current_balance?: number
+          id?: string
+          invested_total?: number
+          maturity_date?: string | null
+          name: string
+          type: Database["public"]["Enums"]["investment_type"]
+        }
+        Update: {
+          account_id?: string
+          active?: boolean
+          broker?: string | null
+          created_at?: string | null
+          current_balance?: number
+          id?: string
+          invested_total?: number
+          maturity_date?: string | null
+          name?: string
+          type?: Database["public"]["Enums"]["investment_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investments_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
             referencedColumns: ["id"]
           },
         ]
@@ -435,6 +537,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "cards"
             referencedColumns: ["name"]
+          },
+          {
+            foreignKeyName: "recurring_templates_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "recurring_templates_category_fkey"
@@ -528,19 +637,63 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      generate_recurring: { Args: { target_month: string; p_account_id: string }; Returns: undefined }
-      get_projection: {
-        Args: { months_ahead?: number; p_account_id?: string }
-        Returns: {
-          installments: number
-          month: string
-          recurring: number
-        }[]
+      generate_recurring:
+        | { Args: { target_month: string }; Returns: undefined }
+        | {
+            Args: { p_account_id: string; target_month: string }
+            Returns: undefined
+          }
+      get_projection:
+        | {
+            Args: { months_ahead?: number }
+            Returns: {
+              installments: number
+              month: string
+              recurring: number
+            }[]
+          }
+        | {
+            Args: { months_ahead?: number; p_account_id?: string }
+            Returns: {
+              installments: number
+              month: string
+              recurring: number
+            }[]
+          }
+      has_account_permission: {
+        Args: { p_account_id: string; p_action: string; p_resource: string }
+        Returns: boolean
       }
+      is_owner_or_superadmin: { Args: never; Returns: boolean }
+      is_superadmin: { Args: never; Returns: boolean }
+      migrate_budgets: {
+        Args: { budget_ids: string[]; target_account_id: string }
+        Returns: number
+      }
+      migrate_entries: {
+        Args: { entry_ids: string[]; target_account_id: string }
+        Returns: number
+      }
+      migrate_installment_purchases: {
+        Args: { purchase_ids: string[]; target_account_id: string }
+        Returns: number
+      }
+      user_account_ids: { Args: never; Returns: string[] }
     }
     Enums: {
       closing_rule_type: "fixed" | "relative"
       entry_type: "expense" | "income"
+      investment_tx_type: "aporte" | "resgate" | "rendimento" | "dividendo"
+      investment_type:
+        | "renda_fixa"
+        | "renda_variavel"
+        | "crypto"
+        | "fundo"
+        | "fii"
+        | "fiagro"
+        | "etf"
+        | "fundo_multi"
+        | "fundo_acoes"
       payment_method: "pix" | "credit_card"
     }
     CompositeTypes: {
@@ -671,6 +824,18 @@ export const Constants = {
     Enums: {
       closing_rule_type: ["fixed", "relative"],
       entry_type: ["expense", "income"],
+      investment_tx_type: ["aporte", "resgate", "rendimento", "dividendo"],
+      investment_type: [
+        "renda_fixa",
+        "renda_variavel",
+        "crypto",
+        "fundo",
+        "fii",
+        "fiagro",
+        "etf",
+        "fundo_multi",
+        "fundo_acoes",
+      ],
       payment_method: ["pix", "credit_card"],
     },
   },
