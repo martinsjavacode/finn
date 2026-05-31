@@ -51,7 +51,7 @@ export default function RecurringPage() {
 
   const saveMutation = useMutation({
     mutationFn: async () => {
-      const payload = { description, amount: +amount, type, target, category: target === 'pix' ? category : null, card: target === 'credit_card' ? card : null, account_id: activeAccountId!, day }
+      const payload = { description, amount: +amount, type, target, category: category || null, card: target === 'credit_card' ? card : null, account_id: activeAccountId!, day }
       if (editingId) {
         const { error } = await supabase.from('recurring_templates').update(payload).eq('id', editingId); if (error) throw error
       } else {
@@ -136,7 +136,10 @@ export default function RecurringPage() {
             </div>
             <label className="form-label">Categoria<Select value={category} onChange={setCategory} options={categoryOptions(categories)} /></label>
           </>)}
-          {target === 'credit_card' && <label className="form-label">Cartão<Select value={card} onChange={v => setCard(v as Card)} options={cardsList.map(c => ({ value: c.name, label: c.label }))} /></label>}
+          {target === 'credit_card' && (<>
+            <label className="form-label">Cartão<Select value={card} onChange={v => setCard(v as Card)} options={cardsList.map(c => ({ value: c.name, label: c.label }))} /></label>
+            <label className="form-label">Categoria<Select value={category} onChange={setCategory} options={categoryOptions(categories)} /></label>
+          </>)}
         </Modal>
       )}
 
@@ -150,7 +153,7 @@ export default function RecurringPage() {
                 <td>{t.description}</td>
                 <td>{fmt(+t.amount)}</td>
                 <td>{t.target === 'credit_card' ? 'Cartão' : t.type === 'income' ? 'Receita' : 'Despesa'}</td>
-                <td>{t.target === 'credit_card' ? cardsList.find(c => c.name === t.card)?.label ?? t.card : catLabel(t.category)}</td>
+                <td>{t.target === 'credit_card' ? <>{cardsList.find(c => c.name === t.card)?.label ?? t.card} · {catLabel(t.category)}</> : catLabel(t.category)}</td>
                 <td>{canUpdate ? <button className="badge-toggle" role="switch" aria-checked={t.active} onClick={() => toggleMutation.mutate({ id: t.id, active: t.active })}><Badge variant={t.active ? 'success' : 'danger'}>{t.active ? 'Ativo' : 'Inativo'}</Badge></button> : <Badge variant={t.active ? 'success' : 'danger'}>{t.active ? 'Ativo' : 'Inativo'}</Badge>}</td>
                 {(canUpdate || canDelete) && (
                   <td>
@@ -165,7 +168,7 @@ export default function RecurringPage() {
         </table>}
         {isMobile && <div className="mobile-cards">
           {templates.length ? templates.map(t => (
-            <MobileCard key={t.id} style={!t.active ? { opacity: 0.5 } : undefined} status={canUpdate ? <button className="badge-toggle" role="switch" aria-checked={t.active} onClick={e => { e.stopPropagation(); toggleMutation.mutate({ id: t.id, active: t.active }) }}><Badge variant={t.active ? 'success' : 'danger'}>{t.active ? 'Ativo' : 'Inativo'}</Badge></button> : <Badge variant={t.active ? 'success' : 'danger'}>{t.active ? 'Ativo' : 'Inativo'}</Badge>} title={t.description} value={fmt(+t.amount)} subtitle={<>Dia {t.day} · {t.target === 'credit_card' ? cardsList.find(c => c.name === t.card)?.label ?? t.card : catLabel(t.category)}</>} onTap={canUpdate ? () => openEdit(t) : undefined} />
+            <MobileCard key={t.id} style={!t.active ? { opacity: 0.5 } : undefined} status={canUpdate ? <button className="badge-toggle" role="switch" aria-checked={t.active} onClick={e => { e.stopPropagation(); toggleMutation.mutate({ id: t.id, active: t.active }) }}><Badge variant={t.active ? 'success' : 'danger'}>{t.active ? 'Ativo' : 'Inativo'}</Badge></button> : <Badge variant={t.active ? 'success' : 'danger'}>{t.active ? 'Ativo' : 'Inativo'}</Badge>} title={t.description} value={fmt(+t.amount)} subtitle={<>Dia {t.day} · {t.target === 'credit_card' ? <>{cardsList.find(c => c.name === t.card)?.label ?? t.card} · {catLabel(t.category)}</> : catLabel(t.category)}</>} onTap={canUpdate ? () => openEdit(t) : undefined} />
           )) : <div className="empty-state"><p>Nenhum template cadastrado</p>{canCreate && <Button onClick={openNew}>Cadastrar primeiro template</Button>}</div>}
         </div>}
       </section>
