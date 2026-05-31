@@ -95,15 +95,67 @@ export default function CardsTable({ cards, cardsList, categories, month, canUpd
         />
       )}
 
-      {!isMobile && <table className="desktop-table">
-        <thead><tr>{isSuperadmin && <th></th>}<th>Data</th><th>Descrição</th><th>Cartão</th><th>Categoria</th><th>Parcela</th><th>Valor</th>{canEdit && <th></th>}</tr></thead>
+      {cardFilter === 'all' && filtered.length > 0 && (() => {
+        const groups = cardNames.filter(c => c !== 'all').map(name => ({ name, items: filtered.filter(r => r.card === name) })).filter(g => g.items.length)
+        const colSpan = (canEdit ? 5 : 4) + (isSuperadmin ? 1 : 0)
+        return !isMobile ? groups.map(g => (
+          <table key={g.name} className="desktop-table" style={{ marginBottom: '1.5rem' }}>
+            <thead>
+              <tr><th colSpan={colSpan} style={{ background: 'var(--bg-card)', borderLeft: `3px solid ${getColor(g.name)}` }}>
+                <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: getColor(g.name), marginRight: 6 }} />
+                {getLabel(g.name)} <span style={{ fontWeight: 400, color: 'var(--text-muted)', marginLeft: 8 }}>{fmt(g.items.reduce((s, r) => s + +r.amount, 0))}</span>
+              </th></tr>
+              <tr>{isSuperadmin && <th></th>}<th>Descrição</th><th>Categoria</th><th>Parcela</th><th>Valor</th>{canEdit && <th></th>}</tr>
+            </thead>
+            <tbody>
+              {g.items.map(r => (
+                <tr key={r.id}>
+                  {isSuperadmin && <td>{r.installment_purchase_id && <input type="checkbox" checked={selectedPurchases.has(r.installment_purchase_id)} onChange={() => toggleSelectPurchase(r.installment_purchase_id!)} aria-label={`Selecionar parcelamento ${r.description}`} />}</td>}
+                  <td>{r.description}</td>
+                  <td>{categories.find(c => c.id === r.category)?.label ?? '-'}</td>
+                  <td>{r.current_installment && r.total_installments ? `${r.current_installment}/${r.total_installments}` : '-'}</td>
+                  <td>{fmt(+r.amount)}</td>
+                  {canEdit && (
+                    <td>
+                      {canUpdate && !r.installment_purchase_id && <Button variant="icon" aria-label="Editar" onClick={() => setEditing(r)}><Pencil size={14} /></Button>}
+                      {canDelete && <Button variant="icon" className="delete-btn" aria-label="Excluir" onClick={() => handleDelete(r)}><Trash2 size={14} /></Button>}
+                    </td>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )) : <div className="mobile-cards">
+          {groups.map(g => (
+            <div key={g.name}>
+              <div className="card-group-header" style={{ borderLeft: `3px solid ${getColor(g.name)}`, padding: '0.5rem 1rem', marginBottom: '0.5rem', background: 'var(--bg-card)', borderRadius: 'var(--radius)' }}>
+                <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: getColor(g.name), marginRight: 6 }} />
+                <strong>{getLabel(g.name)}</strong> <span style={{ color: 'var(--text-muted)', marginLeft: 8 }}>{fmt(g.items.reduce((s, r) => s + +r.amount, 0))}</span>
+              </div>
+              {g.items.map(r => (
+                <MobileCard
+                  key={r.id}
+                  title={r.description}
+                  value={fmt(+r.amount)}
+                  subtitle={<>{categories.find(c => c.id === r.category)?.label ?? ''}{r.current_installment ? ` · ${r.current_installment}/${r.total_installments}` : ''}</>}
+                  onTap={canUpdate && !r.installment_purchase_id ? () => setEditing(r) : canDelete ? () => handleDelete(r) : undefined}
+                  style={{ borderLeft: `3px solid ${getColor(g.name)}` }}
+                />
+              ))}
+            </div>
+          ))}
+        </div>
+      })()}
+
+      {cardFilter === 'all' && !filtered.length && (!isMobile ? <table className="desktop-table"><tbody><tr><td className="empty">Nenhum lançamento</td></tr></tbody></table> : <p className="empty">Nenhum lançamento</p>)}
+
+      {cardFilter !== 'all' && !isMobile && <table className="desktop-table">
+        <thead><tr>{isSuperadmin && <th></th>}<th>Descrição</th><th>Categoria</th><th>Parcela</th><th>Valor</th>{canEdit && <th></th>}</tr></thead>
         <tbody>
           {filtered.length ? paginated.map(r => (
             <tr key={r.id}>
               {isSuperadmin && <td>{r.installment_purchase_id && <input type="checkbox" checked={selectedPurchases.has(r.installment_purchase_id)} onChange={() => toggleSelectPurchase(r.installment_purchase_id!)} aria-label={`Selecionar parcelamento ${r.description}`} />}</td>}
-              <td>{new Date(r.month + 'T12:00:00').toLocaleDateString('pt-BR')}</td>
               <td>{r.description}</td>
-              <td><span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: getColor(r.card!), marginRight: 6 }} />{getLabel(r.card!)}</td>
               <td>{categories.find(c => c.id === r.category)?.label ?? '-'}</td>
               <td>{r.current_installment && r.total_installments ? `${r.current_installment}/${r.total_installments}` : '-'}</td>
               <td>{fmt(+r.amount)}</td>
@@ -114,17 +166,17 @@ export default function CardsTable({ cards, cardsList, categories, month, canUpd
                 </td>
               )}
             </tr>
-          )) : <tr><td colSpan={(canEdit ? 7 : 6) + (isSuperadmin ? 1 : 0)} className="empty">Nenhum lançamento</td></tr>}
+          )) : <tr><td colSpan={(canEdit ? 5 : 4) + (isSuperadmin ? 1 : 0)} className="empty">Nenhum lançamento</td></tr>}
         </tbody>
       </table>}
 
-      {isMobile && <div className="mobile-cards">
+      {cardFilter !== 'all' && isMobile && <div className="mobile-cards">
         {filtered.length ? paginated.map(r => (
           <MobileCard
             key={r.id}
             title={r.description}
             value={fmt(+r.amount)}
-            subtitle={<>{new Date(r.month + 'T12:00:00').toLocaleDateString('pt-BR')} · {getLabel(r.card!)} · {categories.find(c => c.id === r.category)?.label ?? ''}{r.current_installment ? ` · ${r.current_installment}/${r.total_installments}` : ''}</>}
+            subtitle={<>{categories.find(c => c.id === r.category)?.label ?? ''}{r.current_installment ? ` · ${r.current_installment}/${r.total_installments}` : ''}</>}
             onTap={canUpdate && !r.installment_purchase_id ? () => setEditing(r) : canDelete ? () => handleDelete(r) : undefined}
             style={{ borderLeft: `3px solid ${getColor(r.card!)}` }}
           />

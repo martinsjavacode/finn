@@ -21,6 +21,7 @@ const CategoriesPage = lazy(() => import('./components/categories/CategoriesPage
 const CardsPage = lazy(() => import('./components/cards/CardsPage'))
 const RolesPage = lazy(() => import('./components/roles/RolesPage'))
 const AccountsPage = lazy(() => import('./components/accounts/AccountsPage'))
+const InvestmentsPage = lazy(() => import('./components/investments/InvestmentsPage'))
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 1000 * 60 * 5, retry: 1, refetchOnWindowFocus: false } },
@@ -69,6 +70,7 @@ function AppLayout() {
               <Route path="/access" element={<ProtectedRoute allowed={isSuperadmin}><AccessPage /></ProtectedRoute>} />
               <Route path="/roles" element={<ProtectedRoute allowed={isSuperadmin}><RolesPage /></ProtectedRoute>} />
               <Route path="/accounts" element={<ProtectedRoute allowed={isSuperadmin}><AccountsPage /></ProtectedRoute>} />
+              <Route path="/investments" element={<ProtectedRoute allowed={can('investments', 'read')} loading={!permissionsLoaded}><InvestmentsPage /></ProtectedRoute>} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>
