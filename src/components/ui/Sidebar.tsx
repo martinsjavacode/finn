@@ -1,9 +1,9 @@
-import { useState } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { signOut } from '../../services/auth'
 import type { Session } from '@supabase/supabase-js'
 import type { Account } from '../../types/database'
-import { LayoutDashboard, Receipt, Repeat, TrendingUp, Wallet, Tags, CreditCard, Users, Shield, LogOut, Menu, X, Building2 } from 'lucide-react'
+import { LayoutDashboard, Receipt, Repeat, TrendingUp, Wallet, Tags, CreditCard, Users, Shield, LogOut, Menu, X, Building2, Landmark } from 'lucide-react'
 
 interface Props {
   session: Session
@@ -25,6 +25,7 @@ const pageTitles: Record<string, string> = {
   '/access': 'Usuários',
   '/roles': 'Permissões',
   '/accounts': 'Contas',
+  '/investments': 'Investimentos',
 }
 
 export default function Sidebar({ session, isSuperadmin, can, accounts, activeAccount, setActiveAccount }: Props) {
@@ -54,19 +55,7 @@ export default function Sidebar({ session, isSuperadmin, can, accounts, activeAc
         </div>
 
         {accounts.length > 1 && (
-          <div className="account-selector">
-            {accounts.map(a => (
-              <button
-                key={a.id}
-                className={`account-chip ${a.id === activeAccount?.id ? 'active' : ''}`}
-                style={{ '--account-color': a.color } as React.CSSProperties}
-                onClick={() => setActiveAccount(a.id)}
-              >
-                <span className="account-dot" />
-                {a.name}
-              </button>
-            ))}
-          </div>
+          <AccountSelector accounts={accounts} activeAccount={activeAccount} setActiveAccount={setActiveAccount} />
         )}
 
         <nav className="sidebar-nav">
@@ -75,6 +64,7 @@ export default function Sidebar({ session, isSuperadmin, can, accounts, activeAc
           {can('transactions', 'read') && link('/transactions', <><Receipt size={16} /> Lançamentos</>)}
           {can('recurring_templates', 'read') && link('/recurring', <><Repeat size={16} /> Recorrentes</>)}
           {link('/projection', <><TrendingUp size={16} /> Projeção</>)}
+          {can('investments', 'read') && link('/investments', <><Landmark size={16} /> Investimentos</>)}
 
           <span className="sidebar-group">Configurações</span>
           {can('budgets', 'read') && link('/budgets', <><Wallet size={16} /> Orçamentos</>)}
@@ -90,5 +80,37 @@ export default function Sidebar({ session, isSuperadmin, can, accounts, activeAc
         </div>
       </aside>
     </>
+  )
+}
+
+function AccountSelector({ accounts, activeAccount, setActiveAccount }: { accounts: Account[]; activeAccount: Account | null; setActiveAccount: (id: string) => void }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const handleClick = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false) }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [open])
+
+  return (
+    <div className="account-dropdown" ref={ref}>
+      <button className="account-dropdown-trigger" onClick={() => setOpen(!open)} aria-expanded={open} aria-haspopup="listbox">
+        <span className="account-dot" style={{ '--account-color': activeAccount?.color } as React.CSSProperties} />
+        <span>{activeAccount?.name ?? 'Conta'}</span>
+        <span className="account-dropdown-arrow">{open ? '▲' : '▼'}</span>
+      </button>
+      {open && (
+        <ul className="account-dropdown-list" role="listbox">
+          {accounts.map(a => (
+            <li key={a.id} role="option" aria-selected={a.id === activeAccount?.id} className={a.id === activeAccount?.id ? 'active' : ''} onClick={() => { setActiveAccount(a.id); setOpen(false) }}>
+              <span className="account-dot" style={{ '--account-color': a.color } as React.CSSProperties} />
+              {a.name}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   )
 }

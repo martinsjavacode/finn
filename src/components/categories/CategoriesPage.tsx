@@ -30,7 +30,7 @@ export default function CategoriesPage() {
     queryFn: async () => (await supabase.from('categories').select('*').order('label')).data as Category[] ?? [],
   })
 
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: ['categories-page'] })
+  const invalidate = () => { queryClient.invalidateQueries({ queryKey: ['categories-page'] }); queryClient.invalidateQueries({ queryKey: ['categories'] }) }
 
   const addMutation = useMutation({
     mutationFn: async () => {
