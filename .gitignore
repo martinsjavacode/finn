@@ -26,5 +26,5 @@ dist-ssr
 
 # Private keys
 *.pem
-supabase/coverage/
-coverage/.kiro/
+coverage/
+.kiro/
