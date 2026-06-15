@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.4](https://github.com/martinsjavacode/finn/compare/v0.1.3...v0.1.4) (2026-06-15)
+
+
+### Bug Fixes
+
+* **transactions:** prevent unnecessary re-renders in batch selection ([dafde64](https://github.com/martinsjavacode/finn/commit/dafde644a4f7d23143aff244e544d2e2ab608ef8))
+* **transactions:** restrict batch selection to unpaid expenses only ([135662d](https://github.com/martinsjavacode/finn/commit/135662dc2bf73c29d00467f1749bc094dd6c7270))
+
 ## [0.1.3](https://github.com/martinsjavacode/finn/compare/v0.1.2...v0.1.3) (2026-06-15)
 
 
