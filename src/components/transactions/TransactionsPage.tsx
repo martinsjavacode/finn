@@ -47,9 +47,9 @@ export default function TransactionsPage() {
     (paidFilter === 'all' || (paidFilter === 'paid' ? r.paid : !r.paid))
   ), [ft, typeFilter, paidFilter])
 
-  // Visible pending IDs: transactions visible after all filters with paid === false
+  // Visible pending IDs: only unpaid expenses visible after all filters
   const visiblePendingIds = useMemo(
-    () => ftVisible.filter(r => !r.paid).map(r => r.id),
+    () => ftVisible.filter(r => !r.paid && r.type === 'expense').map(r => r.id),
     [ftVisible]
   )
 
@@ -69,9 +69,9 @@ export default function TransactionsPage() {
   }, [selectionMode, visiblePendingIds, pruneSelection])
 
   const handlePaySelected = useCallback(async () => {
-    // Filter to only include transactions that are actually unpaid (Requirement 4.7)
+    // Filter to only include unpaid expenses (Requirement 4.7)
     const unpaidIds = Array.from(selectedIds).filter(id =>
-      transactions.find(t => t.id === id && !t.paid)
+      transactions.find(t => t.id === id && !t.paid && t.type === 'expense')
     )
     if (unpaidIds.length === 0) return
     try {
