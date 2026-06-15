@@ -9,6 +9,7 @@ import { fmt, categoryOptions } from '../../utils/format'
 import { fetchCardInvoice, upsertCardInvoice } from '../../services/transactions'
 import { useTransactionMutations } from '../../hooks/useTransactionMutations'
 import { useIsMobile } from '../../hooks/useMediaQuery'
+import { useAuth } from '../../hooks'
 import Button from '../ui/Button'
 import Select from '../ui/Select'
 import Modal from '../ui/Modal'
@@ -28,6 +29,7 @@ export default function CardsTable({ cards, cardsList, categories, month, canUpd
   const canEdit = canUpdate || canDelete
   const isMobile = useIsMobile()
   const queryClient = useQueryClient()
+  const { activeAccountId } = useAuth()
   const { removeCreditCard, removeInstallment } = useTransactionMutations(month)
   const [cardFilter, setCardFilter] = useState('all')
   const [editing, setEditing] = useState<CreditCard | null>(null)

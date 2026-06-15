@@ -294,7 +294,7 @@ describe('Preservation: Existing CRUD and Card Resolution', () => {
           async () => {
             resetMocks()
 
-            await fetchActiveCards()
+            await fetchActiveCards('acc-1')
 
             // Verify table is 'cards'
             expect(fromCalls).toContain('cards')
@@ -323,7 +323,7 @@ describe('Preservation: Existing CRUD and Card Resolution', () => {
           async () => {
             resetMocks()
 
-            await fetchActiveCards()
+            await fetchActiveCards('acc-1')
 
             // Verify select contains the expected fields
             const selectArg = selectCalls[selectCalls.length - 1]

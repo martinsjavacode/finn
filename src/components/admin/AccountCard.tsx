@@ -6,7 +6,7 @@ interface AccountCardProps {
     name: string
     color: string
     member_count: number
-    created_at: string
+    created_at: string | null
     members?: { email: string; display_name: string | null }[]
   }
   expanded: boolean
@@ -40,11 +40,13 @@ export default function AccountCard({ account, expanded, onExpand, onEdit, onDel
   const visibleMembers = members.slice(0, 5)
   const overflowCount = account.member_count - visibleMembers.length
 
-  const formattedDate = new Date(account.created_at).toLocaleDateString('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  })
+  const formattedDate = account.created_at
+    ? new Date(account.created_at).toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      })
+    : '—'
 
   return (
     <div

@@ -25,7 +25,7 @@ export function useActivityLogs(filters: ActivityFilters, page: number, perPage:
         }
         throw error
       }
-      return { logs: (data ?? []) as ActivityLog[], totalCount: count ?? 0 }
+      return { logs: (data ?? []) as unknown as ActivityLog[], totalCount: count ?? 0 }
     },
     retry: false,
   })

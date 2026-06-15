@@ -8,7 +8,7 @@ export interface FilterableItem {
   categoryId?: string | null
 }
 
-export function applyMigrationFilters(items: FilterableItem[], filters: MigrationFilters): FilterableItem[] {
+export function applyMigrationFilters<T extends FilterableItem>(items: T[], filters: MigrationFilters): T[] {
   return items.filter(item => {
     if (filters.search && !item.description.toLowerCase().includes(filters.search.toLowerCase())) return false
     if (filters.categoryId && item.categoryId !== filters.categoryId) return false
@@ -42,7 +42,7 @@ export function isExistingMember(userId: string, existingMemberUserIds: string[]
   return existingMemberUserIds.includes(userId)
 }
 
-export function excludeSourceAccount(accounts: { id: string; name: string }[], sourceAccountId: string) {
+export function excludeSourceAccount<T extends { id: string; name: string }>(accounts: T[], sourceAccountId: string): T[] {
   return accounts.filter(a => a.id !== sourceAccountId)
 }
 

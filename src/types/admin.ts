@@ -43,7 +43,7 @@ export type MigrationItem = {
   amount: number
   date?: string
   category?: string
-  categoryId?: string
+  categoryId?: string | null
   installmentsCount?: number
   card?: string
   monthlyLimit?: number

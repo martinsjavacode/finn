@@ -46,7 +46,7 @@ export default function CardsPage() {
         const { error } = await supabase.from('cards').update({ label, credit_limit: +limit, closing_day: closingDay, due_day: dueDay, color, closing_rule: ruleType, days_before_due: daysBeforeDue }).eq('id', editingId)
         if (error) throw error
       } else {
-        const { error } = await supabase.from('cards').insert({ name: name.toLowerCase().replace(/\s+/g, '_'), label, credit_limit: +limit, closing_day: closingDay, due_day: dueDay, color, active: true, closing_rule: ruleType, days_before_due: daysBeforeDue, account_id: activeAccountId })
+        const { error } = await supabase.from('cards').insert({ name: name.toLowerCase().replace(/\s+/g, '_'), label, credit_limit: +limit, closing_day: closingDay, due_day: dueDay, color, active: true, closing_rule: ruleType, days_before_due: daysBeforeDue, account_id: activeAccountId! })
         if (error) throw error
       }
     },

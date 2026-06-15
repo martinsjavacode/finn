@@ -1,6 +1,9 @@
 import { supabase } from '../lib/supabase'
 import type { ActivityActionType } from '../types/admin'
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const activityTable = () => (supabase as any).from('activity_logs')
+
 export async function recordActivity(params: {
   actionType: ActivityActionType
   actorEmail: string
@@ -8,7 +11,7 @@ export async function recordActivity(params: {
   accountName?: string
   details: Record<string, unknown>
 }) {
-  return supabase.from('activity_logs').insert({
+  return activityTable().insert({
     action_type: params.actionType,
     actor_email: params.actorEmail,
     account_id: params.accountId ?? null,
@@ -23,8 +26,7 @@ export async function fetchActivityLogs(params: {
   page: number
   perPage: number
 }) {
-  let query = supabase
-    .from('activity_logs')
+  let query = activityTable()
     .select('*', { count: 'exact' })
     .order('created_at', { ascending: false })
 

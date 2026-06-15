@@ -1,10 +1,19 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import MigrationSummaryBar from '../../components/admin/MigrationSummaryBar'
+import type { MigrationItemType } from '../../types/admin'
 
-const defaultProps = {
+const defaultProps: {
+  selectedCount: number
+  totalSelectedAmount: number
+  itemType: MigrationItemType
+  sourceAccountName: string
+  onMigrate: ReturnType<typeof vi.fn>
+  onSelectAll: ReturnType<typeof vi.fn>
+  onDeselectAll: ReturnType<typeof vi.fn>
+} = {
   selectedCount: 3,
   totalSelectedAmount: 4520,
-  itemType: 'entries' as const,
+  itemType: 'entries',
   sourceAccountName: 'Conta Pessoal',
   onMigrate: vi.fn(),
   onSelectAll: vi.fn(),
