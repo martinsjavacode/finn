@@ -31,14 +31,15 @@ export default function TransactionsPage() {
     pruneSelection,
   } = useBatchSelection()
 
-  const ft = transactions.filter(r =>
+  const ft = useMemo(() => transactions.filter(r =>
     (!search || r.description.toLowerCase().includes(search.toLowerCase())) &&
     (catFilter === 'all' || r.category === catFilter)
-  )
-  const fc = cards.filter(r =>
+  ), [transactions, search, catFilter])
+
+  const fc = useMemo(() => cards.filter(r =>
     (!search || r.description.toLowerCase().includes(search.toLowerCase())) &&
     (catFilter === 'all' || r.category === catFilter)
-  )
+  ), [cards, search, catFilter])
 
   // Apply type and paid filters for the table-visible transactions
   const ftVisible = useMemo(() => ft.filter(r =>
@@ -60,12 +61,12 @@ export default function TransactionsPage() {
     [transactions, selectedIds]
   )
 
-  // Prune selection when filters change
+  // Prune selection when visible pending items change
   useEffect(() => {
     if (selectionMode) {
       pruneSelection(visiblePendingIds)
     }
-  }, [search, catFilter, typeFilter, paidFilter, selectionMode, visiblePendingIds, pruneSelection])
+  }, [selectionMode, visiblePendingIds, pruneSelection])
 
   const handlePaySelected = useCallback(async () => {
     // Filter to only include transactions that are actually unpaid (Requirement 4.7)
