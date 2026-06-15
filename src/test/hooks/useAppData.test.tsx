@@ -26,8 +26,16 @@ describe('useAppData', () => {
     expect(result.current.cardsList).toEqual([])
   })
 
-  it('carrega categorias e cartões quando autenticado', async () => {
-    const { result } = renderHook(() => useAppData(true), { wrapper: createWrapper() })
+  it('não carrega cartões quando accountId é nulo', async () => {
+    const { result } = renderHook(() => useAppData(true, null), { wrapper: createWrapper() })
+    await waitFor(() => {
+      expect(result.current.categories).toHaveLength(1)
+    })
+    expect(result.current.cardsList).toEqual([])
+  })
+
+  it('carrega categorias e cartões quando autenticado com accountId', async () => {
+    const { result } = renderHook(() => useAppData(true, 'account-123'), { wrapper: createWrapper() })
     await waitFor(() => {
       expect(result.current.categories).toHaveLength(1)
       expect(result.current.categories[0].label).toBe('Casa')

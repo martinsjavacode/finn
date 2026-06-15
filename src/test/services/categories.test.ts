@@ -17,14 +17,17 @@ describe('categories service', () => {
   })
 
   it('fetchActiveCards retorna cartões ativos', async () => {
+    const orderMock = vi.fn().mockResolvedValue({ data: [{ name: 'nubank', label: 'Nubank', color: '#8b5cf6' }], error: null })
+    const eqActive = vi.fn().mockReturnValue({ order: orderMock })
+    const eqAccount = vi.fn().mockReturnValue({ eq: eqActive })
     vi.mocked(supabase.from).mockReturnValue({
       select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          order: vi.fn().mockResolvedValue({ data: [{ name: 'nubank', label: 'Nubank', color: '#8b5cf6' }], error: null }),
-        }),
+        eq: eqAccount,
       }),
     } as never)
-    const { data } = await fetchActiveCards()
+    const { data } = await fetchActiveCards('acc-1')
+    expect(eqAccount).toHaveBeenCalledWith('account_id', 'acc-1')
+    expect(eqActive).toHaveBeenCalledWith('active', true)
     expect(data).toHaveLength(1)
     expect(data[0].name).toBe('nubank')
   })

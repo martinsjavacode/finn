@@ -1,6 +1,30 @@
-.modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 200; animation: fadeIn 0.2s ease-out; }
-.modal { background: #1a1f2e; border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; margin: 1rem; display: flex; flex-direction: column; gap: 1rem; }
-.modal h2 { font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem; }
-.modal input, .modal select { width: 100%; padding: 0.65rem 0.8rem; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface); color: var(--text); color-scheme: dark; font-size: 0.9rem; box-sizing: border-box; }
-.modal input:focus, .modal select:focus { outline: none; border-color: var(--purple); }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; z-index: 200; animation: fadeIn 0.2s ease-out; }
+.modal { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; margin: 1rem; display: flex; flex-direction: column; gap: 1.2rem; box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5); animation: slideDown 0.25s ease-out; }
+.modal h2 { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.25rem; letter-spacing: -0.01em; }
+.modal input, .modal select { width: 100%; padding: 0.7rem 0.9rem; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface); color: var(--text); color-scheme: dark; font-size: 0.9rem; box-sizing: border-box; transition: border-color 0.2s, box-shadow 0.2s; }
+.modal input:focus, .modal select:focus { outline: none; border-color: var(--purple); box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.12); }
 .modal-lg { max-width: 600px; max-height: 80vh; overflow-y: auto; }
+
+/* Migrate Confirm Modal */
+.migrate-confirm-flow { display: flex; align-items: center; gap: 1.2rem; flex-wrap: wrap; padding: 0.8rem 0; }
+.migrate-confirm-account { display: flex; align-items: center; gap: 0.6rem; flex: 1; min-width: 120px; }
+.account-color-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 6px currentColor; }
+.migrate-confirm-account-name { font-weight: 700; font-size: 0.95rem; white-space: nowrap; }
+.migrate-confirm-arrow { font-size: 1.6rem; color: var(--purple); flex-shrink: 0; opacity: 0.8; }
+.migrate-confirm-amount { font-size: 0.95rem; color: var(--text-muted); margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border); }
+.migrate-confirm-amount strong { color: var(--green); font-weight: 700; }
+
+/* Account Form Modal */
+.account-form-field { display: flex; flex-direction: column; gap: 0.5rem; }
+.account-form-field label { font-size: 0.82rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em; }
+.account-form-error { font-size: 0.8rem; color: var(--red, #ef4444); padding: 0.2rem 0; }
+.account-form-color-section { display: flex; flex-direction: column; gap: 0.85rem; }
+.account-form-palette { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.account-form-color-btn { width: 32px; height: 32px; border-radius: 50%; border: 2.5px solid transparent; cursor: pointer; transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s; padding: 0; }
+.account-form-color-btn:hover { transform: scale(1.2); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); }
+.account-form-color-btn.selected { border-color: var(--text); transform: scale(1.2); box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1); }
+.account-form-custom-color { display: flex; align-items: center; gap: 0.4rem; }
+.account-form-hex-prefix { font-size: 0.9rem; color: var(--text-muted); font-weight: 700; }
+.account-form-hex-input { width: 110px !important; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; letter-spacing: 0.05em; }
+.account-form-color-preview { display: flex; align-items: center; gap: 0.6rem; }
+.account-form-preview-dot { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--border); transition: background-color 0.3s; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); }

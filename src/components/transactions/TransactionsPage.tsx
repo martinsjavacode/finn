@@ -10,7 +10,7 @@ import BatchActionBar from './BatchActionBar'
 import Button from '../ui/Button'
 
 export default function TransactionsPage() {
-  const { session, can, activeAccountId, isSuperadmin, accounts } = useAuth()
+  const { session, can, activeAccountId } = useAuth()
   const { categories, cardsList } = useAppData(!!session)
   const { month, setMonth, months, transactions, cards } = useTransactions(!!session, activeAccountId)
   const { batchMarkPaid } = useTransactionMutations(month)
@@ -125,9 +125,6 @@ export default function TransactionsPage() {
           month={month}
           canUpdate={canUpdate}
           canDelete={canDelete}
-          isSuperadmin={isSuperadmin}
-          accounts={accounts}
-          activeAccountId={activeAccountId}
           selectionMode={selectionMode}
           selectedIds={selectedIds}
           onToggleSelect={toggleItem}

@@ -3,7 +3,7 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { signOut } from '../../services/auth'
 import type { Session } from '@supabase/supabase-js'
 import type { Account } from '../../types/database'
-import { LayoutDashboard, Receipt, Repeat, TrendingUp, Wallet, Tags, CreditCard, Users, Shield, LogOut, Menu, X, Building2, Landmark } from 'lucide-react'
+import { LayoutDashboard, Receipt, Repeat, TrendingUp, Wallet, Tags, CreditCard, Users, Shield, LogOut, Menu, X, Landmark } from 'lucide-react'
 
 interface Props {
   session: Session
@@ -23,9 +23,9 @@ const pageTitles: Record<string, string> = {
   '/categories': 'Categorias',
   '/cards': 'Cartões',
   '/access': 'Usuários',
-  '/roles': 'Permissões',
-  '/accounts': 'Contas',
   '/investments': 'Investimentos',
+  '/members': 'Membros',
+  '/admin': 'Admin',
 }
 
 export default function Sidebar({ session, isSuperadmin, can, accounts, activeAccount, setActiveAccount }: Props) {
@@ -70,9 +70,9 @@ export default function Sidebar({ session, isSuperadmin, can, accounts, activeAc
           {can('budgets', 'read') && link('/budgets', <><Wallet size={16} /> Orçamentos</>)}
           {can('categories', 'read') && link('/categories', <><Tags size={16} /> Categorias</>)}
           {can('cards', 'read') && link('/cards', <><CreditCard size={16} /> Cartões</>)}
-          {isSuperadmin && link('/accounts', <><Building2 size={16} /> Contas</>)}
+          {can('users', 'read') && link('/members', <><Users size={16} /> Membros</>)}
           {isSuperadmin && link('/access', <><Users size={16} /> Usuários</>)}
-          {isSuperadmin && link('/roles', <><Shield size={16} /> Permissões</>)}
+          {isSuperadmin && link('/admin', <><Shield size={16} /> Admin</>)}
         </nav>
         <div className="sidebar-footer">
           <span className="sidebar-user">{session.user.email}</span>

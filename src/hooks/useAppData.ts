@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { Category, CardListItem } from '../types/database'
 import { fetchCategories, fetchActiveCards } from '../services/categories'
 
-export function useAppData(authenticated: boolean) {
+export function useAppData(authenticated: boolean, accountId?: string | null) {
   const queryClient = useQueryClient()
 
   const { data: categories = [] } = useQuery<Category[]>({
@@ -12,9 +12,9 @@ export function useAppData(authenticated: boolean) {
   })
 
   const { data: cardsList = [] } = useQuery<CardListItem[]>({
-    queryKey: ['cardsList'],
-    queryFn: async () => (await fetchActiveCards()).data,
-    enabled: authenticated,
+    queryKey: ['cardsList', accountId],
+    queryFn: async () => (await fetchActiveCards(accountId!)).data,
+    enabled: authenticated && !!accountId,
   })
 
   const reloadAppData = () => {
