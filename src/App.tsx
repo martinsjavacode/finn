@@ -19,9 +19,9 @@ const BudgetsPage = lazy(() => import('./components/budgets/BudgetsPage'))
 const AccessPage = lazy(() => import('./components/access/AccessPage'))
 const CategoriesPage = lazy(() => import('./components/categories/CategoriesPage'))
 const CardsPage = lazy(() => import('./components/cards/CardsPage'))
-const RolesPage = lazy(() => import('./components/roles/RolesPage'))
-const AccountsPage = lazy(() => import('./components/accounts/AccountsPage'))
 const InvestmentsPage = lazy(() => import('./components/investments/InvestmentsPage'))
+const AdminPanel = lazy(() => import('./components/admin/AdminPanel'))
+const MembersPage = lazy(() => import('./components/members/MembersPage'))
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 1000 * 60 * 5, retry: 1, refetchOnWindowFocus: false } },
@@ -68,9 +68,9 @@ function AppLayout() {
               <Route path="/categories" element={<ProtectedRoute allowed={can('categories', 'read')} loading={!permissionsLoaded}><CategoriesPage /></ProtectedRoute>} />
               <Route path="/cards" element={<ProtectedRoute allowed={can('cards', 'read')} loading={!permissionsLoaded}><CardsPage /></ProtectedRoute>} />
               <Route path="/access" element={<ProtectedRoute allowed={isSuperadmin}><AccessPage /></ProtectedRoute>} />
-              <Route path="/roles" element={<ProtectedRoute allowed={isSuperadmin}><RolesPage /></ProtectedRoute>} />
-              <Route path="/accounts" element={<ProtectedRoute allowed={isSuperadmin}><AccountsPage /></ProtectedRoute>} />
               <Route path="/investments" element={<ProtectedRoute allowed={can('investments', 'read')} loading={!permissionsLoaded}><InvestmentsPage /></ProtectedRoute>} />
+              <Route path="/members" element={<ProtectedRoute allowed={can('users', 'read')} loading={!permissionsLoaded}><MembersPage /></ProtectedRoute>} />
+              <Route path="/admin" element={<ProtectedRoute allowed={isSuperadmin}><AdminPanel /></ProtectedRoute>} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>
