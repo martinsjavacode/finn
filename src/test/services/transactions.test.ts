@@ -1,5 +1,5 @@
 import { vi } from 'vitest'
-import { fetchTransactions, fetchCreditCards, fetchAvailableMonths, toggleTransactionPaid, insertTransaction, insertCreditCard, updateTransaction, deleteTransaction } from '../../services/transactions'
+import { fetchTransactions, fetchCreditCards, fetchAvailableMonths, toggleTransactionPaid, insertTransaction, insertCreditCard, updateTransaction, deleteTransaction, batchMarkTransactionsPaid } from '../../services/transactions'
 import { supabase } from '../../lib/supabase'
 
 describe('transactions service', () => {
@@ -156,5 +156,18 @@ describe('transactions service', () => {
       const { error } = await upsertCardInvoice('nubank', '2026-05', 500, 'acc-1')
       expect(error).toBeNull()
       expect(upsertMock).toHaveBeenCalledWith(expect.objectContaining({ account_id: 'acc-1', paid_amount: 500 }), expect.anything())
+    })
+  })
+
+  describe('batchMarkTransactionsPaid', () => {
+    it('atualiza múltiplos entries como pagos', async () => {
+      const mockChain = { update: vi.fn().mockReturnThis(), in: vi.fn().mockResolvedValue({ error: null }) }
+      vi.mocked(supabase.from).mockReturnValue(mockChain as never)
+
+      const { error } = await batchMarkTransactionsPaid(['t1', 't2', 't3'])
+      expect(error).toBeNull()
+      expect(supabase.from).toHaveBeenCalledWith('entries')
+      expect(mockChain.update).toHaveBeenCalledWith({ paid: true })
+      expect(mockChain.in).toHaveBeenCalledWith('id', ['t1', 't2', 't3'])
     })
   })

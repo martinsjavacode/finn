@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
-import { insertTransaction, insertCreditCard, updateTransaction, deleteTransaction, toggleTransactionPaid } from '../services/transactions'
+import { insertTransaction, insertCreditCard, updateTransaction, deleteTransaction, toggleTransactionPaid, batchMarkTransactionsPaid } from '../services/transactions'
 import { showError, toast } from '../lib/toast'
 
 function throwOnError<T extends { error: unknown }>(result: T) {
@@ -58,5 +58,31 @@ export function useTransactionMutations(month: string) {
     onError: (e) => showError(e),
   })
 
-  return { addTransaction, addCreditCard, editTransaction, removeTransaction, removeCreditCard, removeInstallment, togglePaid }
+  const batchMarkPaid = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const timeout = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Tempo limite excedido (30s). Tente novamente.')), 30_000)
+      })
+      const operation = batchMarkTransactionsPaid(ids)
+      const { error } = await Promise.race([operation, timeout])
+      if (error) throw error
+      return { count: ids.length }
+    },
+    onSuccess: ({ count }) => {
+      toast(`${count} lançamentos pagos`)
+      invalidate()
+    },
+    onError: (e: unknown) => {
+      const err = e as { message?: string; code?: string } | null
+      const message = err?.message ?? ''
+      const code = err?.code ?? ''
+      if (code === '42501' || /permission|rls|insufficient_privilege/i.test(message)) {
+        toast('Permissão insuficiente para atualizar lançamentos', 'error')
+      } else {
+        showError(err as { message: string } | null)
+      }
+    },
+  })
+
+  return { addTransaction, addCreditCard, editTransaction, removeTransaction, removeCreditCard, removeInstallment, togglePaid, batchMarkPaid }
 }
