@@ -31,14 +31,15 @@ export default function TransactionsPage() {
     pruneSelection,
   } = useBatchSelection()
 
-  const ft = transactions.filter(r =>
+  const ft = useMemo(() => transactions.filter(r =>
     (!search || r.description.toLowerCase().includes(search.toLowerCase())) &&
     (catFilter === 'all' || r.category === catFilter)
-  )
-  const fc = cards.filter(r =>
+  ), [transactions, search, catFilter])
+
+  const fc = useMemo(() => cards.filter(r =>
     (!search || r.description.toLowerCase().includes(search.toLowerCase())) &&
     (catFilter === 'all' || r.category === catFilter)
-  )
+  ), [cards, search, catFilter])
 
   // Apply type and paid filters for the table-visible transactions
   const ftVisible = useMemo(() => ft.filter(r =>
@@ -46,9 +47,9 @@ export default function TransactionsPage() {
     (paidFilter === 'all' || (paidFilter === 'paid' ? r.paid : !r.paid))
   ), [ft, typeFilter, paidFilter])
 
-  // Visible pending IDs: transactions visible after all filters with paid === false
+  // Visible pending IDs: only unpaid expenses visible after all filters
   const visiblePendingIds = useMemo(
-    () => ftVisible.filter(r => !r.paid).map(r => r.id),
+    () => ftVisible.filter(r => !r.paid && r.type === 'expense').map(r => r.id),
     [ftVisible]
   )
 
@@ -60,17 +61,17 @@ export default function TransactionsPage() {
     [transactions, selectedIds]
   )
 
-  // Prune selection when filters change
+  // Prune selection when visible pending items change
   useEffect(() => {
     if (selectionMode) {
       pruneSelection(visiblePendingIds)
     }
-  }, [search, catFilter, typeFilter, paidFilter, selectionMode, visiblePendingIds, pruneSelection])
+  }, [selectionMode, visiblePendingIds, pruneSelection])
 
   const handlePaySelected = useCallback(async () => {
-    // Filter to only include transactions that are actually unpaid (Requirement 4.7)
+    // Filter to only include unpaid expenses (Requirement 4.7)
     const unpaidIds = Array.from(selectedIds).filter(id =>
-      transactions.find(t => t.id === id && !t.paid)
+      transactions.find(t => t.id === id && !t.paid && t.type === 'expense')
     )
     if (unpaidIds.length === 0) return
     try {

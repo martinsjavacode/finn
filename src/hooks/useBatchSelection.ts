@@ -53,6 +53,10 @@ export function useBatchSelection(): UseBatchSelectionReturn {
           next.add(id)
         }
       }
+      // Avoid unnecessary re-renders if the set hasn't changed
+      if (next.size === prev.size && [...prev].every(id => next.has(id))) {
+        return prev
+      }
       return next
     })
   }, [])
