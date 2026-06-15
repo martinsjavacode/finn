@@ -91,3 +91,11 @@ export async function upsertCardInvoice(card: string, month: string, paidAmount:
   )
   return { error }
 }
+
+export async function batchMarkTransactionsPaid(ids: string[]) {
+  const { error } = await supabase
+    .from('entries')
+    .update({ paid: true })
+    .in('id', ids)
+  return { error }
+}

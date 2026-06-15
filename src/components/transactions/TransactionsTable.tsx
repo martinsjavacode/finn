@@ -13,6 +13,7 @@ import Modal from '../ui/Modal'
 import MobileCard from '../ui/MobileCard'
 import Pagination from '../ui/Pagination'
 import MigrateModal from '../ui/MigrateModal'
+import SelectionCheckbox from './SelectionCheckbox'
 
 interface Props {
   transactions: Transaction[]
@@ -23,14 +24,26 @@ interface Props {
   isSuperadmin?: boolean
   accounts?: { id: string; name: string }[]
   activeAccountId?: string | null
+  selectionMode?: boolean
+  selectedIds?: Set<string>
+  onToggleSelect?: (id: string) => void
+  typeFilter?: 'all' | TransactionType
+  onTypeFilterChange?: (v: 'all' | TransactionType) => void
+  paidFilter?: 'all' | 'paid' | 'pending'
+  onPaidFilterChange?: (v: 'all' | 'paid' | 'pending') => void
 }
 
-export default function TransactionsTable({ transactions, categories, month, canUpdate, canDelete, isSuperadmin, accounts, activeAccountId }: Props) {
+export default function TransactionsTable({ transactions, categories, month, canUpdate, canDelete, isSuperadmin, accounts, activeAccountId, selectionMode, selectedIds, onToggleSelect, typeFilter: externalTypeFilter, onTypeFilterChange, paidFilter: externalPaidFilter, onPaidFilterChange }: Props) {
   const canEdit = canUpdate || canDelete
   const isMobile = useIsMobile()
   const { togglePaid: togglePaidMutation, editTransaction, removeTransaction, removeInstallment } = useTransactionMutations(month)
-  const [typeFilter, setTypeFilter] = useState<'all' | TransactionType>('all')
-  const [paidFilter, setPaidFilter] = useState<'all' | 'paid' | 'pending'>('all')
+  const [internalTypeFilter, setInternalTypeFilter] = useState<'all' | TransactionType>('all')
+  const [internalPaidFilter, setInternalPaidFilter] = useState<'all' | 'paid' | 'pending'>('all')
+
+  const typeFilter = externalTypeFilter ?? internalTypeFilter
+  const setTypeFilter = onTypeFilterChange ?? setInternalTypeFilter
+  const paidFilter = externalPaidFilter ?? internalPaidFilter
+  const setPaidFilter = onPaidFilterChange ?? setInternalPaidFilter
   const [editing, setEditing] = useState<string | null>(null)
   const [editData, setEditData] = useState<Partial<Transaction>>({})
   const [page, setPage] = useState(1)
@@ -99,10 +112,11 @@ export default function TransactionsTable({ transactions, categories, month, can
 
       {/* Desktop */}
       {!isMobile && <table className="desktop-table">
-        <thead><tr>{isSuperadmin && <th><input type="checkbox" checked={selected.size === filtered.length && filtered.length > 0} onChange={toggleAll} aria-label="Selecionar todos" /></th>}<th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Parcela</th><th>Valor</th><th>Pago</th>{canEdit && <th></th>}</tr></thead>
+        <thead><tr>{selectionMode && <th></th>}{isSuperadmin && <th><input type="checkbox" checked={selected.size === filtered.length && filtered.length > 0} onChange={toggleAll} aria-label="Selecionar todos" /></th>}<th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Parcela</th><th>Valor</th><th>Pago</th>{canEdit && <th></th>}</tr></thead>
         <tbody>
           {filtered.length ? paginated.map(r => (
-            <tr key={r.id} className={r.paid ? 'row-paid' : ''}>
+            <tr key={r.id} className={`${r.paid ? 'row-paid' : ''}${selectedIds?.has(r.id) ? ' bg-blue-50 dark:bg-blue-900/20' : ''}`}>
+              {selectionMode && <td>{!r.paid && onToggleSelect ? <SelectionCheckbox checked={selectedIds?.has(r.id) ?? false} onChange={() => onToggleSelect(r.id)} /> : null}</td>}
               {isSuperadmin && <td><input type="checkbox" checked={selected.has(r.id)} onChange={() => toggleSelect(r.id)} aria-label={`Selecionar ${r.description}`} /></td>}
               {editing === r.id ? (
                 <>
@@ -133,22 +147,29 @@ export default function TransactionsTable({ transactions, categories, month, can
                 </>
               )}
             </tr>
-          )) : <tr><td colSpan={(canEdit ? 8 : 7) + (isSuperadmin ? 1 : 0)} className="empty">Nenhum lançamento encontrado</td></tr>}
+          )) : <tr><td colSpan={(canEdit ? 8 : 7) + (isSuperadmin ? 1 : 0) + (selectionMode ? 1 : 0)} className="empty">Nenhum lançamento encontrado</td></tr>}
         </tbody>
       </table>}
 
       {/* Mobile */}
       {isMobile && <div className="mobile-cards">
         {filtered.length ? paginated.map(r => (
-          <MobileCard
-            key={r.id}
-            className={r.paid ? 'row-paid' : ''}
-            status={canUpdate ? <button className="badge-toggle" role="switch" aria-checked={r.paid} onClick={(e) => { e.stopPropagation(); togglePaid(r.id, r.paid) }}><Badge variant={r.paid ? 'success' : 'danger'}>{r.paid ? 'Pago' : 'Pendente'}</Badge></button> : <Badge variant={r.paid ? 'success' : 'danger'}>{r.paid ? 'Pago' : 'Pendente'}</Badge>}
-            title={r.description}
-            value={fmt(+r.amount)}
-            subtitle={<>{getCatLabel(r)} · {new Date(r.month + 'T12:00:00').toLocaleDateString('pt-BR')}{r.current_installment ? ` · ${r.current_installment}/${r.total_installments}` : ''}</>}
-            onTap={canUpdate && !r.installment_purchase_id ? () => startEdit(r) : undefined}
-          />
+          <div key={r.id} className={`flex items-center gap-2${selectedIds?.has(r.id) ? ' bg-blue-50 dark:bg-blue-900/20 rounded-lg' : ''}`}>
+            {selectionMode && !r.paid && onToggleSelect && (
+              <SelectionCheckbox checked={selectedIds?.has(r.id) ?? false} onChange={() => onToggleSelect(r.id)} />
+            )}
+            {selectionMode && r.paid && <div className="min-w-[44px]" />}
+            <div className="flex-1">
+              <MobileCard
+                className={r.paid ? 'row-paid' : ''}
+                status={canUpdate ? <button className="badge-toggle" role="switch" aria-checked={r.paid} onClick={(e) => { e.stopPropagation(); togglePaid(r.id, r.paid) }}><Badge variant={r.paid ? 'success' : 'danger'}>{r.paid ? 'Pago' : 'Pendente'}</Badge></button> : <Badge variant={r.paid ? 'success' : 'danger'}>{r.paid ? 'Pago' : 'Pendente'}</Badge>}
+                title={r.description}
+                value={fmt(+r.amount)}
+                subtitle={<>{getCatLabel(r)} · {new Date(r.month + 'T12:00:00').toLocaleDateString('pt-BR')}{r.current_installment ? ` · ${r.current_installment}/${r.total_installments}` : ''}</>}
+                onTap={canUpdate && !r.installment_purchase_id ? () => startEdit(r) : undefined}
+              />
+            </div>
+          </div>
         )) : <p className="empty">Nenhum lançamento encontrado</p>}
       </div>}
       <Pagination currentPage={safePage} totalPages={totalPages} totalItems={filtered.length} perPage={perPage} onPageChange={setPage} onPerPageChange={setPerPage} />
