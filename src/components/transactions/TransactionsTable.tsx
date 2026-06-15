@@ -116,7 +116,7 @@ export default function TransactionsTable({ transactions, categories, month, can
         <tbody>
           {filtered.length ? paginated.map(r => (
             <tr key={r.id} className={`${r.paid ? 'row-paid' : ''}${selectedIds?.has(r.id) ? ' bg-blue-50 dark:bg-blue-900/20' : ''}`}>
-              {selectionMode && <td>{!r.paid && onToggleSelect ? <SelectionCheckbox checked={selectedIds?.has(r.id) ?? false} onChange={() => onToggleSelect(r.id)} /> : null}</td>}
+              {selectionMode && <td>{!r.paid && r.type === 'expense' && onToggleSelect ? <SelectionCheckbox checked={selectedIds?.has(r.id) ?? false} onChange={() => onToggleSelect(r.id)} /> : null}</td>}
               {isSuperadmin && <td><input type="checkbox" checked={selected.has(r.id)} onChange={() => toggleSelect(r.id)} aria-label={`Selecionar ${r.description}`} /></td>}
               {editing === r.id ? (
                 <>
@@ -155,10 +155,10 @@ export default function TransactionsTable({ transactions, categories, month, can
       {isMobile && <div className="mobile-cards">
         {filtered.length ? paginated.map(r => (
           <div key={r.id} className={`flex items-center gap-2${selectedIds?.has(r.id) ? ' bg-blue-50 dark:bg-blue-900/20 rounded-lg' : ''}`}>
-            {selectionMode && !r.paid && onToggleSelect && (
+            {selectionMode && !r.paid && r.type === 'expense' && onToggleSelect && (
               <SelectionCheckbox checked={selectedIds?.has(r.id) ?? false} onChange={() => onToggleSelect(r.id)} />
             )}
-            {selectionMode && r.paid && <div className="min-w-[44px]" />}
+            {selectionMode && (r.paid || r.type !== 'expense') && <div className="min-w-[44px]" />}
             <div className="flex-1">
               <MobileCard
                 className={r.paid ? 'row-paid' : ''}
