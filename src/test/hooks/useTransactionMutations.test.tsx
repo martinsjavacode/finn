@@ -9,6 +9,7 @@ vi.mock('../../services/transactions', () => ({
   updateTransaction: vi.fn().mockResolvedValue({ error: null }),
   deleteTransaction: vi.fn().mockResolvedValue({ error: null }),
   toggleTransactionPaid: vi.fn().mockResolvedValue({ error: null }),
+  batchMarkTransactionsPaid: vi.fn().mockResolvedValue({ error: null }),
 }))
 
 vi.mock('../../lib/supabase', () => ({
@@ -19,7 +20,7 @@ vi.mock('../../lib/toast', () => ({ toast: vi.fn(), showError: vi.fn() }))
 
 import { useTransactionMutations } from '../../hooks/useTransactionMutations'
 import { insertTransaction, insertCreditCard, updateTransaction, deleteTransaction, toggleTransactionPaid } from '../../services/transactions'
-import { toast } from '../../lib/toast'
+import { toast, showError } from '../../lib/toast'
 
 const wrapper = ({ children }: { children: ReactNode }) => (
   <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>{children}</QueryClientProvider>
@@ -57,5 +58,29 @@ describe('useTransactionMutations', () => {
     const { result } = renderHook(() => useTransactionMutations('2026-05'), { wrapper })
     act(() => { result.current.togglePaid.mutate({ id: 't1', paid: true }) })
     await waitFor(() => expect(toggleTransactionPaid).toHaveBeenCalledWith('t1', true))
+  })
+
+  it('batchMarkPaid chama batchMarkTransactionsPaid e toast com contagem', async () => {
+    const { batchMarkTransactionsPaid } = await import('../../services/transactions')
+    const { result } = renderHook(() => useTransactionMutations('2026-05'), { wrapper })
+    act(() => { result.current.batchMarkPaid.mutate(['t1', 't2', 't3']) })
+    await waitFor(() => expect(batchMarkTransactionsPaid).toHaveBeenCalledWith(['t1', 't2', 't3']))
+    expect(toast).toHaveBeenCalledWith('3 lançamentos pagos')
+  })
+
+  it('batchMarkPaid exibe toast de permissão em erro 42501', async () => {
+    const { batchMarkTransactionsPaid } = await import('../../services/transactions')
+    vi.mocked(batchMarkTransactionsPaid).mockResolvedValueOnce({ error: { message: 'permission denied', code: '42501', details: '', hint: '' } as never })
+    const { result } = renderHook(() => useTransactionMutations('2026-05'), { wrapper })
+    act(() => { result.current.batchMarkPaid.mutate(['t1']) })
+    await waitFor(() => expect(toast).toHaveBeenCalledWith('Permissão insuficiente para atualizar lançamentos', 'error'))
+  })
+
+  it('batchMarkPaid chama showError em erro genérico', async () => {
+    const { batchMarkTransactionsPaid } = await import('../../services/transactions')
+    vi.mocked(batchMarkTransactionsPaid).mockResolvedValueOnce({ error: { message: 'network error', code: '', details: '', hint: '' } as never })
+    const { result } = renderHook(() => useTransactionMutations('2026-05'), { wrapper })
+    act(() => { result.current.batchMarkPaid.mutate(['t1']) })
+    await waitFor(() => expect(showError).toHaveBeenCalled())
   })
 })
