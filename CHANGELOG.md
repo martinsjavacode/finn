@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.2](https://github.com/martinsjavacode/finn/compare/v0.1.1...v0.1.2) (2026-05-31)
+
+
+### Features
+
+* add category to recurring cards, group cards by card, fix categories RLS ([d35852e](https://github.com/martinsjavacode/finn/commit/d35852e48a4e4cf9986d88bf6d7c84ba750b8a65))
+* add investments page with CRUD, portfolio tracking and account dropdown ([9d32da3](https://github.com/martinsjavacode/finn/commit/9d32da37a541089eab17a6bca4523a1df898c8a2))
+
 ## [0.1.1](https://github.com/martinsjavacode/finn/compare/v0.1.0...v0.1.1) (2026-05-27)
 
 
