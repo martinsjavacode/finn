@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.5](https://github.com/martinsjavacode/finn/compare/v0.1.4...v0.1.5) (2026-06-16)
+
+
+### Features
+
+* **admin:** add activity timeline with logs and formatter ([a59cf6d](https://github.com/martinsjavacode/finn/commit/a59cf6d6e40b5e3729d5da7f357af2b2d991e098))
+* **admin:** add migration tab with filters, summary and data table ([1386668](https://github.com/martinsjavacode/finn/commit/1386668ef18a327f9d3bbd8f45d9ad033612239f))
+* **admin:** add unified admin panel with tabs (accounts, members, permissions) ([8b991a6](https://github.com/martinsjavacode/finn/commit/8b991a68b4adf0705dcada6c68df6c4c6c3ad4bb))
+* **cards:** add account separation for cards with migration and property tests ([23b881c](https://github.com/martinsjavacode/finn/commit/23b881c922b5af33ce27b8703553aabd1c199d0a))
+
+
+### Bug Fixes
+
+* **transactions:** minor adjustments to batch bar, cards table and transactions table ([547e0cc](https://github.com/martinsjavacode/finn/commit/547e0cca1c49eb1422b70bc7c6221c4ca60e2809))
+
 ## [0.1.4](https://github.com/martinsjavacode/finn/compare/v0.1.3...v0.1.4) (2026-06-15)
 
 
