@@ -39,3 +39,11 @@
 @media (max-width: 400px) {
   .grid { grid-template-columns: 1fr; }
 }
+
+/* BatchActionBar: deslocar para a direita do sidebar no desktop */
+@media (min-width: 1025px) {
+  .batch-action-bar {
+    left: 240px !important;
+    width: calc(100% - 240px) !important;
+  }
+}

@@ -164,6 +164,7 @@ export type Database = {
       }
       cards: {
         Row: {
+          account_id: string
           active: boolean
           closing_day: number
           closing_rule: Database["public"]["Enums"]["closing_rule_type"]
@@ -177,6 +178,7 @@ export type Database = {
           name: string
         }
         Insert: {
+          account_id: string
           active?: boolean
           closing_day?: number
           closing_rule?: Database["public"]["Enums"]["closing_rule_type"]
@@ -190,6 +192,7 @@ export type Database = {
           name: string
         }
         Update: {
+          account_id?: string
           active?: boolean
           closing_day?: number
           closing_rule?: Database["public"]["Enums"]["closing_rule_type"]
@@ -637,29 +640,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      generate_recurring:
-        | { Args: { target_month: string }; Returns: undefined }
-        | {
-            Args: { p_account_id: string; target_month: string }
-            Returns: undefined
-          }
-      get_projection:
-        | {
-            Args: { months_ahead?: number }
-            Returns: {
-              installments: number
-              month: string
-              recurring: number
-            }[]
-          }
-        | {
-            Args: { months_ahead?: number; p_account_id?: string }
-            Returns: {
-              installments: number
-              month: string
-              recurring: number
-            }[]
-          }
+      generate_recurring: {
+        Args: { p_account_id: string; target_month: string }
+        Returns: undefined
+      }
+      get_projection: {
+        Args: { months_ahead?: number; p_account_id?: string }
+        Returns: {
+          installments: number
+          month: string
+          recurring: number
+        }[]
+      }
       has_account_permission: {
         Args: { p_account_id: string; p_action: string; p_resource: string }
         Returns: boolean

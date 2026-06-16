@@ -8,7 +8,6 @@ import { showError, toast } from '../../lib/toast'
 import { fmt, categoryOptions } from '../../utils/format'
 import { fetchCardInvoice, upsertCardInvoice } from '../../services/transactions'
 import { useTransactionMutations } from '../../hooks/useTransactionMutations'
-import { useMigration } from '../../hooks/useMigration'
 import { useIsMobile } from '../../hooks/useMediaQuery'
 import { useAuth } from '../../hooks'
 import Button from '../ui/Button'
@@ -16,7 +15,6 @@ import Select from '../ui/Select'
 import Modal from '../ui/Modal'
 import MobileCard from '../ui/MobileCard'
 import Pagination from '../ui/Pagination'
-import MigrateModal from '../ui/MigrateModal'
 
 interface Props {
   cards: CreditCard[]
@@ -30,18 +28,13 @@ interface Props {
 export default function CardsTable({ cards, cardsList, categories, month, canUpdate, canDelete }: Props) {
   const canEdit = canUpdate || canDelete
   const isMobile = useIsMobile()
-  const { activeAccountId, isSuperadmin, accounts } = useAuth()
   const queryClient = useQueryClient()
+  const { activeAccountId } = useAuth()
   const { removeCreditCard, removeInstallment } = useTransactionMutations(month)
-  const { migrateInstallments } = useMigration()
   const [cardFilter, setCardFilter] = useState('all')
   const [editing, setEditing] = useState<CreditCard | null>(null)
   const [page, setPage] = useState(1)
   const [perPage, setPerPage] = useState(10)
-  const [selectedPurchases, setSelectedPurchases] = useState<Set<string>>(new Set())
-  const [showMigrate, setShowMigrate] = useState(false)
-
-  const toggleSelectPurchase = (purchaseId: string) => setSelectedPurchases(prev => { const s = new Set(prev); if (s.has(purchaseId)) s.delete(purchaseId); else s.add(purchaseId); return s })
 
   const getLabel = (name: string) => cardsList.find(c => c.name === name)?.label ?? name
   const getColor = (name: string) => cardsList.find(c => c.name === name)?.color ?? '#888'
@@ -73,7 +66,6 @@ export default function CardsTable({ cards, cardsList, categories, month, canUpd
     <section>
       <div className="page-header">
         <h2>Cartões de Crédito</h2>
-        {isSuperadmin && selectedPurchases.size > 0 && <Button onClick={() => setShowMigrate(true)}>Migrar ({selectedPurchases.size})</Button>}
       </div>
       <div className="tabs">
         {cardNames.map(c => (
@@ -97,7 +89,7 @@ export default function CardsTable({ cards, cardsList, categories, month, canUpd
 
       {cardFilter === 'all' && filtered.length > 0 && (() => {
         const groups = cardNames.filter(c => c !== 'all').map(name => ({ name, items: filtered.filter(r => r.card === name) })).filter(g => g.items.length)
-        const colSpan = (canEdit ? 5 : 4) + (isSuperadmin ? 1 : 0)
+        const colSpan = canEdit ? 5 : 4
         return !isMobile ? groups.map(g => (
           <table key={g.name} className="desktop-table" style={{ marginBottom: '1.5rem' }}>
             <thead>
@@ -105,13 +97,11 @@ export default function CardsTable({ cards, cardsList, categories, month, canUpd
                 <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: getColor(g.name), marginRight: 6 }} />
                 {getLabel(g.name)} <span style={{ fontWeight: 400, color: 'var(--text-muted)', marginLeft: 8 }}>{fmt(g.items.reduce((s, r) => s + +r.amount, 0))}</span>
               </th></tr>
-              <tr>{isSuperadmin && <th></th>}<th>Descrição</th><th>Categoria</th><th>Parcela</th><th>Valor</th>{canEdit && <th></th>}</tr>
+              <tr><th>Descrição</th><th>Categoria</th><th>Parcela</th><th>Valor</th>{canEdit && <th></th>}</tr>
             </thead>
             <tbody>
               {g.items.map(r => (
                 <tr key={r.id}>
-                  {isSuperadmin && <td>{r.installment_purchase_id && <input type="checkbox" checked={selectedPurchases.has(r.installment_purchase_id)} onChange={() => toggleSelectPurchase(r.installment_purchase_id!)} aria-label={`Selecionar parcelamento ${r.description}`} />}</td>}
-                  <td>{r.description}</td>
                   <td>{categories.find(c => c.id === r.category)?.label ?? '-'}</td>
                   <td>{r.current_installment && r.total_installments ? `${r.current_installment}/${r.total_installments}` : '-'}</td>
                   <td>{fmt(+r.amount)}</td>
@@ -150,11 +140,10 @@ export default function CardsTable({ cards, cardsList, categories, month, canUpd
       {cardFilter === 'all' && !filtered.length && (!isMobile ? <table className="desktop-table"><tbody><tr><td className="empty">Nenhum lançamento</td></tr></tbody></table> : <p className="empty">Nenhum lançamento</p>)}
 
       {cardFilter !== 'all' && !isMobile && <table className="desktop-table">
-        <thead><tr>{isSuperadmin && <th></th>}<th>Descrição</th><th>Categoria</th><th>Parcela</th><th>Valor</th>{canEdit && <th></th>}</tr></thead>
+        <thead><tr><th>Descrição</th><th>Categoria</th><th>Parcela</th><th>Valor</th>{canEdit && <th></th>}</tr></thead>
         <tbody>
           {filtered.length ? paginated.map(r => (
             <tr key={r.id}>
-              {isSuperadmin && <td>{r.installment_purchase_id && <input type="checkbox" checked={selectedPurchases.has(r.installment_purchase_id)} onChange={() => toggleSelectPurchase(r.installment_purchase_id!)} aria-label={`Selecionar parcelamento ${r.description}`} />}</td>}
               <td>{r.description}</td>
               <td>{categories.find(c => c.id === r.category)?.label ?? '-'}</td>
               <td>{r.current_installment && r.total_installments ? `${r.current_installment}/${r.total_installments}` : '-'}</td>
@@ -166,7 +155,7 @@ export default function CardsTable({ cards, cardsList, categories, month, canUpd
                 </td>
               )}
             </tr>
-          )) : <tr><td colSpan={(canEdit ? 5 : 4) + (isSuperadmin ? 1 : 0)} className="empty">Nenhum lançamento</td></tr>}
+          )) : <tr><td colSpan={canEdit ? 5 : 4} className="empty">Nenhum lançamento</td></tr>}
         </tbody>
       </table>}
 
@@ -190,17 +179,6 @@ export default function CardsTable({ cards, cardsList, categories, month, canUpd
           cardsList={cardsList}
           categories={categories}
           onClose={() => setEditing(null)}
-        />
-      )}
-
-      {showMigrate && activeAccountId && (
-        <MigrateModal
-          accounts={accounts}
-          currentAccountId={activeAccountId}
-          count={selectedPurchases.size}
-          label="parcelamento"
-          onClose={() => setShowMigrate(false)}
-          onConfirm={targetId => { migrateInstallments.mutate({ ids: [...selectedPurchases], targetAccountId: targetId }); setSelectedPurchases(new Set()); setShowMigrate(false) }}
         />
       )}
     </section>

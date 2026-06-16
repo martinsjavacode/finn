@@ -16,7 +16,7 @@ import { TableSkeleton } from '../ui/Skeleton'
 interface CardInfo { id: string; name: string; label: string; credit_limit: number; closing_day: number; due_day: number; closing_rule: ClosingRule; days_before_due: number; color: string; active: boolean }
 
 export default function CardsPage() {
-  const { can } = useAuth()
+  const { can, activeAccountId } = useAuth()
   const queryClient = useQueryClient()
   const canCreate = can('cards', 'create')
   const canUpdate = can('cards', 'update')
@@ -33,11 +33,12 @@ export default function CardsPage() {
   const [daysBeforeDue, setDaysBeforeDue] = useState(7)
 
   const { data: cards = [], isLoading } = useQuery<CardInfo[]>({
-    queryKey: ['cards-page'],
-    queryFn: async () => (await supabase.from('cards').select('*').order('label')).data as CardInfo[] ?? [],
+    queryKey: ['cards-page', activeAccountId],
+    queryFn: async () => (await supabase.from('cards').select('*').eq('account_id', activeAccountId!).order('label')).data as CardInfo[] ?? [],
+    enabled: !!activeAccountId,
   })
 
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: ['cards-page'] })
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: ['cards-page', activeAccountId] })
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -45,7 +46,7 @@ export default function CardsPage() {
         const { error } = await supabase.from('cards').update({ label, credit_limit: +limit, closing_day: closingDay, due_day: dueDay, color, closing_rule: ruleType, days_before_due: daysBeforeDue }).eq('id', editingId)
         if (error) throw error
       } else {
-        const { error } = await supabase.from('cards').insert({ name: name.toLowerCase().replace(/\s+/g, '_'), label, credit_limit: +limit, closing_day: closingDay, due_day: dueDay, color, active: true, closing_rule: ruleType, days_before_due: daysBeforeDue })
+        const { error } = await supabase.from('cards').insert({ name: name.toLowerCase().replace(/\s+/g, '_'), label, credit_limit: +limit, closing_day: closingDay, due_day: dueDay, color, active: true, closing_rule: ruleType, days_before_due: daysBeforeDue, account_id: activeAccountId! })
         if (error) throw error
       }
     },

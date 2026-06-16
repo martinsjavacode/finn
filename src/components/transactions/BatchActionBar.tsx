@@ -27,7 +27,7 @@ export default function BatchActionBar({
 
   return (
     <div
-      className="fixed bottom-0 left-0 w-full"
+      className="batch-action-bar"
       style={{
         position: 'fixed',
         bottom: 0,
