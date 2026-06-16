@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import type { Transaction } from '../../types/database'
-import { fetchAllTransactions, fetchTransactions } from '../../services/transactions'
+import { fetchAllTransactions, fetchTransactions, fetchCreditCards, fetchCardInvoice } from '../../services/transactions'
 import { fetchBudgets } from '../../services/categories'
 import { useAppData, useAuth } from '../../hooks'
 import { fmt } from '../../utils/format'
@@ -15,7 +15,7 @@ interface MonthData { month: string; income: number; expense: number }
 
 export default function Dashboard() {
   const { activeAccountId } = useAuth()
-  const { categories } = useAppData(true)
+  const { categories, cardsList } = useAppData(true, activeAccountId)
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date()
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
@@ -54,6 +54,30 @@ export default function Dashboard() {
     enabled: !!selectedMonth && !!activeAccountId,
   })
 
+  const { data: cardEntries = [] } = useQuery<Transaction[]>({
+    queryKey: ['dashboard-cards', selectedMonth, activeAccountId],
+    queryFn: async () => { const { data, error } = await fetchCreditCards(selectedMonth, activeAccountId!); if (error) throw error; return data },
+    enabled: !!selectedMonth && !!activeAccountId,
+  })
+
+  const { data: pendingCards = [] } = useQuery({
+    queryKey: ['dashboard-card-invoices', selectedMonth, activeAccountId, cardEntries],
+    queryFn: async () => {
+      const byCard: Record<string, number> = {}
+      for (const e of cardEntries) { byCard[e.card!] = (byCard[e.card!] || 0) + +e.amount }
+      const results: { card: string; label: string; total: number; paid: number; dueDay: number }[] = []
+      for (const [cardName, total] of Object.entries(byCard)) {
+        const paid = await fetchCardInvoice(cardName, selectedMonth)
+        if (paid < total) {
+          const info = cardsList.find(c => c.name === cardName)
+          results.push({ card: cardName, label: info?.label ?? cardName, total, paid, dueDay: info?.due_day ?? 1 })
+        }
+      }
+      return results
+    },
+    enabled: cardEntries.length > 0 && cardsList.length > 0,
+  })
+
   const maxValue = useMemo(() => Math.max(...monthsData.flatMap(d => [d.income, d.expense]), 1), [monthsData])
   const trend = useMemo(() => monthsData.map((_, i) => {
     const slice = monthsData.slice(Math.max(0, i - 2), i + 1)
@@ -63,12 +87,13 @@ export default function Dashboard() {
   const { expenses, totalIncome, totalExpense, balance, catData, paidPercent, paidCount, totalCount } = useMemo(() => {
     const exp = currentTransactions.filter(r => r.type === 'expense')
     const inc = currentTransactions.filter(r => r.type === 'income').reduce((s, r) => s + +r.amount, 0)
-    const expTotal = exp.reduce((s, r) => s + +r.amount, 0)
+    const expTotal = exp.reduce((s, r) => s + +r.amount, 0) + cardEntries.reduce((s, r) => s + +r.amount, 0)
     const byCat: Record<string, number> = {}
     for (const r of exp) { byCat[r.categories?.label ?? 'Outros'] = (byCat[r.categories?.label ?? 'Outros'] || 0) + +r.amount }
+    for (const r of cardEntries) { byCat[r.categories?.label ?? 'Outros'] = (byCat[r.categories?.label ?? 'Outros'] || 0) + +r.amount }
     const tCount = exp.length, pCount = exp.filter(r => r.paid).length
     return { expenses: exp, totalIncome: inc, totalExpense: expTotal, balance: inc - expTotal, catData: Object.entries(byCat).sort((a, b) => b[1] - a[1]), paidPercent: tCount > 0 ? Math.round((pCount / tCount) * 100) : 0, paidCount: pCount, totalCount: tCount }
-  }, [currentTransactions])
+  }, [currentTransactions, cardEntries])
 
   if (isLoading) return <div><h2 className="dashboard-title">Dashboard</h2><ChartSkeleton /><CardsSkeleton /></div>
 
@@ -120,26 +145,31 @@ export default function Dashboard() {
 
       {(() => {
         const today = new Date()
-        const unpaid = currentTransactions.filter(r => r.type === 'expense' && !r.paid).sort((a, b) => a.month.localeCompare(b.month))
-        if (!unpaid.length) return currentTransactions.length ? (
+        const [year, month] = selectedMonth.split('-').map(Number)
+        const unpaidItems = currentTransactions.filter(r => r.type === 'expense' && !r.paid).map(r => {
+          const d = new Date(r.month + 'T12:00:00')
+          return { key: r.id, date: d, description: r.description, amount: +r.amount, overdue: d < today }
+        })
+        const cardItems = pendingCards.map(c => {
+          const dueDate = new Date(year, month - 1, c.dueDay)
+          return { key: `card-${c.card}`, date: dueDate, description: `💳 ${c.label}`, amount: c.total - c.paid, overdue: dueDate < today }
+        })
+        const allItems = [...unpaidItems, ...cardItems].sort((a, b) => a.date.getTime() - b.date.getTime())
+        if (!allItems.length) return currentTransactions.length ? (
           <section><p className="empty" style={{ color: 'var(--green)' }}>✅ Todas as contas estão em dia!</p></section>
         ) : null
         return (
           <section className="alerts-section">
             <h2>⚠️ Contas Pendentes</h2>
             <div className="alerts-list">
-              {unpaid.map(r => {
-                const d = new Date(r.month + 'T12:00:00')
-                const overdue = d < today
-                return (
-                  <div key={r.id} className={`alert-item ${overdue ? 'alert-overdue' : ''}`}>
-                    <span className="alert-date">{d.toLocaleDateString('pt-BR')}</span>
-                    <span className="alert-desc">{r.description}</span>
-                    <span className="alert-amount">{fmt(+r.amount)}</span>
-                    {overdue && <span className="alert-badge">Atrasado</span>}
-                  </div>
-                )
-              })}
+              {allItems.map(item => (
+                <div key={item.key} className={`alert-item ${item.overdue ? 'alert-overdue' : ''}`}>
+                  <span className="alert-date">{item.date.toLocaleDateString('pt-BR')}</span>
+                  <span className="alert-desc">{item.description}</span>
+                  <span className="alert-amount">{fmt(item.amount)}</span>
+                  {item.overdue && <span className="alert-badge">Atrasado</span>}
+                </div>
+              ))}
             </div>
           </section>
         )
