@@ -19,7 +19,7 @@ interface Template { id: string; description: string; amount: number; type: stri
 
 export default function RecurringPage() {
   const { can, activeAccountId } = useAuth()
-  const { categories, cardsList } = useAppData(true)
+  const { categories, cardsList } = useAppData(true, activeAccountId)
   const isMobile = useIsMobile()
   const queryClient = useQueryClient()
   const canCreate = can('recurring_templates', 'create')
