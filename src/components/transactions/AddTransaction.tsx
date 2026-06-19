@@ -29,11 +29,15 @@ export default function AddTransaction({ categories, cardsList, month, accountId
   const [card, setCard] = useState(cardsList[0]?.name ?? '')
   const [installment, setInstallment] = useState(false)
   const [installments, setInstallments] = useState('2')
+  const [valueMode, setValueMode] = useState<'total' | 'per_installment'>('total')
 
   const toggleInstallment = () => {
     setInstallment(!installment)
     if (!installment) setType('expense')
   }
+
+  const totalAmount = valueMode === 'total' ? +amount : +amount * +installments
+  const perInstallment = valueMode === 'total' ? +amount / +installments : +amount
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -44,7 +48,7 @@ export default function AddTransaction({ categories, cardsList, month, accountId
       const { error } = await supabase.from('installment_purchases').insert({
         start_month: resolvedMonth,
         description,
-        total_amount: +amount,
+        total_amount: totalAmount,
         installments: +installments,
         account_id: accountId,
         target,
@@ -69,15 +73,6 @@ export default function AddTransaction({ categories, cardsList, month, accountId
       <label className="form-label">Descrição
         <input type="text" placeholder="Ex: Aluguel, Netflix..." value={description} onChange={e => setDescription(e.target.value)} required />
       </label>
-
-      <div className="form-row">
-        <label className="form-label form-grow">Valor (R$)
-          <input type="number" step="0.01" placeholder="0.00" value={amount} onChange={e => setAmount(e.target.value)} required />
-        </label>
-        <label className="form-label">Data
-          <input type="date" value={txDate} onChange={e => setTxDate(e.target.value)} required />
-        </label>
-      </div>
 
       <div className="form-divider" />
 
@@ -107,13 +102,6 @@ export default function AddTransaction({ categories, cardsList, month, accountId
         )}
       </div>
 
-      {target === 'credit_card' && txDate && card && (
-        <div className="form-preview">
-          <span>Fatura de</span>
-          <strong>{monthLabel(resolveInvoiceMonth(txDate, cardsList.find(c => c.name === card)!))}</strong>
-        </div>
-      )}
-
       <div className="form-row" style={{ alignItems: 'flex-end' }}>
         <div className="form-toggle-group">
           <span className="form-label">Parcelado</span>
@@ -126,10 +114,39 @@ export default function AddTransaction({ categories, cardsList, month, accountId
         </label>
       </div>
 
+      {installment && (
+        <div className="form-tabs">
+          <button type="button" className={`form-toggle-btn ${valueMode === 'total' ? 'active' : ''}`} onClick={() => setValueMode('total')}>Valor total</button>
+          <button type="button" className={`form-toggle-btn ${valueMode === 'per_installment' ? 'active' : ''}`} onClick={() => setValueMode('per_installment')}>Valor da parcela</button>
+        </div>
+      )}
+
+      <div className="form-divider" />
+
+      <div className="form-row">
+        <label className="form-label form-grow">
+          {installment ? (valueMode === 'total' ? 'Valor total (R$)' : 'Valor da parcela (R$)') : 'Valor (R$)'}
+          <input type="number" step="0.01" placeholder="0.00" value={amount} onChange={e => setAmount(e.target.value)} required />
+        </label>
+        <label className="form-label">Data
+          <input type="date" value={txDate} onChange={e => setTxDate(e.target.value)} required />
+        </label>
+      </div>
+
+      {target === 'credit_card' && txDate && card && (
+        <div className="form-preview">
+          <span>Fatura de</span>
+          <strong>{monthLabel(resolveInvoiceMonth(txDate, cardsList.find(c => c.name === card)!))}</strong>
+        </div>
+      )}
+
       {installment && +amount > 0 && +installments >= 2 && (
         <div className="form-preview">
-          <span>{installments}× de</span>
-          <strong>R$ {(+amount / +installments).toFixed(2)}</strong>
+          {valueMode === 'total' ? (
+            <><span>{installments}× de</span><strong>R$ {perInstallment.toFixed(2)}</strong></>
+          ) : (
+            <><span>Total:</span><strong>R$ {totalAmount.toFixed(2)}</strong><span>({installments}× de R$ {perInstallment.toFixed(2)})</span></>
+          )}
         </div>
       )}
 
