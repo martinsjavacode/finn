@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.6](https://github.com/martinsjavacode/finn/compare/v0.1.5...v0.1.6) (2026-06-16)
+
+
+### Features
+
+* **dashboard:** add credit card invoices to pending bills section ([1aff338](https://github.com/martinsjavacode/finn/commit/1aff338461078be4ae4d99207ecb3a24d979939c))
+
+
+### Bug Fixes
+
+* **cards:** pass accountId to useAppData for cardsList query ([ef3a054](https://github.com/martinsjavacode/finn/commit/ef3a05409f126a5439851d1e9adb4222abb7f927))
+
 ## [0.1.5](https://github.com/martinsjavacode/finn/compare/v0.1.4...v0.1.5) (2026-06-16)
 
 
