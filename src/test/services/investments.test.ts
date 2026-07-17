@@ -11,7 +11,7 @@ describe('investments service', () => {
   })
 
   it('fetchInvestmentTransactions queries by investment_id', async () => {
-    await fetchInvestmentTransactions('inv-1')
+    await fetchInvestmentTransactions('inv-1', 'acc-1')
     expect(supabase.from).toHaveBeenCalledWith('investment_transactions')
   })
 
@@ -21,12 +21,12 @@ describe('investments service', () => {
   })
 
   it('updateInvestment calls update with id', async () => {
-    await updateInvestment('inv-1', { name: 'CDB 2' })
+    await updateInvestment('inv-1', 'acc-1', { name: 'CDB 2' })
     expect(supabase.from).toHaveBeenCalledWith('investments')
   })
 
   it('deleteInvestment calls delete with id', async () => {
-    await deleteInvestment('inv-1')
+    await deleteInvestment('inv-1', 'acc-1')
     expect(supabase.from).toHaveBeenCalledWith('investments')
   })
 

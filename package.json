@@ -1,7 +1,7 @@
 {
   "name": "finn",
   "private": true,
-  "version": "0.1.6",
+  "version": "0.1.7",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -14,7 +14,15 @@
     "test:coverage": "vitest run --coverage",
     "commit": "cz",
     "release": "commit-and-tag-version",
-    "prepare": "husky"
+    "prepare": "husky",
+    "db:start": "npx supabase start",
+    "db:stop": "npx supabase stop",
+    "db:reset": "npx supabase db reset",
+    "db:status": "npx supabase status",
+    "db:push": "npx supabase db push",
+    "db:migration:new": "npx supabase migration new",
+    "db:migration:list": "npx supabase migration list",
+    "db:diff": "npx supabase db diff"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.106.1",
@@ -47,7 +55,7 @@
     "husky": "9.1.7",
     "jsdom": "^26.1.0",
     "lint-staged": "17.0.5",
-    "supabase": "^2.101.0",
+    "supabase": "^2.109.1",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.59.2",
     "vite": "^8.0.12",

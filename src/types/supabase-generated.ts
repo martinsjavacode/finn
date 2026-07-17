@@ -640,6 +640,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_email_authorized: {
+        Args: { p_email: string }
+        Returns: boolean
+      }
       generate_recurring: {
         Args: { p_account_id: string; target_month: string }
         Returns: undefined
