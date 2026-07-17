@@ -37,10 +37,20 @@ Acesse `http://localhost:5173/finn/`
 ## Setup inicial (Supabase)
 
 1. Rode todas as migrations em ordem no SQL Editor
-2. Cadastre o owner na tabela `users`:
+2. Cadastre o owner (primeiro usuário):
 ```sql
-INSERT INTO users (email, display_name, role_id, activated)
-VALUES ('seu@email.com', 'Seu Nome', (SELECT id FROM roles WHERE name = 'owner'), false);
+-- Criar o usuário
+INSERT INTO users (email, display_name, is_superadmin, activated)
+VALUES ('seu@email.com', 'Seu Nome', true, false);
+
+-- Vincular como owner de todas as contas
+INSERT INTO account_members (account_id, user_id, role_id)
+SELECT a.id, u.id, r.id
+FROM accounts a
+CROSS JOIN users u
+CROSS JOIN roles r
+WHERE u.email = 'seu@email.com'
+  AND r.name = 'owner';
 ```
 3. Acesse o app e crie sua conta (tela de login → "Criar conta")
 

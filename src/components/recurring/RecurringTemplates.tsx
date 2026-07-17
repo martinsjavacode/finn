@@ -53,7 +53,7 @@ export default function RecurringPage() {
     mutationFn: async () => {
       const payload = { description, amount: +amount, type, target, category: category || null, card: target === 'credit_card' ? card : null, account_id: activeAccountId!, day }
       if (editingId) {
-        const { error } = await supabase.from('recurring_templates').update(payload).eq('id', editingId); if (error) throw error
+        const { error } = await supabase.from('recurring_templates').update(payload).eq('id', editingId).eq('account_id', activeAccountId!); if (error) throw error
       } else {
         const { error } = await supabase.from('recurring_templates').insert({ ...payload, active: true }); if (error) throw error
       }
@@ -63,13 +63,13 @@ export default function RecurringPage() {
   })
 
   const toggleMutation = useMutation({
-    mutationFn: async ({ id, active }: { id: string; active: boolean }) => { const { error } = await supabase.from('recurring_templates').update({ active: !active }).eq('id', id); if (error) throw error },
+    mutationFn: async ({ id, active }: { id: string; active: boolean }) => { const { error } = await supabase.from('recurring_templates').update({ active: !active }).eq('id', id).eq('account_id', activeAccountId!); if (error) throw error },
     onSuccess: () => invalidate(),
     onError: (e) => showError(e),
   })
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: string) => { const { error } = await supabase.from('recurring_templates').delete().eq('id', id); if (error) throw error },
+    mutationFn: async (id: string) => { const { error } = await supabase.from('recurring_templates').delete().eq('id', id).eq('account_id', activeAccountId!); if (error) throw error },
     onSuccess: () => { invalidate(); toast('Template excluído') },
     onError: (e) => showError(e),
   })

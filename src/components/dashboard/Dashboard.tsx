@@ -67,7 +67,7 @@ export default function Dashboard() {
       for (const e of cardEntries) { byCard[e.card!] = (byCard[e.card!] || 0) + +e.amount }
       const results: { card: string; label: string; total: number; paid: number; dueDay: number }[] = []
       for (const [cardName, total] of Object.entries(byCard)) {
-        const paid = await fetchCardInvoice(cardName, selectedMonth)
+        const paid = await fetchCardInvoice(cardName, selectedMonth, activeAccountId!)
         if (paid < total) {
           const info = cardsList.find(c => c.name === cardName)
           results.push({ card: cardName, label: info?.label ?? cardName, total, paid, dueDay: info?.due_day ?? 1 })

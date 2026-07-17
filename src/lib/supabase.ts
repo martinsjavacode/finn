@@ -2,8 +2,10 @@ import { createClient } from '@supabase/supabase-js'
 import type { Database } from '../types/supabase-generated'
 
 const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-const payload = JSON.parse(atob(anonKey.split('.')[1]))
-const ref = payload.ref ?? payload.iss?.split('//')[1]?.split('.')[0]
-const url = `https://${ref}.supabase.co`
+const url = import.meta.env.VITE_SUPABASE_URL
+
+if (!url || !anonKey) {
+  throw new Error('Variáveis VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY são obrigatórias no .env')
+}
 
 export const supabase = createClient<Database>(url, anonKey)

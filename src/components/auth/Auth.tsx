@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
-import { Eye, EyeOff, Github } from 'lucide-react'
+import { Eye, EyeOff } from 'lucide-react'
 import './Auth.css'
 
 export default function Auth() {
@@ -32,7 +32,7 @@ export default function Auth() {
     setSuccess('')
 
     // Verifica se email está autorizado
-    const { data } = await supabase.from('users').select('id').eq('email', email).single()
+    const { data } = await supabase.rpc('check_email_authorized', { p_email: email })
     if (!data) { setError('Email não autorizado. Solicite acesso ao administrador.'); setLoading(false); return }
 
     const { error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin + '/finn/' } })
@@ -43,10 +43,6 @@ export default function Auth() {
     if (loginError) setError(loginError.message)
     else navigate('/', { replace: true })
     setLoading(false)
-  }
-
-  const handleGitHub = () => {
-    supabase.auth.signInWithOAuth({ provider: 'github', options: { redirectTo: window.location.origin + '/finn/' } })
   }
 
   return (
@@ -74,11 +70,6 @@ export default function Auth() {
           {success && <p className="auth-success">{success}</p>}
           <button type="submit" className="auth-btn-primary" disabled={loading}>
             {loading ? 'Aguarde...' : mode === 'login' ? 'Entrar' : 'Criar conta'}
-          </button>
-          <div className="auth-divider"><span>ou</span></div>
-          <button type="button" className="auth-btn-github" onClick={handleGitHub}>
-            <Github size={18} />
-            {mode === 'login' ? 'Entrar com GitHub' : 'Cadastrar com GitHub'}
           </button>
         </form>
         <button type="button" className="auth-btn-link" onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError(''); setSuccess('') }}>

@@ -9,6 +9,7 @@ describe('transactions service', () => {
     it('queries entries com range correto do mês', async () => {
       const mockChain = {
         select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
         neq: vi.fn().mockReturnThis(),
         gte: vi.fn().mockReturnThis(),
         lt: vi.fn().mockReturnThis(),
@@ -17,8 +18,9 @@ describe('transactions service', () => {
       }
       vi.mocked(supabase.from).mockReturnValue(mockChain as never)
 
-      const result = await fetchTransactions('2026-03')
+      const result = await fetchTransactions('2026-03', 'acc-1')
       expect(supabase.from).toHaveBeenCalledWith('entries')
+      expect(mockChain.eq).toHaveBeenCalledWith('account_id', 'acc-1')
       expect(mockChain.neq).toHaveBeenCalledWith('payment_method', 'credit_card')
       expect(mockChain.gte).toHaveBeenCalledWith('month', '2026-03-01')
       expect(mockChain.lt).toHaveBeenCalledWith('month', '2026-04-01')
@@ -28,6 +30,7 @@ describe('transactions service', () => {
     it('retorna array vazio quando data é null', async () => {
       const mockChain = {
         select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
         neq: vi.fn().mockReturnThis(),
         gte: vi.fn().mockReturnThis(),
         lt: vi.fn().mockReturnThis(),
@@ -36,7 +39,7 @@ describe('transactions service', () => {
       }
       vi.mocked(supabase.from).mockReturnValue(mockChain as never)
 
-      const result = await fetchTransactions('2026-03')
+      const result = await fetchTransactions('2026-03', 'acc-1')
       expect(result.data).toEqual([])
     })
   })
@@ -53,7 +56,7 @@ describe('transactions service', () => {
       }
       vi.mocked(supabase.from).mockReturnValue(mockChain as never)
 
-      await fetchCreditCards('2026-12')
+      await fetchCreditCards('2026-12', 'acc-1')
       expect(supabase.from).toHaveBeenCalledWith('entries')
       expect(mockChain.eq).toHaveBeenCalledWith('payment_method', 'credit_card')
     })
@@ -63,12 +66,13 @@ describe('transactions service', () => {
     it('retorna meses únicos ordenados', async () => {
       const mockChain = {
         select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
         order: vi.fn().mockReturnThis(),
         then: vi.fn().mockImplementation(cb => cb({ data: [{ month: '2026-03-15' }, { month: '2026-01-10' }, { month: '2026-03-20' }], error: null })),
       }
       vi.mocked(supabase.from).mockReturnValue(mockChain as never)
 
-      const result = await fetchAvailableMonths()
+      const result = await fetchAvailableMonths('acc-1')
       expect(supabase.from).toHaveBeenCalledWith('entries')
       expect(result).toEqual(['2026-01', '2026-03'])
     })
@@ -78,13 +82,16 @@ describe('transactions service', () => {
     it('inverte o status paid', async () => {
       const mockChain = {
         update: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockResolvedValue({ error: null }),
+        eq: vi.fn().mockReturnThis(),
+        then: vi.fn().mockImplementation(cb => cb({ error: null })),
       }
       vi.mocked(supabase.from).mockReturnValue(mockChain as never)
 
-      await toggleTransactionPaid('abc', true)
+      await toggleTransactionPaid('abc', 'acc-1', true)
       expect(supabase.from).toHaveBeenCalledWith('entries')
       expect(mockChain.update).toHaveBeenCalledWith({ paid: false })
+      expect(mockChain.eq).toHaveBeenCalledWith('id', 'abc')
+      expect(mockChain.eq).toHaveBeenCalledWith('account_id', 'acc-1')
     })
   })
 })
@@ -113,23 +120,25 @@ describe('transactions service', () => {
 
   describe('updateTransaction', () => {
     it('atualiza entry por id', async () => {
-      const mockChain = { update: vi.fn().mockReturnThis(), eq: vi.fn().mockResolvedValue({ error: null }) }
+      const mockChain = { update: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), then: vi.fn().mockImplementation(cb => cb({ error: null })) }
       vi.mocked(supabase.from).mockReturnValue(mockChain as never)
 
-      await updateTransaction('t1', { description: 'Novo', amount: 100 })
+      await updateTransaction('t1', 'acc-1', { description: 'Novo', amount: 100 })
       expect(mockChain.update).toHaveBeenCalledWith(expect.objectContaining({ description: 'Novo', amount: 100 }))
       expect(mockChain.eq).toHaveBeenCalledWith('id', 't1')
+      expect(mockChain.eq).toHaveBeenCalledWith('account_id', 'acc-1')
     })
   })
 
   describe('deleteTransaction', () => {
     it('deleta entry por id', async () => {
-      const mockChain = { delete: vi.fn().mockReturnThis(), eq: vi.fn().mockResolvedValue({ error: null }) }
+      const mockChain = { delete: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), then: vi.fn().mockImplementation(cb => cb({ error: null })) }
       vi.mocked(supabase.from).mockReturnValue(mockChain as never)
 
-      await deleteTransaction('t1')
+      await deleteTransaction('t1', 'acc-1')
       expect(supabase.from).toHaveBeenCalledWith('entries')
       expect(mockChain.eq).toHaveBeenCalledWith('id', 't1')
+      expect(mockChain.eq).toHaveBeenCalledWith('account_id', 'acc-1')
     })
   })
 
@@ -138,8 +147,9 @@ describe('transactions service', () => {
       const { fetchAllTransactions } = await import('../../services/transactions')
       const mockChain = {
         select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
         order: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockResolvedValue({ data: [{ month: '2026-05-01', amount: 100, type: 'expense' }], error: null }),
+        then: vi.fn().mockImplementation(cb => cb({ data: [{ month: '2026-05-01', amount: 100, type: 'expense' }], error: null })),
       }
       vi.mocked(supabase.from).mockReturnValue(mockChain as never)
       const { data } = await fetchAllTransactions('acc-1')
@@ -161,13 +171,14 @@ describe('transactions service', () => {
 
   describe('batchMarkTransactionsPaid', () => {
     it('atualiza múltiplos entries como pagos', async () => {
-      const mockChain = { update: vi.fn().mockReturnThis(), in: vi.fn().mockResolvedValue({ error: null }) }
+      const mockChain = { update: vi.fn().mockReturnThis(), in: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), then: vi.fn().mockImplementation(cb => cb({ error: null })) }
       vi.mocked(supabase.from).mockReturnValue(mockChain as never)
 
-      const { error } = await batchMarkTransactionsPaid(['t1', 't2', 't3'])
+      const { error } = await batchMarkTransactionsPaid(['t1', 't2', 't3'], 'acc-1')
       expect(error).toBeNull()
       expect(supabase.from).toHaveBeenCalledWith('entries')
       expect(mockChain.update).toHaveBeenCalledWith({ paid: true })
       expect(mockChain.in).toHaveBeenCalledWith('id', ['t1', 't2', 't3'])
+      expect(mockChain.eq).toHaveBeenCalledWith('account_id', 'acc-1')
     })
   })
