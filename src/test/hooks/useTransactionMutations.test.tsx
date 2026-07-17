@@ -13,10 +13,14 @@ vi.mock('../../services/transactions', () => ({
 }))
 
 vi.mock('../../lib/supabase', () => ({
-  supabase: { from: vi.fn().mockReturnValue({ delete: vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) }) }) },
+  supabase: { from: vi.fn().mockReturnValue({ delete: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) }) }) }) },
 }))
 
 vi.mock('../../lib/toast', () => ({ toast: vi.fn(), showError: vi.fn() }))
+
+vi.mock('../../hooks/index', () => ({
+  useAuth: () => ({ activeAccountId: 'test-account-id' }),
+}))
 
 import { useTransactionMutations } from '../../hooks/useTransactionMutations'
 import { insertTransaction, insertCreditCard, updateTransaction, deleteTransaction, toggleTransactionPaid } from '../../services/transactions'
@@ -45,26 +49,26 @@ describe('useTransactionMutations', () => {
   it('editTransaction chama updateTransaction', async () => {
     const { result } = renderHook(() => useTransactionMutations('2026-05'), { wrapper })
     act(() => { result.current.editTransaction.mutate({ id: 't1', data: { description: 'Novo' } }) })
-    await waitFor(() => expect(updateTransaction).toHaveBeenCalledWith('t1', { description: 'Novo' }))
+    await waitFor(() => expect(updateTransaction).toHaveBeenCalledWith('t1', 'test-account-id', { description: 'Novo' }))
   })
 
   it('removeTransaction chama deleteTransaction', async () => {
     const { result } = renderHook(() => useTransactionMutations('2026-05'), { wrapper })
     act(() => { result.current.removeTransaction.mutate('t1') })
-    await waitFor(() => expect(deleteTransaction).toHaveBeenCalledWith('t1'))
+    await waitFor(() => expect(deleteTransaction).toHaveBeenCalledWith('t1', 'test-account-id'))
   })
 
   it('togglePaid chama toggleTransactionPaid', async () => {
     const { result } = renderHook(() => useTransactionMutations('2026-05'), { wrapper })
     act(() => { result.current.togglePaid.mutate({ id: 't1', paid: true }) })
-    await waitFor(() => expect(toggleTransactionPaid).toHaveBeenCalledWith('t1', true))
+    await waitFor(() => expect(toggleTransactionPaid).toHaveBeenCalledWith('t1', 'test-account-id', true))
   })
 
   it('batchMarkPaid chama batchMarkTransactionsPaid e toast com contagem', async () => {
     const { batchMarkTransactionsPaid } = await import('../../services/transactions')
     const { result } = renderHook(() => useTransactionMutations('2026-05'), { wrapper })
     act(() => { result.current.batchMarkPaid.mutate(['t1', 't2', 't3']) })
-    await waitFor(() => expect(batchMarkTransactionsPaid).toHaveBeenCalledWith(['t1', 't2', 't3']))
+    await waitFor(() => expect(batchMarkTransactionsPaid).toHaveBeenCalledWith(['t1', 't2', 't3'], 'test-account-id'))
     expect(toast).toHaveBeenCalledWith('3 lançamentos pagos')
   })
 

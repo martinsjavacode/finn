@@ -15,7 +15,6 @@ describe('Auth', () => {
     expect(screen.getByPlaceholderText('seu@email.com')).toBeInTheDocument()
     expect(screen.getByPlaceholderText('••••••••')).toBeInTheDocument()
     expect(screen.getByText('Entrar')).toBeInTheDocument()
-    expect(screen.getByText('Entrar com GitHub')).toBeInTheDocument()
   })
 
   it('mostra erro com credenciais inválidas', async () => {

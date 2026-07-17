@@ -52,7 +52,7 @@ export default function InvestmentsPage() {
 
   const { data: transactions = [] } = useQuery<InvestmentTransaction[]>({
     queryKey: ['investment-tx', showTx?.id],
-    queryFn: async () => (await fetchInvestmentTransactions(showTx!.id)).data,
+    queryFn: async () => (await fetchInvestmentTransactions(showTx!.id, activeAccountId!)).data,
     enabled: !!showTx,
   })
 
@@ -62,7 +62,7 @@ export default function InvestmentsPage() {
     mutationFn: async () => {
       const payload = { name, type, broker: broker || null, maturity_date: maturity || null, active: true, account_id: activeAccountId! }
       if (editingId) {
-        const { error } = await updateInvestment(editingId, payload); if (error) throw error
+        const { error } = await updateInvestment(editingId, activeAccountId!, payload); if (error) throw error
       } else {
         const { error } = await supabase.from('investments').insert({ ...payload, current_balance: 0, invested_total: 0 })
         if (error) throw error
@@ -82,7 +82,7 @@ export default function InvestmentsPage() {
   })
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: string) => { const { error } = await deleteInvestment(id); if (error) throw error },
+    mutationFn: async (id: string) => { const { error } = await deleteInvestment(id, activeAccountId!); if (error) throw error },
     onSuccess: () => { invalidate(); toast('Investimento excluído') },
     onError: (e) => showError(e),
   })

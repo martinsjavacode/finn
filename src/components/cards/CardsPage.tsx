@@ -43,7 +43,7 @@ export default function CardsPage() {
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (editingId) {
-        const { error } = await supabase.from('cards').update({ label, credit_limit: +limit, closing_day: closingDay, due_day: dueDay, color, closing_rule: ruleType, days_before_due: daysBeforeDue }).eq('id', editingId)
+        const { error } = await supabase.from('cards').update({ label, credit_limit: +limit, closing_day: closingDay, due_day: dueDay, color, closing_rule: ruleType, days_before_due: daysBeforeDue }).eq('id', editingId).eq('account_id', activeAccountId!)
         if (error) throw error
       } else {
         const { error } = await supabase.from('cards').insert({ name: name.toLowerCase().replace(/\s+/g, '_'), label, credit_limit: +limit, closing_day: closingDay, due_day: dueDay, color, active: true, closing_rule: ruleType, days_before_due: daysBeforeDue, account_id: activeAccountId! })
@@ -55,13 +55,13 @@ export default function CardsPage() {
   })
 
   const toggleMutation = useMutation({
-    mutationFn: async ({ id, active }: { id: string; active: boolean }) => { const { error } = await supabase.from('cards').update({ active: !active }).eq('id', id); if (error) throw error },
+    mutationFn: async ({ id, active }: { id: string; active: boolean }) => { const { error } = await supabase.from('cards').update({ active: !active }).eq('id', id).eq('account_id', activeAccountId!); if (error) throw error },
     onSuccess: () => invalidate(),
     onError: (e) => showError(e),
   })
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: string) => { const { error } = await supabase.from('cards').delete().eq('id', id); if (error) throw error },
+    mutationFn: async (id: string) => { const { error } = await supabase.from('cards').delete().eq('id', id).eq('account_id', activeAccountId!); if (error) throw error },
     onSuccess: () => { invalidate(); toast('Cartão excluído') },
     onError: (e) => showError(e),
   })

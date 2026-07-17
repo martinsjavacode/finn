@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { insertTransaction, insertCreditCard, updateTransaction, deleteTransaction, toggleTransactionPaid, batchMarkTransactionsPaid } from '../services/transactions'
 import { showError, toast } from '../lib/toast'
+import { useAuth } from './index'
 
 function throwOnError<T extends { error: unknown }>(result: T) {
   if (result.error) throw result.error
@@ -10,6 +11,9 @@ function throwOnError<T extends { error: unknown }>(result: T) {
 
 export function useTransactionMutations(month: string) {
   const queryClient = useQueryClient()
+  const { activeAccountId } = useAuth()
+  const accountId = activeAccountId!
+
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ['transactions', month] })
     queryClient.invalidateQueries({ queryKey: ['creditCards', month] })
@@ -29,31 +33,31 @@ export function useTransactionMutations(month: string) {
   })
 
   const editTransaction = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Parameters<typeof updateTransaction>[1] }) => throwOnError(await updateTransaction(id, data)),
+    mutationFn: async ({ id, data }: { id: string; data: Partial<Parameters<typeof updateTransaction>[2]> }) => throwOnError(await updateTransaction(id, accountId, data)),
     onSuccess: () => invalidate(),
     onError: (e) => showError(e),
   })
 
   const removeTransaction = useMutation({
-    mutationFn: async (id: string) => throwOnError(await deleteTransaction(id)),
+    mutationFn: async (id: string) => throwOnError(await deleteTransaction(id, accountId)),
     onSuccess: () => invalidate(),
     onError: (e) => showError(e),
   })
 
   const removeCreditCard = useMutation({
-    mutationFn: async (id: string) => throwOnError(await deleteTransaction(id)),
+    mutationFn: async (id: string) => throwOnError(await deleteTransaction(id, accountId)),
     onSuccess: () => invalidate(),
     onError: (e) => showError(e),
   })
 
   const togglePaid = useMutation({
-    mutationFn: async ({ id, paid }: { id: string; paid: boolean }) => throwOnError(await toggleTransactionPaid(id, paid)),
+    mutationFn: async ({ id, paid }: { id: string; paid: boolean }) => throwOnError(await toggleTransactionPaid(id, accountId, paid)),
     onSuccess: () => invalidate(),
     onError: (e) => showError(e),
   })
 
   const removeInstallment = useMutation({
-    mutationFn: async (id: string) => throwOnError(await supabase.from('installment_purchases').delete().eq('id', id)),
+    mutationFn: async (id: string) => throwOnError(await supabase.from('installment_purchases').delete().eq('id', id).eq('account_id', accountId)),
     onSuccess: () => invalidate(),
     onError: (e) => showError(e),
   })
@@ -63,7 +67,7 @@ export function useTransactionMutations(month: string) {
       const timeout = new Promise<never>((_, reject) => {
         setTimeout(() => reject(new Error('Tempo limite excedido (30s). Tente novamente.')), 30_000)
       })
-      const operation = batchMarkTransactionsPaid(ids)
+      const operation = batchMarkTransactionsPaid(ids, accountId)
       const { error } = await Promise.race([operation, timeout])
       if (error) throw error
       return { count: ids.length }

@@ -6,7 +6,7 @@ import type { CreditCard, CardListItem, Category } from '../../types/database'
 import { confirm } from '../../lib/confirm'
 import { showError, toast } from '../../lib/toast'
 import { fmt, categoryOptions } from '../../utils/format'
-import { fetchCardInvoice, upsertCardInvoice } from '../../services/transactions'
+import { fetchCardInvoice, upsertCardInvoice, batchMarkTransactionsPaid } from '../../services/transactions'
 import { useTransactionMutations } from '../../hooks/useTransactionMutations'
 import { useIsMobile } from '../../hooks/useMediaQuery'
 import { useAuth } from '../../hooks'
@@ -59,7 +59,14 @@ export default function CardsTable({ cards, cardsList, categories, month, canUpd
   const updatePaidAmount = async (cardName: string, amount: number) => {
     const { error } = await upsertCardInvoice(cardName, month, amount, activeAccountId!)
     if (error) return showError(error)
+    // Se a fatura ficou totalmente paga, marca os lançamentos como pagos
+    const cardTotal = cards.filter(r => r.card === cardName).reduce((s, r) => s + +r.amount, 0)
+    if (Math.round((amount - cardTotal) * 100) >= 0) {
+      const ids = cards.filter(r => r.card === cardName && !r.paid).map(r => r.id)
+      if (ids.length) await batchMarkTransactionsPaid(ids, activeAccountId!)
+    }
     queryClient.invalidateQueries({ queryKey: ['cardInvoices', month] })
+    queryClient.invalidateQueries({ queryKey: ['transactions'] })
   }
 
   return (
@@ -84,6 +91,7 @@ export default function CardsTable({ cards, cardsList, categories, month, canUpd
           month={month}
           canUpdate={canUpdate}
           onUpdate={updatePaidAmount}
+          accountId={activeAccountId!}
         />
       )}
 
@@ -244,16 +252,16 @@ function EditCardModal({ card, cardsList, categories, onClose }: { card: CreditC
   )
 }
 
-function InvoiceBar({ cardName, cardLabel, total, month, canUpdate, onUpdate }: { cardName: string; cardLabel: string; total: number; month: string; canUpdate: boolean; onUpdate: (card: string, amount: number) => void }) {
+function InvoiceBar({ cardName, cardLabel, total, month, canUpdate, onUpdate, accountId }: { cardName: string; cardLabel: string; total: number; month: string; canUpdate: boolean; onUpdate: (card: string, amount: number) => void; accountId: string }) {
   const { data: paidAmount = 0 } = useQuery({
-    queryKey: ['cardInvoices', month, cardName],
-    queryFn: () => fetchCardInvoice(cardName, month),
+    queryKey: ['cardInvoices', month, cardName, accountId],
+    queryFn: () => fetchCardInvoice(cardName, month, accountId),
   })
 
   const [inputValue, setInputValue] = useState('')
-  const remaining = total - paidAmount
+  const remaining = Math.round((total - paidAmount) * 100) / 100
   const pct = total > 0 ? Math.min(Math.round((paidAmount / total) * 100), 100) : 0
-  const isPaid = paidAmount >= total
+  const isPaid = remaining <= 0
 
   const handlePay = () => {
     onUpdate(cardName, paidAmount + (+inputValue || remaining))

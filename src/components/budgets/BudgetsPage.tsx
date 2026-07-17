@@ -51,13 +51,13 @@ export default function BudgetsPage() {
   })
 
   const updateMutation = useMutation({
-    mutationFn: async (id: string) => { const { error } = await supabase.from('budgets').update({ monthly_limit: +editLimit }).eq('id', id); if (error) throw error },
+    mutationFn: async (id: string) => { const { error } = await supabase.from('budgets').update({ monthly_limit: +editLimit }).eq('id', id).eq('account_id', activeAccountId!); if (error) throw error },
     onSuccess: () => { invalidate(); setEditing(null); toast('Orçamento atualizado') },
     onError: (e) => showError(e),
   })
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: string) => { const { error } = await supabase.from('budgets').delete().eq('id', id); if (error) throw error },
+    mutationFn: async (id: string) => { const { error } = await supabase.from('budgets').delete().eq('id', id).eq('account_id', activeAccountId!); if (error) throw error },
     onSuccess: () => { invalidate(); toast('Orçamento excluído') },
     onError: (e) => showError(e),
   })

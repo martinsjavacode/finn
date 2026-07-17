@@ -11,11 +11,12 @@ export async function fetchInvestments(accountId: string) {
   return { data: (data ?? []) as Investment[], error }
 }
 
-export async function fetchInvestmentTransactions(investmentId: string) {
+export async function fetchInvestmentTransactions(investmentId: string, accountId: string) {
   const { data, error } = await supabase
     .from('investment_transactions')
     .select('*')
     .eq('investment_id', investmentId)
+    .eq('account_id', accountId)
     .order('date', { ascending: false })
   return { data: (data ?? []) as InvestmentTransaction[], error }
 }
@@ -24,12 +25,12 @@ export async function createInvestment(payload: Omit<Investment, 'id' | 'created
   return supabase.from('investments').insert({ ...payload, current_balance: 0, invested_total: 0 })
 }
 
-export async function updateInvestment(id: string, payload: Partial<Pick<Investment, 'name' | 'type' | 'broker' | 'maturity_date' | 'active'>>) {
-  return supabase.from('investments').update(payload).eq('id', id)
+export async function updateInvestment(id: string, accountId: string, payload: Partial<Pick<Investment, 'name' | 'type' | 'broker' | 'maturity_date' | 'active'>>) {
+  return supabase.from('investments').update(payload).eq('id', id).eq('account_id', accountId)
 }
 
-export async function deleteInvestment(id: string) {
-  return supabase.from('investments').delete().eq('id', id)
+export async function deleteInvestment(id: string, accountId: string) {
+  return supabase.from('investments').delete().eq('id', id).eq('account_id', accountId)
 }
 
 export async function addInvestmentTransaction(
@@ -60,7 +61,7 @@ export async function addInvestmentTransaction(
   const { error: updError } = await supabase.from('investments').update({
     current_balance: investment.current_balance + balanceDelta,
     invested_total: investment.invested_total + investedDelta,
-  }).eq('id', investment.id)
+  }).eq('id', investment.id).eq('account_id', investment.account_id)
   if (updError) return { error: updError }
 
   // Aporte → gera despesa; Resgate → gera receita
