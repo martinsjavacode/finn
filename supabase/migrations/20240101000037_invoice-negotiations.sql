@@ -41,8 +41,11 @@ declare
   i int;
   installment_amount numeric(10,2);
   target_month date;
+  created_date text;
 begin
   installment_amount := round(NEW.total_amount / NEW.installments, 2);
+  -- Format date in Brazil timezone
+  created_date := to_char(NEW.created_at at time zone 'America/Sao_Paulo', 'DD/MM/YYYY');
 
   for i in 1..NEW.installments loop
     target_month := NEW.first_month + ((i - 1) * interval '1 month');
@@ -53,7 +56,7 @@ begin
       total_installments, negotiation_id
     ) values (
       target_month,
-      'Parcela negociação ' || to_char(NEW.created_at, 'DD/MM/YYYY'),
+      'Parcela negociação ' || created_date,
       installment_amount,
       'credit_card',
       'expense',
@@ -79,7 +82,10 @@ create trigger trg_generate_negotiation_installments
 -- RLS Policies - invoice_negotiations
 -- ============================================================
 create policy "Account read" on invoice_negotiations for select using (
-  is_superadmin() or has_account_permission(account_id, 'transactions', 'read')
+  is_superadmin() or (
+    account_id in (select user_account_ids()) 
+    and has_account_permission(account_id, 'transactions', 'read')
+  )
 );
 
 create policy "Account insert" on invoice_negotiations for insert with check (
@@ -97,7 +103,10 @@ create policy "Account read" on negotiated_invoices for select using (
   exists (
     select 1 from invoice_negotiations n 
     where n.id = negotiation_id 
-    and (is_superadmin() or has_account_permission(n.account_id, 'transactions', 'read'))
+    and (is_superadmin() or (
+      n.account_id in (select user_account_ids())
+      and has_account_permission(n.account_id, 'transactions', 'read')
+    ))
   )
 );
 
@@ -117,3 +126,9 @@ create index idx_invoice_negotiations_card on invoice_negotiations(card);
 create index idx_negotiated_invoices_negotiation on negotiated_invoices(negotiation_id);
 create index idx_negotiated_invoices_card_month on negotiated_invoices(card, month);
 create index idx_entries_negotiation on entries(negotiation_id) where negotiation_id is not null;
+
+-- ============================================================
+-- Grants para roles do Supabase
+-- ============================================================
+grant select, insert, delete on invoice_negotiations to authenticated;
+grant select, insert on negotiated_invoices to authenticated;

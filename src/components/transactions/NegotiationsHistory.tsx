@@ -90,7 +90,8 @@ function NegotiationCard({
   canDelete,
   isCanceling,
 }: NegotiationCardProps) {
-  const createdDate = new Date(negotiation.created_at).toLocaleDateString('pt-BR')
+  // Parse ISO timestamp and format in local timezone
+  const createdDate = new Date(negotiation.created_at).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })
   const installmentValue = negotiation.total_amount / negotiation.installments
 
   return (

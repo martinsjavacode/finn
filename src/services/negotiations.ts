@@ -107,6 +107,12 @@ export async function fetchPendingInvoices(card: string, accountId: string) {
   
   for (const month of months) {
     const ym = month.substring(0, 7)
+    const [year, monthNum] = ym.split('-').map(Number)
+    
+    // Calculate next month for range query
+    const nextMonth = monthNum === 12 
+      ? `${year + 1}-01-01` 
+      : `${year}-${String(monthNum + 1).padStart(2, '0')}-01`
     
     // Get total for this invoice
     const { data: monthEntries } = await supabase
@@ -116,19 +122,19 @@ export async function fetchPendingInvoices(card: string, accountId: string) {
       .eq('account_id', accountId)
       .eq('payment_method', 'credit_card')
       .gte('month', `${ym}-01`)
-      .lt('month', `${ym}-32`)
+      .lt('month', nextMonth)
       .is('negotiation_id', null)
 
     const total = monthEntries?.reduce((sum, e) => sum + Number(e.amount), 0) ?? 0
     
-    // Get paid amount
+    // Get paid amount (use maybeSingle to avoid error when no record exists)
     const { data: invoice } = await supabase
       .from('card_invoices')
       .select('paid_amount')
       .eq('card', card)
       .eq('account_id', accountId)
       .eq('month', `${ym}-01`)
-      .single()
+      .maybeSingle()
 
     const paidAmount = invoice?.paid_amount ?? 0
     

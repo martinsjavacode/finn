@@ -230,7 +230,7 @@ describe('negotiations service', () => {
       vi.mocked(supabase.from).mockReturnValueOnce({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ 
+        maybeSingle: vi.fn().mockResolvedValue({ 
           data: { paid_amount: 200 }, 
           error: null 
         }),
@@ -276,7 +276,7 @@ describe('negotiations service', () => {
       vi.mocked(supabase.from).mockReturnValueOnce({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ 
+        maybeSingle: vi.fn().mockResolvedValue({ 
           data: { paid_amount: 500 }, 
           error: null 
         }),
@@ -319,7 +319,7 @@ describe('negotiations service', () => {
       vi.mocked(supabase.from).mockReturnValueOnce({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ 
+        maybeSingle: vi.fn().mockResolvedValue({ 
           data: null, // no payment
           error: null 
         }),
@@ -346,7 +346,7 @@ describe('negotiations service', () => {
       vi.mocked(supabase.from).mockReturnValueOnce({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ 
+        maybeSingle: vi.fn().mockResolvedValue({ 
           data: { paid_amount: 200 },
           error: null 
         }),
@@ -391,7 +391,7 @@ describe('negotiations service', () => {
       vi.mocked(supabase.from).mockReturnValueOnce({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ 
+        maybeSingle: vi.fn().mockResolvedValue({ 
           data: null, 
           error: null 
         }),
