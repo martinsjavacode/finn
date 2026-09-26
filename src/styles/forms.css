@@ -29,3 +29,47 @@
 .invoice-input { width: 120px; padding: 0.35rem 0.6rem; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 0.8rem; }
 .btn-invoice { padding: 0.4rem 0.8rem; border-radius: 6px; border: none; font-size: 0.78rem; font-weight: 600; cursor: pointer; background: var(--accent); color: #fff; transition: all 0.2s; }
 .btn-invoice:hover { opacity: 0.9; }
+
+/* Negotiate modal */
+.form-fieldset { border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin: 0 0 1rem; }
+.form-fieldset legend { font-size: 0.85rem; font-weight: 600; color: var(--text); padding: 0 0.5rem; }
+.form-radio { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text); cursor: pointer; padding: 0.4rem 0; }
+.form-radio input { accent-color: var(--accent); width: 16px; height: 16px; }
+.form-select { width: 100%; padding: 0.5rem 0.8rem; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 0.85rem; }
+.negotiate-summary { display: flex; flex-direction: column; gap: 0.3rem; padding: 0.8rem; background: rgba(102, 126, 234, 0.06); border-radius: 8px; margin: 0.5rem 0; }
+.negotiate-summary-label { font-size: 0.8rem; color: var(--text-muted); }
+.negotiate-summary-value { font-size: 0.85rem; color: var(--text); }
+.negotiate-preview { display: flex; align-items: center; justify-content: center; gap: 0.6rem; padding: 1rem; background: rgba(0, 214, 143, 0.08); border-radius: 8px; margin-top: 1rem; }
+.negotiate-preview-icon { font-size: 1.2rem; }
+.negotiate-preview-text { font-size: 0.95rem; color: var(--text); }
+.negotiate-preview-text strong { color: var(--green); }
+
+/* Invoice bar - negotiated state */
+.invoice-bar.invoice-negotiated { background: rgba(102, 126, 234, 0.06); border-color: rgba(102, 126, 234, 0.15); }
+.badge-negotiated { background: rgba(102, 126, 234, 0.15); color: var(--accent); padding: 0.3rem 0.6rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+.btn-negotiate { background: var(--accent); opacity: 0.85; }
+.btn-negotiate:hover { opacity: 1; }
+
+/* Negotiation installment indicator */
+.negotiation-badge { margin-left: 0.4rem; cursor: help; font-size: 0.9em; }
+.row-negotiation { background: rgba(102, 126, 234, 0.03); }
+
+/* Negotiations history */
+.negotiations-history { margin-top: 2rem; }
+.negotiations-history h2 { font-size: 1.1rem; margin-bottom: 1rem; }
+.negotiations-list { display: flex; flex-direction: column; gap: 0.75rem; }
+.negotiation-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.negotiation-card-header { display: flex; align-items: center; justify-content: space-between; padding: 0.8rem 1rem; cursor: pointer; transition: background 0.2s; }
+.negotiation-card-header:hover { background: rgba(102, 126, 234, 0.03); }
+.negotiation-card-info { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+.negotiation-card-date { font-size: 0.8rem; color: var(--text-muted); }
+.negotiation-card-dot { width: 8px; height: 8px; border-radius: 50%; }
+.negotiation-card-label { font-weight: 500; }
+.negotiation-card-amount { color: var(--text-muted); font-size: 0.9rem; }
+.negotiation-card-actions { display: flex; align-items: center; gap: 0.4rem; }
+.negotiation-expand-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 0.2rem; display: flex; }
+.negotiation-details { padding: 0.8rem 1rem; border-top: 1px solid var(--border); background: rgba(102, 126, 234, 0.02); }
+.negotiation-detail-section { margin-bottom: 0.5rem; }
+.negotiation-detail-section:last-child { margin-bottom: 0; }
+.negotiation-detail-label { font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 0.2rem; }
+.negotiation-detail-value { font-size: 0.85rem; color: var(--text); }

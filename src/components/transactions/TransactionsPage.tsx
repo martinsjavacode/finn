@@ -7,6 +7,7 @@ import TransactionsTable from './TransactionsTable'
 import CardsTable from './CardsTable'
 import AddTransaction from './AddTransaction'
 import BatchActionBar from './BatchActionBar'
+import NegotiationsHistory from './NegotiationsHistory'
 import Button from '../ui/Button'
 
 export default function TransactionsPage() {
@@ -144,6 +145,14 @@ export default function TransactionsPage() {
           canUpdate={can('credit_cards', 'update')}
           canDelete={can('credit_cards', 'delete')}
         />
+
+        {activeAccountId && (
+          <NegotiationsHistory
+            accountId={activeAccountId}
+            cardsList={cardsList}
+            canDelete={can('transactions', 'delete')}
+          />
+        )}
       </div>
 
       {selectionMode && (

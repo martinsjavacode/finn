@@ -23,7 +23,7 @@ export interface CardWithRule {
 export type Account = Tables['accounts']['Row']
 export type AccountMember = Tables['account_members']['Row']
 export type Category = Tables['categories']['Row']
-export type Entry = Tables['entries']['Row'] & { categories?: Category }
+export type Entry = Tables['entries']['Row'] & { categories?: Category; negotiation_id?: string | null }
 export type Transaction = Entry
 export type CreditCard = Entry
 export type CardInfo = Tables['cards']['Row']
@@ -57,4 +57,31 @@ export interface InvestmentTransaction {
   date: string
   note: string | null
   created_at: string
+}
+
+// Negociação de fatura de cartão
+export interface InvoiceNegotiation {
+  id: string
+  account_id: string
+  card: string
+  total_amount: number
+  installments: number
+  first_month: string
+  created_at: string
+}
+
+export interface NegotiatedInvoice {
+  id: string
+  negotiation_id: string
+  card: string
+  month: string
+}
+
+export interface CreateNegotiationInput {
+  account_id: string
+  card: string
+  total_amount: number
+  installments: number
+  first_month: string
+  invoices: { card: string; month: string }[]
 }

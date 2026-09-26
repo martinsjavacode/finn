@@ -60,6 +60,14 @@ vi.mock('../../hooks', () => ({
     deselectAll: mockDeselectAll,
     pruneSelection: mockPruneSelection,
   }),
+  useNegotiations: () => ({
+    data: [],
+    isLoading: false,
+  }),
+  useCancelNegotiation: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+  }),
 }))
 
 // Mock child components - keep minimal but functional
