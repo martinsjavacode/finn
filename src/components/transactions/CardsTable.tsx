@@ -9,12 +9,13 @@ import { fmt, categoryOptions } from '../../utils/format'
 import { fetchCardInvoice, upsertCardInvoice, batchMarkTransactionsPaid } from '../../services/transactions'
 import { useTransactionMutations } from '../../hooks/useTransactionMutations'
 import { useIsMobile } from '../../hooks/useMediaQuery'
-import { useAuth } from '../../hooks'
+import { useAuth, useIsInvoiceNegotiated } from '../../hooks'
 import Button from '../ui/Button'
 import Select from '../ui/Select'
 import Modal from '../ui/Modal'
 import MobileCard from '../ui/MobileCard'
 import Pagination from '../ui/Pagination'
+import NegotiateInvoiceModal from './NegotiateInvoiceModal'
 
 interface Props {
   cards: CreditCard[]
@@ -109,14 +110,18 @@ export default function CardsTable({ cards, cardsList, categories, month, canUpd
             </thead>
             <tbody>
               {g.items.map(r => (
-                <tr key={r.id}>
+                <tr key={r.id} className={r.negotiation_id ? 'row-negotiation' : ''}>
+                  <td>
+                    {r.description}
+                    {r.negotiation_id && <span className="negotiation-badge" title="Parcela de negociação de fatura">🔄</span>}
+                  </td>
                   <td>{categories.find(c => c.id === r.category)?.label ?? '-'}</td>
                   <td>{r.current_installment && r.total_installments ? `${r.current_installment}/${r.total_installments}` : '-'}</td>
                   <td>{fmt(+r.amount)}</td>
                   {canEdit && (
                     <td>
-                      {canUpdate && !r.installment_purchase_id && <Button variant="icon" aria-label="Editar" onClick={() => setEditing(r)}><Pencil size={14} /></Button>}
-                      {canDelete && <Button variant="icon" className="delete-btn" aria-label="Excluir" onClick={() => handleDelete(r)}><Trash2 size={14} /></Button>}
+                      {canUpdate && !r.installment_purchase_id && !r.negotiation_id && <Button variant="icon" aria-label="Editar" onClick={() => setEditing(r)}><Pencil size={14} /></Button>}
+                      {canDelete && !r.negotiation_id && <Button variant="icon" className="delete-btn" aria-label="Excluir" onClick={() => handleDelete(r)}><Trash2 size={14} /></Button>}
                     </td>
                   )}
                 </tr>
@@ -133,10 +138,10 @@ export default function CardsTable({ cards, cardsList, categories, month, canUpd
               {g.items.map(r => (
                 <MobileCard
                   key={r.id}
-                  title={r.description}
+                  title={<>{r.description}{r.negotiation_id && <span className="negotiation-badge" title="Parcela de negociação">🔄</span>}</>}
                   value={fmt(+r.amount)}
                   subtitle={<>{categories.find(c => c.id === r.category)?.label ?? ''}{r.current_installment ? ` · ${r.current_installment}/${r.total_installments}` : ''}</>}
-                  onTap={canUpdate && !r.installment_purchase_id ? () => setEditing(r) : canDelete ? () => handleDelete(r) : undefined}
+                  onTap={canUpdate && !r.installment_purchase_id && !r.negotiation_id ? () => setEditing(r) : canDelete && !r.negotiation_id ? () => handleDelete(r) : undefined}
                   style={{ borderLeft: `3px solid ${getColor(g.name)}` }}
                 />
               ))}
@@ -151,15 +156,18 @@ export default function CardsTable({ cards, cardsList, categories, month, canUpd
         <thead><tr><th>Descrição</th><th>Categoria</th><th>Parcela</th><th>Valor</th>{canEdit && <th></th>}</tr></thead>
         <tbody>
           {filtered.length ? paginated.map(r => (
-            <tr key={r.id}>
-              <td>{r.description}</td>
+            <tr key={r.id} className={r.negotiation_id ? 'row-negotiation' : ''}>
+              <td>
+                {r.description}
+                {r.negotiation_id && <span className="negotiation-badge" title="Parcela de negociação de fatura">🔄</span>}
+              </td>
               <td>{categories.find(c => c.id === r.category)?.label ?? '-'}</td>
               <td>{r.current_installment && r.total_installments ? `${r.current_installment}/${r.total_installments}` : '-'}</td>
               <td>{fmt(+r.amount)}</td>
               {canEdit && (
                 <td>
-                  {canUpdate && !r.installment_purchase_id && <Button variant="icon" aria-label="Editar" onClick={() => setEditing(r)}><Pencil size={14} /></Button>}
-                  {canDelete && <Button variant="icon" className="delete-btn" aria-label="Excluir" onClick={() => handleDelete(r)}><Trash2 size={14} /></Button>}
+                  {canUpdate && !r.installment_purchase_id && !r.negotiation_id && <Button variant="icon" aria-label="Editar" onClick={() => setEditing(r)}><Pencil size={14} /></Button>}
+                  {canDelete && !r.negotiation_id && <Button variant="icon" className="delete-btn" aria-label="Excluir" onClick={() => handleDelete(r)}><Trash2 size={14} /></Button>}
                 </td>
               )}
             </tr>
@@ -171,10 +179,10 @@ export default function CardsTable({ cards, cardsList, categories, month, canUpd
         {filtered.length ? paginated.map(r => (
           <MobileCard
             key={r.id}
-            title={r.description}
+            title={<>{r.description}{r.negotiation_id && <span className="negotiation-badge" title="Parcela de negociação">🔄</span>}</>}
             value={fmt(+r.amount)}
             subtitle={<>{categories.find(c => c.id === r.category)?.label ?? ''}{r.current_installment ? ` · ${r.current_installment}/${r.total_installments}` : ''}</>}
-            onTap={canUpdate && !r.installment_purchase_id ? () => setEditing(r) : canDelete ? () => handleDelete(r) : undefined}
+            onTap={canUpdate && !r.installment_purchase_id && !r.negotiation_id ? () => setEditing(r) : canDelete && !r.negotiation_id ? () => handleDelete(r) : undefined}
             style={{ borderLeft: `3px solid ${getColor(r.card!)}` }}
           />
         )) : <p className="empty">Nenhum lançamento</p>}
@@ -258,7 +266,10 @@ function InvoiceBar({ cardName, cardLabel, total, month, canUpdate, onUpdate, ac
     queryFn: () => fetchCardInvoice(cardName, month, accountId),
   })
 
+  const { data: isNegotiated = false } = useIsInvoiceNegotiated(cardName, `${month}-01`, accountId)
+
   const [inputValue, setInputValue] = useState('')
+  const [showNegotiateModal, setShowNegotiateModal] = useState(false)
   const remaining = Math.round((total - paidAmount) * 100) / 100
   const pct = total > 0 ? Math.min(Math.round((paidAmount / total) * 100), 100) : 0
   const isPaid = remaining <= 0
@@ -266,6 +277,19 @@ function InvoiceBar({ cardName, cardLabel, total, month, canUpdate, onUpdate, ac
   const handlePay = () => {
     onUpdate(cardName, paidAmount + (+inputValue || remaining))
     setInputValue('')
+  }
+
+  // If negotiated, show different UI
+  if (isNegotiated) {
+    return (
+      <div className="invoice-bar invoice-negotiated">
+        <div className="invoice-info">
+          <span>Fatura {cardLabel}: <strong>{fmt(total)}</strong></span>
+          <span className="invoice-detail">Esta fatura foi incluída em um parcelamento</span>
+        </div>
+        <span className="badge badge-negotiated">🔗 Negociada</span>
+      </div>
+    )
   }
 
   return (
@@ -281,9 +305,19 @@ function InvoiceBar({ cardName, cardLabel, total, month, canUpdate, onUpdate, ac
           <input type="number" step="0.01" placeholder={fmt(remaining)} value={inputValue} onChange={e => setInputValue(e.target.value)} className="invoice-input" />
           <button className="btn-invoice" onClick={handlePay}>Pagar</button>
           <button className="btn-invoice" onClick={() => { onUpdate(cardName, total); setInputValue('') }}>Pagar tudo</button>
+          <button className="btn-invoice btn-negotiate" onClick={() => setShowNegotiateModal(true)}>Negociar</button>
         </div>
       )}
       {isPaid && <span className="badge badge-success">✓ Paga</span>}
+
+      {showNegotiateModal && (
+        <NegotiateInvoiceModal
+          card={cardName}
+          cardLabel={cardLabel}
+          accountId={accountId}
+          onClose={() => setShowNegotiateModal(false)}
+        />
+      )}
     </div>
   )
 }

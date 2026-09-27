@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.9](https://github.com/martinsjavacode/finn/compare/v0.1.8...v0.1.9) (2026-07-17)
+
+
+### Features
+
+* security hardening + enforce account_id scope ([96bc4b6](https://github.com/martinsjavacode/finn/commit/96bc4b6508e6862610818cc3e478218579bd37dd))
+
 ## [0.1.8](https://github.com/martinsjavacode/finn/compare/v0.1.7...v0.1.8) (2026-07-17)
 
 
