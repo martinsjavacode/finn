@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.10](https://github.com/martinsjavacode/finn/compare/v0.1.9...v0.1.10) (2026-09-27)
+
+
+### Features
+
+* add invoice negotiation feature ([faf2d64](https://github.com/martinsjavacode/finn/commit/faf2d647d6bbd7ac7b88137626e82fd5293178a9))
+* add invoice negotiation feature ([b5d81fa](https://github.com/martinsjavacode/finn/commit/b5d81fa50cd466afa8eccd83785438bc45c9bd16))
+
 ## [0.1.9](https://github.com/martinsjavacode/finn/compare/v0.1.8...v0.1.9) (2026-07-17)
 
 
