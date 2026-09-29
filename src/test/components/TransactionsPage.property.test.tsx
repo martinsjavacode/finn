@@ -49,6 +49,10 @@ vi.mock('../../hooks', () => ({
     mutate: vi.fn(),
     isPending: false,
   }),
+  useAllNegotiatedInvoices: () => ({
+    data: [],
+    isLoading: false,
+  }),
 }))
 
 // Mock child components that are not relevant to this test
