@@ -3,6 +3,13 @@ import Modal from '../ui/Modal'
 import { useCreateNegotiation, usePendingInvoices } from '../../hooks'
 import { fmt, monthLabel, currentYearMonth } from '../../utils/format'
 
+// Helper to get next month from YYYY-MM string
+function nextMonth(ym: string): string {
+  const [year, month] = ym.split('-').map(Number)
+  if (month === 12) return `${year + 1}-01`
+  return `${year}-${String(month + 1).padStart(2, '0')}`
+}
+
 interface Props {
   card: string
   cardLabel: string
@@ -11,6 +18,7 @@ interface Props {
 }
 
 type SelectionMode = 'range' | 'all'
+type InputMode = 'total' | 'detailed'
 
 export default function NegotiateInvoiceModal({ card, cardLabel, accountId, onClose }: Props) {
   const { data: pendingInvoices = [], isLoading: loadingInvoices } = usePendingInvoices(card, accountId)
@@ -19,7 +27,10 @@ export default function NegotiateInvoiceModal({ card, cardLabel, accountId, onCl
   const [selectionMode, setSelectionMode] = useState<SelectionMode>('all')
   const [customStartMonth, setCustomStartMonth] = useState('')
   const [customEndMonth, setCustomEndMonth] = useState('')
+  const [inputMode, setInputMode] = useState<InputMode>('total')
   const [totalAmount, setTotalAmount] = useState('')
+  const [downPayment, setDownPayment] = useState('')
+  const [installmentValue, setInstallmentValue] = useState('')
   const [installments, setInstallments] = useState('12')
   const [firstMonth, setFirstMonth] = useState(() => {
     const now = new Date()
@@ -54,16 +65,30 @@ export default function NegotiateInvoiceModal({ card, cardLabel, accountId, onCl
     [selectedInvoices]
   )
 
-  const parsedTotal = parseFloat(totalAmount) || 0
   const parsedInstallments = parseInt(installments) || 0
-  const installmentValue = parsedInstallments > 0 ? parsedTotal / parsedInstallments : 0
+  const parsedDownPayment = parseFloat(downPayment) || 0
+  const parsedInstallmentValue = parseFloat(installmentValue) || 0
+  const parsedTotalAmount = parseFloat(totalAmount) || 0
+
+  // Calculate final total based on input mode
+  const calculatedTotal = useMemo(() => {
+    if (inputMode === 'total') {
+      return parsedTotalAmount
+    }
+    // detailed mode: entrada + (parcelas * valor_parcela)
+    return parsedDownPayment + (parsedInstallments * parsedInstallmentValue)
+  }, [inputMode, parsedTotalAmount, parsedDownPayment, parsedInstallments, parsedInstallmentValue])
+
+  // Calculate installment preview (for total mode)
+  const previewInstallmentValue = parsedInstallments > 0 ? calculatedTotal / parsedInstallments : 0
 
   // Validation
-  const isValidTotal = parsedTotal > 0
+  const isValidTotal = calculatedTotal > 0
   const isValidInstallments = parsedInstallments >= 2 && parsedInstallments <= 24
   const isValidFirstMonth = firstMonth >= currentYearMonth()
   const hasSelectedInvoices = selectedInvoices.length > 0
-  const canSubmit = isValidTotal && isValidInstallments && isValidFirstMonth && hasSelectedInvoices && !createMutation.isPending
+  const isValidInstallmentValue = inputMode === 'detailed' ? parsedInstallmentValue > 0 : true
+  const canSubmit = isValidTotal && isValidInstallments && isValidFirstMonth && hasSelectedInvoices && isValidInstallmentValue && !createMutation.isPending
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -72,7 +97,8 @@ export default function NegotiateInvoiceModal({ card, cardLabel, accountId, onCl
     createMutation.mutate({
       account_id: accountId,
       card,
-      total_amount: parsedTotal,
+      total_amount: calculatedTotal,
+      down_payment: parsedDownPayment > 0 ? parsedDownPayment : undefined,
       installments: parsedInstallments,
       first_month: `${firstMonth}-01`,
       invoices: selectedInvoices.map(inv => ({ card, month: inv.month })),
@@ -175,20 +201,79 @@ export default function NegotiateInvoiceModal({ card, cardLabel, accountId, onCl
 
       <div className="form-divider" />
 
-      {/* Negotiation details */}
-      <label className="form-label">
-        Valor total do parcelamento
-        <input
-          type="number"
-          step="0.01"
-          min="0"
-          value={totalAmount}
-          onChange={e => setTotalAmount(e.target.value)}
-          placeholder={fmt(originalTotal)}
-          required
-        />
-        <span className="form-hint">Informe o valor acordado com o banco (já com juros)</span>
-      </label>
+      {/* Input mode selection */}
+      <fieldset className="form-fieldset">
+        <legend>Como informar o valor</legend>
+        
+        <label className="form-radio">
+          <input
+            type="radio"
+            name="inputMode"
+            value="total"
+            checked={inputMode === 'total'}
+            onChange={() => setInputMode('total')}
+          />
+          <span>Valor total do parcelamento</span>
+        </label>
+        
+        <label className="form-radio">
+          <input
+            type="radio"
+            name="inputMode"
+            value="detailed"
+            checked={inputMode === 'detailed'}
+            onChange={() => setInputMode('detailed')}
+          />
+          <span>Entrada + valor da parcela</span>
+        </label>
+      </fieldset>
+
+      {/* Total amount input (original mode) */}
+      {inputMode === 'total' && (
+        <label className="form-label">
+          Valor total do parcelamento
+          <input
+            type="number"
+            step="0.01"
+            min="0"
+            value={totalAmount}
+            onChange={e => setTotalAmount(e.target.value)}
+            placeholder={fmt(originalTotal)}
+            required
+          />
+          <span className="form-hint">Informe o valor acordado com o banco (já com juros)</span>
+        </label>
+      )}
+
+      {/* Detailed input (new mode) */}
+      {inputMode === 'detailed' && (
+        <div className="form-row">
+          <label className="form-label form-grow">
+            Entrada (opcional)
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              value={downPayment}
+              onChange={e => setDownPayment(e.target.value)}
+              placeholder="0,00"
+            />
+          </label>
+
+          <label className="form-label form-grow">
+            Valor da parcela
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              value={installmentValue}
+              onChange={e => setInstallmentValue(e.target.value)}
+              placeholder="0,00"
+              required
+            />
+          </label>
+        </div>
+      )}
 
       <div className="form-row">
         <label className="form-label form-grow">
@@ -207,7 +292,7 @@ export default function NegotiateInvoiceModal({ card, cardLabel, accountId, onCl
         </label>
 
         <label className="form-label form-grow">
-          Primeira parcela em
+          {inputMode === 'detailed' && parsedDownPayment > 0 ? 'Entrada em' : 'Primeira parcela em'}
           <input
             type="month"
             value={firstMonth}
@@ -225,9 +310,23 @@ export default function NegotiateInvoiceModal({ card, cardLabel, accountId, onCl
       {isValidTotal && isValidInstallments && (
         <div className="negotiate-preview">
           <span className="negotiate-preview-icon">📋</span>
-          <span className="negotiate-preview-text">
-            <strong>{parsedInstallments}x</strong> de <strong>{fmt(installmentValue)}</strong>
-          </span>
+          <div className="negotiate-preview-text">
+            {inputMode === 'detailed' && parsedDownPayment > 0 ? (
+              <>
+                <span>Entrada {fmt(parsedDownPayment)} em <strong>{monthLabel(firstMonth)}</strong></span>
+                <span> + <strong>{parsedInstallments}x</strong> de <strong>{fmt(parsedInstallmentValue)}</strong> a partir de <strong>{monthLabel(nextMonth(firstMonth))}</strong></span>
+              </>
+            ) : (
+              <span>
+                <strong>{parsedInstallments}x</strong> de <strong>{fmt(inputMode === 'total' ? previewInstallmentValue : parsedInstallmentValue)}</strong> a partir de <strong>{monthLabel(firstMonth)}</strong>
+              </span>
+            )}
+            {inputMode === 'detailed' && (
+              <span className="negotiate-preview-total">
+                = Total: <strong>{fmt(calculatedTotal)}</strong>
+              </span>
+            )}
+          </div>
         </div>
       )}
     </Modal>
