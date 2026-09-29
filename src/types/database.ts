@@ -65,6 +65,7 @@ export interface InvoiceNegotiation {
   account_id: string
   card: string
   total_amount: number
+  down_payment: number
   installments: number
   first_month: string
   created_at: string
@@ -81,6 +82,7 @@ export interface CreateNegotiationInput {
   account_id: string
   card: string
   total_amount: number
+  down_payment?: number
   installments: number
   first_month: string
   invoices: { card: string; month: string }[]

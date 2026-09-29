@@ -7,6 +7,7 @@ import {
   cancelNegotiation,
   isInvoiceNegotiated,
   fetchPendingInvoices,
+  fetchAllNegotiatedInvoices,
 } from '../services/negotiations'
 import type { CreateNegotiationInput } from '../types/database'
 import { showError, toast } from '../lib/toast'
@@ -19,6 +20,7 @@ export const NEGOTIATION_KEYS = {
   installments: (id: string, accountId: string | null) => ['negotiation-installments', id, accountId] as const,
   isNegotiated: (card: string, month: string, accountId: string | null) => ['is-negotiated', card, month, accountId] as const,
   pending: (card: string, accountId: string | null) => ['pending-invoices', card, accountId] as const,
+  allNegotiated: (accountId: string | null) => ['all-negotiated-invoices', accountId] as const,
 }
 
 export function useNegotiations(accountId: string | null) {
@@ -73,6 +75,18 @@ export function usePendingInvoices(card: string | null, accountId: string | null
   })
 }
 
+export function useAllNegotiatedInvoices(accountId: string | null) {
+  return useQuery({
+    queryKey: NEGOTIATION_KEYS.allNegotiated(accountId),
+    queryFn: async () => {
+      const { data, error } = await fetchAllNegotiatedInvoices(accountId!)
+      if (error) throw error
+      return data
+    },
+    enabled: !!accountId,
+  })
+}
+
 export function useCreateNegotiation(accountId: string | null) {
   const queryClient = useQueryClient()
 
@@ -86,6 +100,7 @@ export function useCreateNegotiation(accountId: string | null) {
       toast('Negociação criada com sucesso')
       // Invalidate all related queries
       queryClient.invalidateQueries({ queryKey: NEGOTIATION_KEYS.all(accountId) })
+      queryClient.invalidateQueries({ queryKey: NEGOTIATION_KEYS.allNegotiated(accountId) })
       queryClient.invalidateQueries({ queryKey: ['creditCards'] })
       queryClient.invalidateQueries({ queryKey: ['cardInvoices'] })
       queryClient.invalidateQueries({ queryKey: ['is-negotiated'] })
@@ -109,6 +124,7 @@ export function useCancelNegotiation(accountId: string | null) {
       toast('Negociação cancelada')
       // Invalidate all related queries
       queryClient.invalidateQueries({ queryKey: NEGOTIATION_KEYS.all(accountId) })
+      queryClient.invalidateQueries({ queryKey: NEGOTIATION_KEYS.allNegotiated(accountId) })
       queryClient.invalidateQueries({ queryKey: ['creditCards'] })
       queryClient.invalidateQueries({ queryKey: ['cardInvoices'] })
       queryClient.invalidateQueries({ queryKey: ['is-negotiated'] })

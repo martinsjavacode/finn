@@ -10,15 +10,21 @@ interface Props {
   accountId: string
   cardsList: { name: string; label: string; color: string | null }[]
   canDelete: boolean
+  cardFilter: string
 }
 
-export default function NegotiationsHistory({ accountId, cardsList, canDelete }: Props) {
+export default function NegotiationsHistory({ accountId, cardsList, canDelete, cardFilter }: Props) {
   const { data: negotiations = [], isLoading } = useNegotiations(accountId)
   const cancelMutation = useCancelNegotiation(accountId)
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
   const getCardLabel = (name: string) => cardsList.find(c => c.name === name)?.label ?? name
   const getCardColor = (name: string) => cardsList.find(c => c.name === name)?.color ?? '#888'
+
+  // Filter negotiations by selected card
+  const filtered = cardFilter === 'all' 
+    ? negotiations 
+    : negotiations.filter(n => n.card === cardFilter)
 
   const handleCancel = async (negotiation: InvoiceNegotiation) => {
     const confirmed = await confirm(
@@ -30,28 +36,18 @@ export default function NegotiationsHistory({ accountId, cardsList, canDelete }:
   }
 
   if (isLoading) {
-    return (
-      <section className="negotiations-history">
-        <h2>Histórico de Negociações</h2>
-        <p className="empty">Carregando...</p>
-      </section>
-    )
+    return null
   }
 
-  if (negotiations.length === 0) {
-    return (
-      <section className="negotiations-history">
-        <h2>Histórico de Negociações</h2>
-        <p className="empty">Nenhuma negociação realizada.</p>
-      </section>
-    )
+  if (filtered.length === 0) {
+    return null
   }
 
   return (
     <section className="negotiations-history">
       <h2>Histórico de Negociações</h2>
       <div className="negotiations-list">
-        {negotiations.map(neg => (
+        {filtered.map(neg => (
           <NegotiationCard
             key={neg.id}
             negotiation={neg}
@@ -92,7 +88,8 @@ function NegotiationCard({
 }: NegotiationCardProps) {
   // Parse ISO timestamp and format in local timezone
   const createdDate = new Date(negotiation.created_at).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })
-  const installmentValue = negotiation.total_amount / negotiation.installments
+  const downPayment = negotiation.down_payment || 0
+  const installmentValue = (negotiation.total_amount - downPayment) / negotiation.installments
 
   return (
     <div className="negotiation-card">
@@ -102,7 +99,8 @@ function NegotiationCard({
           <span className="negotiation-card-dot" style={{ background: cardColor }} />
           <span className="negotiation-card-label">{cardLabel}</span>
           <span className="negotiation-card-amount">
-            {fmt(negotiation.total_amount)} em {negotiation.installments}x
+            {downPayment > 0 && <>Entrada {fmt(downPayment)} + </>}
+            {negotiation.installments}x de {fmt(installmentValue)}
           </span>
         </div>
         <div className="negotiation-card-actions">

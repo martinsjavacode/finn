@@ -16,6 +16,7 @@ export {
   useNegotiationInstallments,
   useIsInvoiceNegotiated,
   usePendingInvoices,
+  useAllNegotiatedInvoices,
   useCreateNegotiation,
   useCancelNegotiation,
 } from './useInvoiceNegotiation'

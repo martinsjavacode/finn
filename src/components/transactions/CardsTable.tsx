@@ -1,5 +1,5 @@
 import { Pencil, Trash2 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useQueryClient, useQuery } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
 import type { CreditCard, CardListItem, Category } from '../../types/database'
@@ -9,7 +9,7 @@ import { fmt, categoryOptions } from '../../utils/format'
 import { fetchCardInvoice, upsertCardInvoice, batchMarkTransactionsPaid } from '../../services/transactions'
 import { useTransactionMutations } from '../../hooks/useTransactionMutations'
 import { useIsMobile } from '../../hooks/useMediaQuery'
-import { useAuth, useIsInvoiceNegotiated } from '../../hooks'
+import { useAuth, useIsInvoiceNegotiated, useAllNegotiatedInvoices } from '../../hooks'
 import Button from '../ui/Button'
 import Select from '../ui/Select'
 import Modal from '../ui/Modal'
@@ -24,23 +24,54 @@ interface Props {
   month: string
   canUpdate: boolean
   canDelete: boolean
+  cardFilter: string
+  onCardFilterChange: (card: string) => void
 }
 
-export default function CardsTable({ cards, cardsList, categories, month, canUpdate, canDelete }: Props) {
+export default function CardsTable({ cards, cardsList, categories, month, canUpdate, canDelete, cardFilter, onCardFilterChange }: Props) {
   const canEdit = canUpdate || canDelete
   const isMobile = useIsMobile()
   const queryClient = useQueryClient()
   const { activeAccountId } = useAuth()
   const { removeCreditCard, removeInstallment } = useTransactionMutations(month)
-  const [cardFilter, setCardFilter] = useState('all')
   const [editing, setEditing] = useState<CreditCard | null>(null)
   const [page, setPage] = useState(1)
   const [perPage, setPerPage] = useState(10)
 
+  // Fetch all negotiated invoices to filter out original entries
+  const { data: negotiatedInvoices = [] } = useAllNegotiatedInvoices(activeAccountId)
+
+  // Create a Map for lookup of negotiated (card, month) pairs with their negotiation date
+  const negotiatedMap = useMemo(() => {
+    const map = new Map<string, string>()
+    negotiatedInvoices.forEach(inv => {
+      // Key: "card|YYYY-MM", Value: negotiation_created_at
+      const key = `${inv.card}|${inv.month.substring(0, 7)}`
+      map.set(key, inv.negotiation_created_at)
+    })
+    return map
+  }, [negotiatedInvoices])
+
+  // Filter out entries that belong to negotiated invoices (unless they are negotiation installments or created after negotiation)
+  const filteredCards = useMemo(() => {
+    return cards.filter(r => {
+      // Keep negotiation installments (they have negotiation_id)
+      if (r.negotiation_id) return true
+      // Check if this entry's invoice was negotiated
+      const key = `${r.card}|${r.month.substring(0, 7)}`
+      const negotiationDate = negotiatedMap.get(key)
+      if (!negotiationDate) return true // Not negotiated, show it
+      // Entry was created after the negotiation? Show it (new usage)
+      if (r.created_at && new Date(r.created_at) > new Date(negotiationDate)) return true
+      // Entry was part of the negotiated invoice, hide it
+      return false
+    })
+  }, [cards, negotiatedMap])
+
   const getLabel = (name: string) => cardsList.find(c => c.name === name)?.label ?? name
   const getColor = (name: string) => cardsList.find(c => c.name === name)?.color ?? '#888'
-  const cardNames = ['all', ...new Set(cards.map(r => r.card!).filter(Boolean))]
-  const sorted = [...cards].sort((a, b) => a.month.localeCompare(b.month))
+  const cardNames = ['all', ...new Set(filteredCards.map(r => r.card!).filter(Boolean))]
+  const sorted = [...filteredCards].sort((a, b) => a.month.localeCompare(b.month))
   const filtered = cardFilter === 'all' ? sorted : sorted.filter(r => r.card === cardFilter)
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / perPage))
@@ -77,7 +108,7 @@ export default function CardsTable({ cards, cardsList, categories, month, canUpd
       </div>
       <div className="tabs">
         {cardNames.map(c => (
-          <Button key={c} variant="tab" active={c === cardFilter} onClick={() => setCardFilter(c)}
+          <Button key={c} variant="tab" active={c === cardFilter} onClick={() => onCardFilterChange(c)}
             style={c !== 'all' && c === cardFilter ? { boxShadow: `inset 0 -2px 0 ${getColor(c)}` } : undefined}>
             {c === 'all' ? 'Todos' : <><span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: getColor(c), marginRight: 6 }} />{getLabel(c)}</>}
           </Button>

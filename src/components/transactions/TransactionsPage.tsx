@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
-import { useAuth, useAppData, useTransactions, useTransactionMutations, useBatchSelection } from '../../hooks'
+import { useAuth, useAppData, useTransactions, useTransactionMutations, useBatchSelection, useAllNegotiatedInvoices } from '../../hooks'
 import { categoryOptions } from '../../utils/format'
 import Select from '../ui/Select'
 import SummaryCards from '../dashboard/SummaryCards'
@@ -15,11 +15,13 @@ export default function TransactionsPage() {
   const { categories, cardsList } = useAppData(!!session, activeAccountId)
   const { month, setMonth, months, transactions, cards } = useTransactions(!!session, activeAccountId)
   const { batchMarkPaid } = useTransactionMutations(month)
+  const { data: negotiatedInvoices = [] } = useAllNegotiatedInvoices(activeAccountId)
   const [search, setSearch] = useState('')
   const [showAdd, setShowAdd] = useState(false)
   const [catFilter, setCatFilter] = useState('all')
   const [typeFilter, setTypeFilter] = useState<'all' | 'income' | 'expense'>('all')
   const [paidFilter, setPaidFilter] = useState<'all' | 'paid' | 'pending'>('all')
+  const [cardFilter, setCardFilter] = useState('all')
 
   const {
     selectionMode,
@@ -32,15 +34,41 @@ export default function TransactionsPage() {
     pruneSelection,
   } = useBatchSelection()
 
+  // Create a Map for lookup of negotiated (card, month) pairs with their negotiation date
+  const negotiatedMap = useMemo(() => {
+    const map = new Map<string, string>()
+    negotiatedInvoices.forEach(inv => {
+      const key = `${inv.card}|${inv.month.substring(0, 7)}`
+      map.set(key, inv.negotiation_created_at)
+    })
+    return map
+  }, [negotiatedInvoices])
+
   const ft = useMemo(() => transactions.filter(r =>
     (!search || r.description.toLowerCase().includes(search.toLowerCase())) &&
     (catFilter === 'all' || r.category === catFilter)
   ), [transactions, search, catFilter])
 
-  const fc = useMemo(() => cards.filter(r =>
-    (!search || r.description.toLowerCase().includes(search.toLowerCase())) &&
-    (catFilter === 'all' || r.category === catFilter)
-  ), [cards, search, catFilter])
+  // Filter cards: exclude entries from negotiated invoices (unless they are negotiation installments or created after)
+  const fc = useMemo(() => cards.filter(r => {
+    // Apply search and category filters
+    if (search && !r.description.toLowerCase().includes(search.toLowerCase())) return false
+    if (catFilter !== 'all' && r.category !== catFilter) return false
+    
+    // Keep negotiation installments
+    if (r.negotiation_id) return true
+    
+    // Check if this entry's invoice was negotiated
+    const key = `${r.card}|${r.month.substring(0, 7)}`
+    const negotiationDate = negotiatedMap.get(key)
+    if (!negotiationDate) return true
+    
+    // Entry was created after the negotiation? Show it
+    if (r.created_at && new Date(r.created_at) > new Date(negotiationDate)) return true
+    
+    // Entry was part of the negotiated invoice, hide it
+    return false
+  }), [cards, search, catFilter, negotiatedMap])
 
   // Apply type and paid filters for the table-visible transactions
   const ftVisible = useMemo(() => ft.filter(r =>
@@ -144,6 +172,8 @@ export default function TransactionsPage() {
           month={month}
           canUpdate={can('credit_cards', 'update')}
           canDelete={can('credit_cards', 'delete')}
+          cardFilter={cardFilter}
+          onCardFilterChange={setCardFilter}
         />
 
         {activeAccountId && (
@@ -151,6 +181,7 @@ export default function TransactionsPage() {
             accountId={activeAccountId}
             cardsList={cardsList}
             canDelete={can('transactions', 'delete')}
+            cardFilter={cardFilter}
           />
         )}
       </div>
