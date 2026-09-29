@@ -1,4 +1,5 @@
 import { type ReactNode, type FormEvent } from 'react'
+import { createPortal } from 'react-dom'
 import { useModal } from '../../hooks/useModal'
 import Button from './Button'
 
@@ -15,7 +16,7 @@ interface Props {
 export default function Modal({ title, onClose, onSubmit, children, submitLabel = 'Salvar', submitDisabled, className = '' }: Props) {
   const ref = useModal<HTMLFormElement>(onClose)
 
-  return (
+  return createPortal(
     <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-label={title}>
       <form className={`modal ${className}`} ref={ref} onClick={e => e.stopPropagation()} onSubmit={onSubmit ?? (e => e.preventDefault())}>
         <h2>{title}</h2>
@@ -25,6 +26,7 @@ export default function Modal({ title, onClose, onSubmit, children, submitLabel 
           {onSubmit && <Button type="submit" disabled={submitDisabled}>{submitLabel}</Button>}
         </div>
       </form>
-    </div>
+    </div>,
+    document.body
   )
 }

@@ -17,7 +17,7 @@
   .hide-mobile { display: none; }
   .tabs { gap: 0.3rem; margin-bottom: 0.8rem; }
   .tab { padding: 0.4rem 0.7rem; font-size: 0.7rem; height: 30px; }
-  .modal { margin: 0.5rem; padding: 1.5rem; max-width: calc(100vw - 1rem); border-radius: 12px; padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px)); }
+  .modal { padding: 1.5rem; max-width: calc(100vw - 1rem); border-radius: 12px; padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px)); }
   .modal-overlay { padding: 0.5rem; backdrop-filter: none; background: rgba(0, 0, 0, 0.75); }
   .page-header { margin-bottom: 1rem; }
   .page-header h2 { font-size: 1.1rem; }

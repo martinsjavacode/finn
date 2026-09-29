@@ -91,7 +91,8 @@ describe('NegotiateInvoiceModal', () => {
   it('shows form fields for negotiation details', () => {
     render(<NegotiateInvoiceModal {...defaultProps} />, { wrapper: createWrapper() })
     
-    expect(screen.getByText('Valor total do parcelamento')).toBeInTheDocument()
+    // "Valor total do parcelamento" appears twice: in radio label and in input label
+    expect(screen.getAllByText('Valor total do parcelamento').length).toBeGreaterThanOrEqual(1)
     expect(screen.getByText('Número de parcelas')).toBeInTheDocument()
     expect(screen.getByText('Primeira parcela em')).toBeInTheDocument()
   })

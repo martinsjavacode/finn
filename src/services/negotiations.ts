@@ -85,6 +85,22 @@ export async function isInvoiceNegotiated(card: string, month: string, accountId
   return (data?.length ?? 0) > 0
 }
 
+export async function fetchAllNegotiatedInvoices(accountId: string) {
+  const { data, error } = await (supabase
+    .from('negotiated_invoices' as never)
+    .select('card, month, invoice_negotiations!inner(account_id, created_at)')
+    .eq('invoice_negotiations.account_id' as never, accountId as never) as unknown as Promise<{ data: { card: string; month: string; invoice_negotiations: { created_at: string } }[] | null; error: unknown }>)
+  
+  // Flatten the response to include negotiation_created_at
+  const flattened = (data ?? []).map(inv => ({
+    card: inv.card,
+    month: inv.month,
+    negotiation_created_at: inv.invoice_negotiations.created_at,
+  }))
+  
+  return { data: flattened, error }
+}
+
 export async function fetchPendingInvoices(card: string, accountId: string) {
   // Get all months with credit card entries for this card
   const { data: entries } = await supabase
